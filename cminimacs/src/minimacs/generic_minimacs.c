@@ -187,8 +187,6 @@ COO_DEF_RET_ARGS(MiniMacs,MR, mul, uint dst; uint l; uint r;,dst,l,r) {
     MR_RET_OK;
   }
 
-  oe->p("No constants full MPC multiplication");
-
   triple = gmm->next_triple();
   if (!triple) MUL_FAIL("No more triples (%d taken).", gmm->idx_triple);
   
