@@ -1,0 +1,8 @@
+2014-01-06: Feature list for version 0.2 ( )
+	- stable shutdown
+	- acquiring connected peers
+	- sending data and receiving data to/from peers
+2013-07-24: Created
+	ChangeLog is a useful tool and Emacs has a very nice mode for
+	it. It is worth embracing see:
+	www.gnu.org/prep/standards/html_node/Change-Log-Concepts.html#Change-Log-Concepts
