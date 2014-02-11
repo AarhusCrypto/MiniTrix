@@ -20,7 +20,10 @@ depshapedir=$(BUILDDIR)/$(PART_NAME)
 # it later. (This is by convention, not enforced or necessary)
 # e.g. for creating a dependency on mpclib:
 #
-DEPS_osal=deps/osal
+DEPS_VERSION=parvusfortis_r3927
+DEPS=deps/$(DEPS_VERSION)
+REPO="svn://sun.bitlab.dk/Rasmus/phd/mpccode/tags"
+
 
 # This "all" target builds the whole project every time. To re-compile
 # the project without rebuilding the whole thing do "cd build && make
@@ -34,7 +37,7 @@ $(BUILDDIR):
 
 # create the configure scripts in BUILDDIR invoking Autotools and then
 # configure and build the whole thing.
-$(BUILDDIR)/stamp-h1: $(BUILDDIR) configure.ac Makefile.am $(DEPS_osal)/libosal.a
+$(BUILDDIR)/stamp-h1: $(BUILDDIR) configure.ac Makefile.am $(DEPS)/libosal.a
 	aclocal
 	autoconf
 	autoheader
@@ -61,9 +64,8 @@ $(depshapedir):
 #$(DEPS_mpclib)/libmpc.a: ../mpclib/build/mpclib/libmpc.a
 #	mkdir -p $(DEPS_mpclib)
 #	cp -r $(top_srcdir)../mpclib/build/mpclib/* $(DEPS_mpclib)
- $(DEPS_osal)/libosal.a: ../osal/build/osal/libosal.a
-	mkdir -p $(DEPS_osal)
-	cp -r $(top_srcdir)../osal/build/osal/* $(DEPS_osal)
+$(DEPS)/libosal.a: 
+	[ -d deps ] || svn export $(REPO)/$(DEPS_VERSION) ./deps
 
 
 
