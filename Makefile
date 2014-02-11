@@ -19,16 +19,16 @@ clean:
 	cd cminimacs && make clean
 	cd caes && make clean
 	cd cinterp && make clean
-
+REV_DIR=release_`svnversion`
 release:
-	mkdir release
-	cp -r osal/build/osal/* ./release
-	cp -r ds/build/ds/* ./release
-	cp -r encoding/build/encoding/* ./release
-	cp -r carena/build/carena/* ./release
-	cp -r math/build/math/* ./release
-	cp -r cminimacs/build/cminimacs/* ./release
-	cp -r caes/build/caes/caes/* ./release
-	cp -r cinterp/build/cinterp/* ./release
+	mkdir $(REV_DIR)
+	cp -r osal/build/osal/* ./$(REV_DIR)
+	cp -r ds/build/ds/* ./$(REV_DIR)
+	cp -r encoding/build/encoding/* ./$(REV_DIR)
+	cp -r carena/build/carena/* ./$(REV_DIR)
+	cp -r math/build/math/* ./$(REV_DIR)
+	cp -r cminimacs/build/cminimacs/* ./$(REV_DIR)
+	cp -r caes/build/caes/* ./$(REV_DIR)
+	cp -r cinterp/build/cinterp/* ./$(REV_DIR)
 
-.PHONY=all clean
+.PHONY=all clean release
