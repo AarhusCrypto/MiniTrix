@@ -47,7 +47,7 @@
 #
 #
 BUILDDIR=$(top_srcdir)/build
-DEPS_INCLUDE=-I$(top_srcdir)/headers -I$(top_srcdir)/deps/osal/headers
+DEPS_INCLUDE=-I$(top_srcdir)/headers -I$(top_srcdir)/deps/headers
 AM_CFLAGS=$(DEPS_INCLUDE)
 DEPS_OSAL_A=$(top_srcdir)/deps/libosal.a
 

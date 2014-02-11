@@ -20,7 +20,10 @@ depshapedir=$(BUILDDIR)/$(PART_NAME)
 # it later. (This is by convention, not enforced or necessary)
 # e.g. for creating a dependency on mpclib:
 #
-DEPS_osal=deps/osal
+DEPS_VERSION=parvusfortis_r3927
+DEPS=deps/$(DEPS_VERSION)
+REPO="svn://sun.bitlab.dk/Rasmus/phd/mpccode/tags"
+
 
 # This "all" target builds the whole project every time. To re-compile
 # the project without rebuilding the whole thing do "cd build && make
@@ -34,7 +37,7 @@ $(BUILDDIR):
 
 # create the configure scripts in BUILDDIR invoking Autotools and then
 # configure and build the whole thing.
-$(BUILDDIR)/stamp-h1: $(BUILDDIR) configure.ac Makefile.am $(DEPS_osal)/libosal.a
+$(BUILDDIR)/stamp-h1: $(BUILDDIR) configure.ac Makefile.am $(DEPS)/libosal.a
 	aclocal
 	autoconf
 	autoheader
@@ -58,9 +61,8 @@ $(depshapedir):
 # this target copies the libmpc.a and the headers directory from the
 # released mpclib (assuming mpclib is placed in the parent folder
 # along side with this part).
-$(DEPS_osal)/libosal.a: ../osal/build/osal/libosal.a
-	mkdir -p $(DEPS_osal)
-	cp -r $(top_srcdir)../osal/build/osal/* $(DEPS_osal)
+$(DEPS)/libosal.a: 
+	[ -d deps ] || svn export $(REPO)/$(DEPS_VERSION) ./deps
 
 
 # Go Nuke it all. The wipe.sh script deletes Makefile.in and m4 stuff
