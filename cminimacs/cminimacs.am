@@ -47,23 +47,10 @@
 #
 #
 BUILDDIR=$(top_srcdir)/build
-DEPS_INCLUDE=-I$(top_srcdir)/deps/osal/headers\
-	-I$(top_srcdir)/headers\
-	-I$(top_srcdir)/deps/encoding/headers\
-	-I$(top_srcdir)/deps/math/headers\
-	-I$(top_srcdir)/deps/carena/headers\
-	-I$(top_srcdir)/deps/encoding/headers\
-	-I$(top_srcdir)/deps/ds/headers
+DEPS_INCLUDE=-I$(top_srcdir)/deps/headers -I$(top_srcdir)/headers
 
-DEPS_OSAL_A=$(top_srcdir)/deps/osal/libosal.a
 CMINIMACS_LIB=$(top_srcdir)/build/src/libcminimacs.a\
-	-L$(top_srcdir)/deps/osal/ -losal\
-	-L$(top_srcdir)/deps/encoding/ -lencoding\
-	-L$(top_srcdir)/deps/math/ -lmath\
-	-L$(top_srcdir)/deps/carena/ -lcarena\
-	-L$(top_srcdir)/deps/ds -lds\
-	-L$(top_srcdir)/deps/encoding -lencoding\
-	-lpthread
+	-L$(top_srcdir)/deps -losal -lencoding -lmath -lcarena -lds -lencoding -lpthread
 
 AM_CFLAGS=$(DEPS_INCLUDE) -Werror
 
