@@ -1,7 +1,7 @@
 all: clean build
 
 build:
-	cd osal && make  depshape 
+	cd osal && make depshape 
 	cd ds && make  depshape
 	cd encoding && make  depshape
 	cd carena && make  depshape
@@ -19,8 +19,13 @@ clean:
 	cd cminimacs && make clean
 	cd caes && make clean
 	cd cinterp && make clean
+
+up:
+	svn commit -m "Preparing release"
+	svn up 
+
 REV_DIR=parvusfortis_r`svnversion`
-release:
+release: clean up build
 	mkdir $(REV_DIR)
 	cp -r osal/build/osal/* ./$(REV_DIR)
 	cp -r ds/build/ds/* ./$(REV_DIR)
