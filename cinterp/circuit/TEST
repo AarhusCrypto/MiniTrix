@@ -1,0 +1,9 @@
+#
+#
+# A comment for whatever !
+# 
+
+1 2 3 4
+CONST a [ 1 1 1 1 1 1 1 1 ]
+init_heap 1024
+load 0 a
