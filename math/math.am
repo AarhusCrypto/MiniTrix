@@ -47,7 +47,7 @@
 #
 #
 BUILDDIR=$(top_srcdir)/build
-DEPS_INCLUDE=-I$(top_srcdir)/headers -I$(top_srcdir)/deps/osal/headers
-LIB_MATH=-L$(top_srcdir)/deps/osal -losal -L$(top_srcdir)/build/src/math -lmath
+DEPS_INCLUDE=-I$(top_srcdir)/headers -I$(top_srcdir)/deps/headers
+LIB_MATH=-L$(top_srcdir)/deps -losal -L$(top_srcdir)/build/src/math -lmath
 AM_CFLAGS=$(DEPS_INCLUDE)
 
