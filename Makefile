@@ -19,7 +19,7 @@ clean:
 	cd cminimacs && make clean
 	cd caes && make clean
 	cd cinterp && make clean
-REV_DIR=release_`svnversion`
+REV_DIR=parvusfortis_r`svnversion`
 release:
 	mkdir $(REV_DIR)
 	cp -r osal/build/osal/* ./$(REV_DIR)
