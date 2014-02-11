@@ -47,8 +47,7 @@
 #
 #
 BUILDDIR=$(top_srcdir)/build
-DEPS_INCLUDE=-I$(top_srcdir)/deps/osal/headers -I$(top_srcdir)/headers -I$(top_srcdir)/deps/ds/headers -I$(top_srcdir)/deps/encoding/headers
-DEPS_OSAL_A=$(top_srcdir)/deps/osal/libosal.a
-CARENA_LIB=-L$(top_srcdir)/deps/osal -losal -L$(top_srcdir)/build/src/ -lcarena -L$(top_srcdir)/deps/ds -lds -lpthread -L$(top_srcdir)/deps/encoding -lencoding
+DEPS_INCLUDE=-I$(top_srcdir)/deps/headers -I$(top_srcdir)/headers 
+CARENA_LIB=-L$(top_srcdir)/build/src -lcarena -L$(top_srcdir)/deps -losal -lds -lencoding -lpthread 
 AM_CFLAGS=$(DEPS_INCLUDE) -Werror -Wall 
 
