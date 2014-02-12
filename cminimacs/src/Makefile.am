@@ -48,6 +48,7 @@ libcminimacs_a_SOURCES = minimacs/generic_minimacs.c\
 	reedsolomon/reedsolomon.c\
 	reedsolomon/minimacs_enc_fft.c\
 	bedoza/bedoza_mac.c\
+	stats.c\
 	ass/ass.c
 
 bin_PROGRAMS = lsrep genpre
