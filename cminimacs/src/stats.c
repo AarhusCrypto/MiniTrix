@@ -108,6 +108,7 @@ COO_DEF_NORET_NOARGS(Measurement, measure) {
   MeasurementImpl impl = (MeasurementImpl)this->impl;
   MeasurementImpl topi = (MeasurementImpl)top->impl;
   List l = 0;
+  /*
   if (topi->sub->contains(this->get_name())) {
     l = topi->sub->get(this->get_name());
   } else {
@@ -116,12 +117,12 @@ COO_DEF_NORET_NOARGS(Measurement, measure) {
   }
   impl->stop = get_nano_time();
   l->add_element(this);
+  */
 }}
 
 void Measurements_print(OE oe) {
   /*
   if (_oe_ && top) {
-    char m[512] = {0};
     uint i = 0;
     MeasurementImpl topi = (MeasurementImpl)top->impl;
     List keys = topi->sub->get_keys();
@@ -145,9 +146,10 @@ void Measurements_print(OE oe) {
 	  avg += duration;
 	}
 	if (first) {
+	  char str[1024] = {0};
 	  avg = avg / m4k_i->size();
-	  osal_sprintf(m,"%s\t%u\t%u\t%u", first->get_name(), min, max, avg);
-	  oe->p(m);
+	  osal_sprintf(str,"%s\t%u\t%u\t%u", first->get_name(), min, max, avg);
+	  oe->p(str);
 	}
       }
     }
@@ -165,6 +167,7 @@ static uint str_hash(void * s) {
 
   while(ss[lss]) {
     res += 101*ss[lss]+65537;
+    ++lss;
   }
   
   return res;
@@ -205,17 +208,18 @@ Measurement Measurement_New(char * name) {
   if (!_oe_) {
     return 0;
   }
+  
  
   res =  _oe_->getmem(sizeof(*res));
   if (!res) return 0;
 
   impl = (MeasurementImpl)_oe_->getmem(sizeof(*impl));
   if (!impl) goto failure;
-
   
 
   while(name[lname]) ++lname;
   ++lname;
+
   impl->name = _oe_->getmem(lname);
   if (impl->name) {
     mcpy(impl->name, name, lname);
@@ -233,8 +237,10 @@ Measurement Measurement_New(char * name) {
   COO_ATTACH(Measurement, res, get_duration_m);
   COO_ATTACH(Measurement, res, measure);
 
+
   impl->sub = (Map)HashMap_new(_oe_, str_hash, str_compare, 1024);
   res->impl = impl;
+
   return res;
  failure:  
   _oe_->p("TODO(rwl): Need to clean up :(");

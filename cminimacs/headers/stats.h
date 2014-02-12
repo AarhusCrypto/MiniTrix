@@ -26,10 +26,8 @@ Measurement Measurement_New(char * name);
 void init_stats(OE oe);
 #define InitStats(OE) init_stats((OE));
 #define MEASURE_FN(CALL) {					\
-    char m[512] = {0};						\
     Measurement _m_ = 0;					\
-    osal_sprintf(m,"%s:%u %s",__FILE__, __LINE__, #CALL );	\
-    _m_ = Measurement_New( m  );				\
+    _m_ = Measurement_New( #CALL  );				\
     CALL;							\
     if (_m_)							\
       _m_->measure();}

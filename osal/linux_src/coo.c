@@ -3,7 +3,9 @@
 #ifdef LINUX
 #include <sys/mman.h>
 #include <stdlib.h>
+#include <stdio.h>
 #endif
+
 
 static Memory mem;
 static byte * freelist;
@@ -113,6 +115,10 @@ static void * special_alloc_impl(uint size)
     }
 
   if (lspecial_mem > idx + size) { res = special_mem + idx; idx += size; }
+  else { 
+    printf("FATAL: COO Library ran out of memory.");
+    return 0;
+  }
   return res;
 }
 
@@ -150,7 +156,7 @@ Memory LinuxSpecialMemoryNew(Memory m)
   pageaddr = pageaddr - (pageaddr % 4096);
   if (mprotect( (void*)pageaddr, 1024*4096, PROT_READ | PROT_WRITE | PROT_EXEC ) != 0)
     return NULL;
-  lspecial_mem = 2048*4096;
+  lspecial_mem = 1024*1024*128;
   return res;
   
 }
