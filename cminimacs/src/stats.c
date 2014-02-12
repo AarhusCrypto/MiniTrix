@@ -119,22 +119,42 @@ COO_DEF_NORET_NOARGS(Measurement, measure) {
 }}
 
 void Measurements_print(OE oe) {
+  /*
   if (_oe_ && top) {
     char m[512] = {0};
     uint i = 0;
     MeasurementImpl topi = (MeasurementImpl)top->impl;
+    List keys = topi->sub->get_keys();
     oe->p("Measurements Statistics");
     oe->p("-----------------------");
     
-    for(i = 0;i < topi->sub->size();++i) {
-      Measurement cur = topi->sub->get_element(i);
-      osal_sprintf(m,"\t%s\t%llu ns", cur->get_name(), cur->get_duration_ns());
-      oe->p(m);
+    for(i = 0; i < keys->size();++i) {
+      List m4k_i = topi->sub->get(keys->get_element(i));
+      uint min = 0;
+      uint max = 0;
+      uint avg = 0;
+      uint j = 0;
+      if (m4k_i) {
+	Measurement first = 0;
+	for(j = 0;j < m4k_i->size();++j) {
+	  Measurement m = m4k_i->get_element(j);
+	  if (j == 0) first = m;
+	  ull duration = m->get_duration_ns();
+	  if (duration > max) max = duration;
+	  if (duration < min) min = duration;
+	  avg += duration;
+	}
+	if (first) {
+	  avg = avg / m4k_i->size();
+	  osal_sprintf(m,"%s\t%u\t%u\t%u", first->get_name(), min, max, avg);
+	  oe->p(m);
+	}
+      }
     }
   } else {
     if (oe) oe->p("Measurements not initialized, invoke init_stats(oe);");
   }
-  
+  */
 }
 
 static uint str_hash(void * s) {
@@ -213,7 +233,7 @@ Measurement Measurement_New(char * name) {
   COO_ATTACH(Measurement, res, get_duration_m);
   COO_ATTACH(Measurement, res, measure);
 
-  impl->sub = HashMap_New(oe, str_hash, str_compare, 1024);
+  impl->sub = (Map)HashMap_new(_oe_, str_hash, str_compare, 1024);
   res->impl = impl;
   return res;
  failure:  

@@ -24,6 +24,7 @@ typedef struct _measurement_ {
 void Measurements_print(OE oe);
 Measurement Measurement_New(char * name);
 void init_stats(OE oe);
+#define InitStats(OE) init_stats((OE));
 #define MEASURE_FN(CALL) {					\
     char m[512] = {0};						\
     Measurement _m_ = 0;					\
@@ -43,6 +44,7 @@ void init_stats(OE oe);
 #define PrintMeasurements(OE) {\
     (OE)->p("Measurements disabled");}
 
+#define InitStats(OE)
 
 #endif
 

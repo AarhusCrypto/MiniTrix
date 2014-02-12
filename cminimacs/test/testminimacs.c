@@ -43,7 +43,7 @@ static MiniMacs setup_generic_minimacs(OE oe, const char * raw_material_file) {
 
 int main(int c, char **a) {
   OE oe = OperatingEnvironment_LinuxNew();
-  init_stats(oe);
+  InitStats(oe);
   init_polynomial();
   if (oe) {
     MR mr = {{0}};
