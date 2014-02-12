@@ -2,6 +2,7 @@
 #define MAP_H
 
 #include <osal.h> 
+#include <list.h>
 
 typedef struct _map_entry_ {
   OE oe;
@@ -41,6 +42,11 @@ typedef struct _map_ {
    */
   void * (*rem)(void * key);
 
+  /*!
+   *
+   * Return the keys in this map.
+   */
+  List (*get_keys)(void);
   void * impl;
 } * Map;
 

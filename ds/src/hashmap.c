@@ -93,6 +93,24 @@ COO_DEF_RET_NOARGS(Map, uint, size) {
   return res;
 }}
 
+COO_DCL(Map, List, get_keys);
+COO_DEF_RET_NOARGS(Map, List, get_keys) {
+  HashMap hmap = (HashMap)this->impl;
+  uint bi = 0;
+  List res = SingleLinkedList_new(hmap->oe);
+  for(bi = 0; bi < hmap->lbuckets;++bi) {
+    if (hmap->buckets[bi]) {
+      List bucket = hmap->buckets[bi];
+      uint ei = 0;
+      for(ei = 0; ei < bucket->size();++ei) {
+	MapEntry e = (MapEntry)bucket->get_element(ei);
+	res->add_element(e->key);
+      }
+    }
+  }
+  return res;
+}}
+
 COO_DCL(Map, void *, rem, void * key) 
 COO_DEF_RET_ARGS(Map, void *, rem, void * key;,key) {
   HashMap hmap = (HashMap)this->impl;
@@ -138,6 +156,7 @@ Map HashMap_new(OE oe, HashFN hfn, CompareFN cfn, uint buckets ) {
     COO_ATTACH(Map, map, contains);
     COO_ATTACH(Map, map, size);
     COO_ATTACH(Map, map, rem);
+    COO_ATTACH(Map, map, get_keys);
 
     hmap->cfn = cfn;
     hmap->hfn = hfn;

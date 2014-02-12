@@ -5,7 +5,9 @@ extern "C" {
 #include <stdio.h>
 #include "reedsolomon/reedsolomon.h"
 #include "math/fft.h"
+#include "math/matrix.h"
 #include <coo.h>
+#include "stats.h"
 #define GOTOEXIT(msg) \
   { if (_DEBUG) { printf("%s:%d \"%s\"\n",__FILE__,__LINE__,msg); }; goto exit; }\
 
@@ -257,7 +259,7 @@ polynomial * minimacs_encode(polynomial * msg, uint lmsg, uint lcode) {
 
     load_vector(msgvec,code,lmsg);
     
-    codevec = matrix_multiplication(enc,msgvec);
+    MEASURE_FN(codevec = matrix_multiplication(enc,msgvec))
     if (!codevec) GOTOEXIT("Failed to multiply enc and msgvec");
 
     flat = matrix_topoly(codevec,0);

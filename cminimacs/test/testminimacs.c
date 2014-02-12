@@ -3,7 +3,7 @@
 #include <osal.h>
 #include <carena.h>
 #include <math/polynomial.h>
-
+#include <stats.h>
 #include <minimacs/minimacs_rep.h>
 
 static MiniMacs setup_generic_minimacs(OE oe, const char * raw_material_file) {
@@ -43,6 +43,7 @@ static MiniMacs setup_generic_minimacs(OE oe, const char * raw_material_file) {
 
 int main(int c, char **a) {
   OE oe = OperatingEnvironment_LinuxNew();
+  init_stats(oe);
   init_polynomial();
   if (oe) {
     MR mr = {{0}};
@@ -62,6 +63,8 @@ int main(int c, char **a) {
 
     GenericMiniMacs_destroy( & mm );
   }
+
+  PrintMeasurements(oe);
 
  failure:
   return 0;

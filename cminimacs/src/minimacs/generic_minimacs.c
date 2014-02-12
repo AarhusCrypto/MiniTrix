@@ -4,6 +4,7 @@
 #include <math/matrix.h>
 #include <blockingqueue.h>
 #include <config.h>
+#include "stats.h"
 
 COO_DCL(MiniMacs, uint, get_id);
 COO_DEF_RET_NOARGS(MiniMacs, uint, get_id) {

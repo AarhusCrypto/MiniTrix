@@ -44,7 +44,7 @@
 # Notice now we are in the world of AUTOMAKE and thus this file will
 # have to redefine variables that are also present in Makefile, the
 # hope is only a few variables needs to be redefined.
-#
+       #
 #
 BUILDDIR=$(top_srcdir)/build
 DEPS_INCLUDE=-I$(top_srcdir)/deps/headers\
