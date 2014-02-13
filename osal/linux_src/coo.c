@@ -77,7 +77,7 @@ void * coo_patch( byte * stub, uint lstub, void * this )
   uint i = 0;
   byte pattern[] = {0xEF, 0xBE, 0xAD, 0xDE, 0xEF, 0xBE, 0xAD, 0xDE};
   uint lpattern = sizeof(pattern);
-  byte * fun = mem->alloc(lstub);
+  byte * fun = mem->alloc(lstub+1);
   byte found = 0;
   mcpy(fun, stub, lstub);
   for(i = 0;i<lstub-lpattern;i++)

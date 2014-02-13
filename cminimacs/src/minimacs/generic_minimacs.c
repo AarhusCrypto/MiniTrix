@@ -633,7 +633,7 @@ COO_DEF_RET_ARGS(MiniMacs,MR,open,hptr dst;,dst) {
 
   if (minimacs_rep_is_public_const(v)) return;
 
-  shares = (Data *)oe->getmem(sizeof(*shares)*gmm->peer_map->size()+1);
+  shares = (Data *)oe->getmem(sizeof(*shares)*(gmm->peer_map->size()+1));
   if (!shares) MRGF("Failed to allocate shares for opening.");
 
   for(id = 0;id < gmm->peer_map->size()+1;++id) {
