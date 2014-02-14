@@ -4,7 +4,7 @@
 #include <minimacs/generic_minimacs.h>
 #include <osal.h>
 #include <carena.h>
-//#include <stats.h>
+#include <stats.h>
 
 
 int main(int c, char **a) {
@@ -35,7 +35,7 @@ int main(int c, char **a) {
     oe = OperatingEnvironment_LinuxNew();
     arena = CArena_new(oe);
     init_polynomial();
-    //    InitStats(oe);
+    InitStats(oe);
     printf("Loading material from file %s ... \n", a[1]);
     load_shares(a[1],
 		&triples, &ltriples,

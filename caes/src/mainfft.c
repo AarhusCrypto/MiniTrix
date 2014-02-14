@@ -4,7 +4,7 @@
 #include <minimacs/generic_minimacs.h>
 #include <osal.h>
 #include <carena.h>
-//#include <stats.h>
+#include <stats.h>
 
 int main(int c, char **a) {
 
@@ -35,7 +35,8 @@ int main(int c, char **a) {
     oe = OperatingEnvironment_LinuxNew();
     arena = CArena_new(oe);
     fftenc = MiniMacsEnc_FFTNew(oe);
-    //    init_stats(oe);
+
+    InitStats(oe);
 
 
     printf("Loading material from file %s ... \n", a[1]);
@@ -71,7 +72,7 @@ int main(int c, char **a) {
       mpc_aes(comp,pltxt,key);
     }
 
-    //    PrintMeasurements(oe);
+    PrintMeasurements(oe);
 
   } else {
     printf("Usage %s <preprocessed material>\n",a[0]);
