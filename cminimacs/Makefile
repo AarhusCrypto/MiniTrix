@@ -24,6 +24,9 @@ DEPS_VERSION=parvusfortis_r3957
 DEPS=deps/$(DEPS_VERSION)
 REPO="svn://sun.bitlab.dk/Rasmus/phd/mpccode/tags"
 
+DEV_OSAL="../osal/build/osal/libosal.a"
+DEV_DS="../ds/build/ds/libds.a"
+
 # This "all" target builds the whole project every time. To re-compile
 # the project without rebuilding the whole thing do "cd build && make
 # all". This scripts is a META scripts invoking Autotool making the
@@ -62,7 +65,8 @@ $(depshapedir):
 # along side with this part).
 $(DEPS)/libosal.a: 
 	[ -d deps ] || svn export $(REPO)/$(DEPS_VERSION) ./deps
-
+	@[ -f $(DEV_OSAL) ]&&( cp $(DEV_OSAL) ./deps && echo "OSAL Updated to DEV Version")
+	@[ -f $(DEV_DS) ] && ( cp $(DEV_DS) ./deps && echo "DS Updated to DEV Version")
 
 # Go Nuke it all. The wipe.sh script deletes Makefile.in and m4 stuff
 # created by aclocal, autoconf and automake. 

@@ -4,160 +4,6 @@
 #include <hashmap.h>
 
 #ifdef STATS_ON
-typedef struct _measurement_impl_ {
-  char * name;
-  ull start;
-  ull stop;
-  Map sub;
-} * MeasurementImpl;
-
-
-static unsigned long long get_nano_time() {
-  struct timespec tspec = {0};
-  if (clock_gettime(CLOCK_REALTIME,&tspec) == 0) {
-    return tspec.tv_nsec;
-  } else {
-
-  }
-}
-
-static OE _oe_;
-
-static Measurement top;
-
-void init_stats(OE oe) {
-  if (!_oe_) {
-    _oe_ = oe;
-    top = Measurement_New("CMiniMacs Statistics");
-  }
-}
-
-
-COO_DCL(Measurement, char *, get_name)
-COO_DEF_RET_NOARGS(Measurement, char *, get_name) {
-  MeasurementImpl impl = (MeasurementImpl)this->impl;
-  return impl->name;
-}}
-
-
-COO_DCL(Measurement, ull, get_start)
-COO_DEF_RET_NOARGS(Measurement, ull, get_start) {
-  MeasurementImpl impl = (MeasurementImpl)this->impl;
-  return impl->start;
-}}
-
-COO_DCL(Measurement, ull, get_stop);
-COO_DEF_RET_NOARGS(Measurement, ull, get_stop) {
-  MeasurementImpl impl = (MeasurementImpl)this->impl;
-  return impl->stop;
-}}
-
-COO_DCL(Measurement, Map, get_sub);
-COO_DEF_RET_NOARGS(Measurement, Map, get_sub) {
-  MeasurementImpl impl = (MeasurementImpl)this->impl;
-  return impl->sub;
-}}
-
-
-COO_DCL(Measurement, ull, get_duration_ns);
-COO_DEF_RET_NOARGS(Measurement, ull, get_duration_ns) {
-  MeasurementImpl impl = (MeasurementImpl)this->impl;
-  if (impl->stop < impl->start) {
-    _oe_->p("Incomplete measurement: It stopped before it started.");
-    return 0;
-  }
-  return impl->stop - impl->start;
-}}
-
-#define NANO_PER_MILIS 1000000
-COO_DCL(Measurement, ull, get_duration_ms);
-COO_DEF_RET_NOARGS(Measurement, ull, get_duration_ms) {
-  MeasurementImpl impl = (MeasurementImpl)this->impl;
-  if (impl->stop < impl->start) {
-    _oe_->p("Incomplete measurement: It stopped before it started.");
-    return 0;
-  }
-  
-  return (impl->stop - impl->start)/NANO_PER_MILIS;
-}}
-
-#define NANO_PER_SECOND 1000000000L
-COO_DCL(Measurement, ull, get_duration_s);
-COO_DEF_RET_NOARGS(Measurement, ull, get_duration_s) {
-  MeasurementImpl impl = (MeasurementImpl)this->impl;
-  if (impl->stop < impl->start) {
-    _oe_->p("Incomplete measurement: It stopped before it started.");
-    return 0;
-  }
-  return (impl->stop - impl->start)/NANO_PER_SECOND;
-}}
-
-#define NANO_PER_MINUTE (60*NANO_PER_SECOND)
-COO_DCL(Measurement, ull, get_duration_m);
-COO_DEF_RET_NOARGS(Measurement, ull, get_duration_m) {
-  MeasurementImpl impl = (MeasurementImpl)this->impl;
-  if (impl->stop < impl->start) {
-    _oe_->p("Incomplete measurement: It stopped before it started.");
-    return 0;
-  }
-  return (impl->stop - impl->start)/NANO_PER_MINUTE;
-}}
-
-COO_DCL(Measurement, void, measure);
-COO_DEF_NORET_NOARGS(Measurement, measure) {
-  MeasurementImpl impl = (MeasurementImpl)this->impl;
-  MeasurementImpl topi = (MeasurementImpl)top->impl;
-  List l = 0;
-  /*
-  if (topi->sub->contains(this->get_name())) {
-    l = topi->sub->get(this->get_name());
-  } else {
-    l = SingleLinkedList_new(_oe_);
-    topi->sub->put(this->get_name(), l);
-  }
-  impl->stop = get_nano_time();
-  l->add_element(this);
-  */
-}}
-
-void Measurements_print(OE oe) {
-  /*
-  if (_oe_ && top) {
-    uint i = 0;
-    MeasurementImpl topi = (MeasurementImpl)top->impl;
-    List keys = topi->sub->get_keys();
-    oe->p("Measurements Statistics");
-    oe->p("-----------------------");
-    
-    for(i = 0; i < keys->size();++i) {
-      List m4k_i = topi->sub->get(keys->get_element(i));
-      uint min = 0;
-      uint max = 0;
-      uint avg = 0;
-      uint j = 0;
-      if (m4k_i) {
-	Measurement first = 0;
-	for(j = 0;j < m4k_i->size();++j) {
-	  Measurement m = m4k_i->get_element(j);
-	  if (j == 0) first = m;
-	  ull duration = m->get_duration_ns();
-	  if (duration > max) max = duration;
-	  if (duration < min) min = duration;
-	  avg += duration;
-	}
-	if (first) {
-	  char str[1024] = {0};
-	  avg = avg / m4k_i->size();
-	  osal_sprintf(str,"%s\t%u\t%u\t%u", first->get_name(), min, max, avg);
-	  oe->p(str);
-	}
-      }
-    }
-  } else {
-    if (oe) oe->p("Measurements not initialized, invoke init_stats(oe);");
-  }
-  */
-}
 
 static uint str_hash(void * s) {
   char *ss = (char*)s;
@@ -200,6 +46,110 @@ static int str_compare(void * a, void * b) {
   return 0;
 }
 
+typedef struct _measurement_impl_ {
+  char * name;
+  ull start;
+  ull min, max, avg, count;
+  Map sub;
+} * MeasurementImpl;
+
+static
+unsigned long long _nano_time() {
+  struct timespec tspec = {0};
+  if (clock_gettime(CLOCK_REALTIME,&tspec) == 0) {
+    return 1000000000L*tspec.tv_sec + tspec.tv_nsec;
+  } else {
+    return 0;
+  }
+}
+
+static OE _oe_;
+
+static Measurement top;
+
+void init_stats(OE oe) {
+  if (!_oe_) {
+    MeasurementImpl topi = 0;
+    _oe_ = oe;
+    top = Measurement_New("CMiniMacs Statistics");
+    topi=(MeasurementImpl)top->impl;
+    topi->sub = (Map)HashMap_new(_oe_, str_hash, str_compare, 128);
+  }
+}
+
+
+COO_DCL(Measurement, char *, get_name)
+COO_DEF_RET_NOARGS(Measurement, char *, get_name) {
+  MeasurementImpl impl = (MeasurementImpl)this->impl;
+  return impl->name;
+}}
+
+
+COO_DCL(Measurement, void, measure);
+COO_DEF_NORET_NOARGS(Measurement, measure) {
+  MeasurementImpl impl = (MeasurementImpl)this->impl;
+  MeasurementImpl topi = (MeasurementImpl)top->impl;
+  MeasurementImpl m = 0;
+  ull duration = 0;
+
+  if (topi->sub->contains(this->get_name())) {
+    m = topi->sub->get(this->get_name());
+  } else {
+    topi->sub->put(this->get_name(), this);
+  }
+  
+  duration = _nano_time() - impl->start;
+  if (impl->min == 0) impl->min = duration;
+  if (impl->min > duration) impl->min = duration;
+  if (impl->max < duration) impl->max = duration;
+  impl->avg = ((impl->avg * impl->count) + duration)/(impl->count+1);
+  impl->count += 1;
+
+}}
+
+Measurement Measurements_start(char * name) {
+  MeasurementImpl topi = (MeasurementImpl)top->impl;
+  Measurement m = 0;
+  MeasurementImpl mi = 0;
+  ull start = _nano_time();
+
+  if (topi->sub->contains(name)) {
+    m = topi->sub->get(name);
+  } else {
+    m = Measurement_New(name);
+    topi->sub->put(name, m);
+  }
+  mi = (MeasurementImpl)m->impl;
+  mi->start = start;
+  return m;
+}
+
+void Measurements_print(OE oe) {
+
+  if (_oe_ && top) {
+    uint i = 0;
+    MeasurementImpl topi = (MeasurementImpl)top->impl;
+    List keys = topi->sub->get_keys();
+    oe->p("Measurements Statistics");
+    oe->p("-----------------------");
+    oe->p("           NAME          \t  MIN  \t  MAX  \t  AVG  \t  COUNT");
+    
+    for(i = 0; i < keys->size();++i) {
+      Measurement cur = (Measurement)topi->sub->get(keys->get_element(i));
+      if (cur) {
+        MeasurementImpl curi = (MeasurementImpl)cur->impl;
+        char mmm[512] = {0};
+        osal_sprintf(mmm, "%s\t%u\%u\%u\%u", 
+                     curi->name, curi->min, curi->max, curi->avg, curi->count);
+      }
+    }
+  } else {
+    if (oe) oe->p("Measurements not initialized, invoke init_stats(oe);");
+  }
+
+}
+
+
 Measurement Measurement_New(char * name) {
   Measurement res = 0; 
   MeasurementImpl impl= 0;
@@ -208,7 +158,6 @@ Measurement Measurement_New(char * name) {
   if (!_oe_) {
     return 0;
   }
-  
  
   res =  _oe_->getmem(sizeof(*res));
   if (!res) return 0;
@@ -225,20 +174,11 @@ Measurement Measurement_New(char * name) {
     mcpy(impl->name, name, lname);
   }
 
-  impl->start = get_nano_time();
+  impl->start = _nano_time();
 
   COO_ATTACH(Measurement, res, get_name);
-  COO_ATTACH(Measurement, res, get_start);
-  COO_ATTACH(Measurement, res, get_stop);
-  COO_ATTACH(Measurement, res, get_sub);
-  COO_ATTACH(Measurement, res, get_duration_ms);
-  COO_ATTACH(Measurement, res, get_duration_ns);
-  COO_ATTACH(Measurement, res, get_duration_s);
-  COO_ATTACH(Measurement, res, get_duration_m);
   COO_ATTACH(Measurement, res, measure);
 
-
-  impl->sub = (Map)HashMap_new(_oe_, str_hash, str_compare, 1024);
   res->impl = impl;
 
   return res;

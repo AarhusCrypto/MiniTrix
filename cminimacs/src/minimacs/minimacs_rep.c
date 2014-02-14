@@ -6,7 +6,7 @@
 #include <common.h>
 #include <stdarg.h>
 #include <encoding/der.h>
-
+#include <stats.h>
 // forward
 void minimacs_rep_clean_up( MiniMacsRep * rep );
 
@@ -44,7 +44,7 @@ MiniMacsRep * minimacs_create_rep_from_plaintext_f(MiniMacsEnc encoder,
   if (!shares) goto failure;
 
   // encode the public code word for this message
-  dx = encoder->encode((polynomial*)shares[nplayers], ltext);
+  MEASURE_FN(dx = encoder->encode((polynomial*)shares[nplayers], ltext));
   if (!dx) goto failure;
 
   // generate all the mac keys up front
@@ -93,7 +93,7 @@ MiniMacsRep * minimacs_create_rep_from_plaintext_f(MiniMacsEnc encoder,
     current->ldx_codeword = codelength;
 
     // reed solomon code word
-    current->codeword = (byte*)encoder->encode((polynomial*)shares[i], ltext);
+    MEASURE_FN(current->codeword = (byte*)encoder->encode((polynomial*)shares[i], ltext));
     if (!current->codeword) goto failure;
     current->lcodeword= codelength;
 
@@ -360,7 +360,10 @@ MiniMacsRep minimacs_create_rep_public_plaintext_fast(
   memset(res,0,sizeof(*res));
 
   res->lval = ltext;
-  res->codeword = encoder->encode((polynomial*)text,ltext);
+#ifndef STATS_ON
+#error No Statistics 
+#endif
+  MEASURE_FN(res->codeword = encoder->encode((polynomial*)text,ltext));
   if (!res->codeword) goto failure;
   res->lcodeword = codelength;
   
@@ -610,7 +613,7 @@ MiniMacsRep minimacs_rep_add_const_fast(MiniMacsEnc encoder, MiniMacsRep rep, by
   memcpy(tmp,c,lc);
 
   // compute C(u), the constant as a codeword 
-  encoded_c = encoder->encode(tmp,rep->lval);
+  MEASURE_FN(encoded_c = encoder->encode(tmp,rep->lval));
   free(tmp);tmp=0;
   if (!encoded_c) { 
     goto failure;
@@ -769,7 +772,7 @@ MiniMacsRep minimacs_rep_mul_const_fast(MiniMacsEnc encoder, MiniMacsRep rep, by
 
 
   // encoded c
-  encoded_c = encoder->encode(tmp,rep->lval);
+  MEASURE_FN(encoded_c = encoder->encode(tmp,rep->lval));
   if (!encoded_c) {
     goto failure;
   }
@@ -1230,7 +1233,7 @@ void load_shares( const char * filename,
     byte * rep = 0;
 
 
-    (*triples)[i] = (MiniMacsTripleRep)malloc(sizeof(MiniMacsTripleRep));
+    (*triples)[i] = (MiniMacsTripleRep)malloc(sizeof( *((*triples)[i]) )  );
     if (!(*triples)[i]) return;
     memset( (*triples)[i],0,sizeof(MiniMacsTripleRep));
    

@@ -333,7 +333,7 @@ polynomial * minimacs_encode(polynomial * msg, uint lmsg, uint lcode) {
     load_vector(msgvec,msg,lmsg);
     
     // compute Abar times x producing the code word
-    codevec = matrix_multiplication(enc,msgvec);
+    MEASURE_FN(codevec = matrix_multiplication(enc,msgvec));
     if (!codevec) GOTOEXIT("failed to multiply Abar and msgvec");
     
     // extract result

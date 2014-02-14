@@ -54,7 +54,7 @@ libcminimacs_a_SOURCES = minimacs/generic_minimacs.c\
 bin_PROGRAMS = lsrep genpre
 
 lsrep_SOURCES = minimacs/lsrep.c 
-lsrep_LDADD=$(CMINIMACS_LIB)
+lsrep_LDADD=$(CMINIMACS_LIB) -losal
 
 
 genpre_SOURCES = minimacs/genpre.c 
