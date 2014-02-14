@@ -153,8 +153,6 @@ COO_DEF_RET_ARGS(MiniMacs,MR, mul, uint dst; uint l; uint r;,dst,l,r) {
   Data sigma_star_plain=0;
   byte * sigma = 0;
 
-  oe->p("Generic MiniMacs mul");
-
   if (!left) MUL_FAIL("Left operand (%d) is not set.", l);
 
   if (!right) MUL_FAIL("Right operand (%d) is not set.", r);
@@ -187,6 +185,8 @@ COO_DEF_RET_ARGS(MiniMacs,MR, mul, uint dst; uint l; uint r;,dst,l,r) {
     this->heap_set(dst, result);
     MR_RET_OK;
   }
+
+  oe->p("Generic MiniMacs mul");
 
   triple = gmm->next_triple();
   if (!triple) MUL_FAIL("No more triples (%d taken).", gmm->idx_triple);
@@ -394,7 +394,7 @@ COO_DEF_RET_ARGS(MiniMacs,MR, mul, uint dst; uint l; uint r;,dst,l,r) {
 	add(sigma_star_plain->data[i],add(sigma_star->dx_codeword[i],sigma_star->codeword[i]));
     }
 
-    sigma = gmm->encoder->encode(sigma_star_plain->data, triple->a->lval);
+    MEASURE_FN(sigma = gmm->encoder->encode(sigma_star_plain->data, triple->a->lval));
     if (!sigma) MRGF("Failed to create sigma representation.");
 
     for(id = 0;id<gmm->peer_map->size()+1;++id) {

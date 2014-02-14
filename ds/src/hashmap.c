@@ -165,11 +165,11 @@ Map HashMap_new(OE oe, HashFN hfn, CompareFN cfn, uint buckets ) {
     hmap->lbuckets = buckets;
     hmap->oe = oe;
     if (!hmap->buckets) goto failure;
+ 
     for(i = 0;i<buckets;++i) {
       hmap->buckets[i] = SingleLinkedList_new(oe);
       if (!hmap->buckets[i]) goto failure;
     }
-    
   }
   return map;
  failure:

@@ -4,6 +4,8 @@
 #include <minimacs/generic_minimacs.h>
 #include <osal.h>
 #include <carena.h>
+//#include <stats.h>
+
 
 int main(int c, char **a) {
 
@@ -33,6 +35,7 @@ int main(int c, char **a) {
     oe = OperatingEnvironment_LinuxNew();
     arena = CArena_new(oe);
     init_polynomial();
+    //    InitStats(oe);
     printf("Loading material from file %s ... \n", a[1]);
     load_shares(a[1],
 		&triples, &ltriples,
@@ -65,6 +68,8 @@ int main(int c, char **a) {
       byte pltxt[128] = {0};
       mpc_aes(comp,pltxt,key);
     }
+
+    //    PrintMeasurements(oe);
 
   } else {
     printf("Usage %s <preprocessed material>\n",a[0]);

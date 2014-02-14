@@ -101,20 +101,23 @@ void * coo_patch( byte * stub, uint lstub, void * this )
 }
 
 #ifdef LINUX
+static uint last_percentage;
 static byte * special_mem;
 static uint lspecial_mem;
 static uint idx;
 static void * special_alloc_impl(uint size)
 {
   void * res = 0;
-  if (freelist)
-    {
-      res = freelist;
-      freelist = (void *)b2l(freelist);
-      mset(res, 0, STUB_SIZE);
+  /* TODO(rwl): Free list implementation not working */
+  if (lspecial_mem > idx + size) { 
+    unsigned long long used = lspecial_mem-idx;
+    uint percentage = (100*used)/lspecial_mem;
+    if (percentage != last_percentage) {
+      last_percentage = percentage;
+      printf("%u %u %u %% speciial_mem free\n",idx, lspecial_mem, percentage);
     }
-
-  if (lspecial_mem > idx + size) { res = special_mem + idx; idx += size; }
+    res = special_mem + idx; idx += size; 
+  }
   else { 
     printf("FATAL: COO Library ran out of memory.");
     return 0;
@@ -142,6 +145,9 @@ static void special_free_all_impl(void)
   return;
 }
 
+
+#define SPECIAL_MEM_SIZ 4*1024*1024*16 // 1 GB
+
 Memory LinuxSpecialMemoryNew(Memory m) 
 {
   Memory res = m->alloc(sizeof(*res));
@@ -151,12 +157,12 @@ Memory LinuxSpecialMemoryNew(Memory m)
   res->free  = special_free_impl;
 
   res->free_all = special_free_all_impl;
-  special_mem = m->alloc(2048*4096);
+  special_mem = m->alloc(SPECIAL_MEM_SIZ);
   pageaddr = (unsigned long)special_mem;
   pageaddr = pageaddr - (pageaddr % 4096);
-  if (mprotect( (void*)pageaddr, 1024*4096, PROT_READ | PROT_WRITE | PROT_EXEC ) != 0)
+  if (mprotect( (void*)pageaddr, SPECIAL_MEM_SIZ, PROT_READ | PROT_WRITE | PROT_EXEC ) != 0)
     return NULL;
-  lspecial_mem = 1024*1024*128;
+  lspecial_mem = SPECIAL_MEM_SIZ;
   return res;
   
 }

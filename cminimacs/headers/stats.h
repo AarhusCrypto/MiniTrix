@@ -5,7 +5,7 @@
 #include <list.h>
 #include <time.h>
 #include <map.h>
-
+#include <stdio.h>
 
 typedef struct _measurement_ {
   char * (*get_name)();
@@ -22,8 +22,8 @@ Measurement Measurements_start(char * name);
 #define MEASURE_FN(CALL) {                                \
     Measurement _m_ = Measurements_start(__FILE__ #CALL);  \
     CALL;                                                 \
-    if (_m_)                                              \
-      _m_->measure();}
+    if (_m_) {                                            \
+      _m_->measure();}}
 
 #define PrintMeasurements(OE) {\
     Measurements_print(OE);}
@@ -35,7 +35,7 @@ Measurement Measurements_start(char * name);
 #define PrintMeasurements(OE) {\
     (OE)->p("Measurements disabled");}
 
-#define InitStats(OE)
+#define InitStats(OE) OE->p("Measurements are disabled");
 
 #endif
 

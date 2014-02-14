@@ -108,20 +108,26 @@ COO_DEF_NORET_NOARGS(Measurement, measure) {
 }}
 
 Measurement Measurements_start(char * name) {
-  MeasurementImpl topi = (MeasurementImpl)top->impl;
+  MeasurementImpl topi = 0 ;
   Measurement m = 0;
   MeasurementImpl mi = 0;
   ull start = _nano_time();
 
-  if (topi->sub->contains(name)) {
-    m = topi->sub->get(name);
+  if (_oe_ && top) {
+    topi = (MeasurementImpl)top->impl;
+    if (topi->sub->contains(name)) {
+      m = topi->sub->get(name);
+    } else {
+      _oe_->p("Adding new measurement to the map");
+      m = Measurement_New(name);
+      topi->sub->put(name, m);
+    }
+    mi = (MeasurementImpl)m->impl;
+    mi->start = start;
+    return m;
   } else {
-    m = Measurement_New(name);
-    topi->sub->put(name, m);
   }
-  mi = (MeasurementImpl)m->impl;
-  mi->start = start;
-  return m;
+  return 0;
 }
 
 void Measurements_print(OE oe) {
@@ -139,8 +145,9 @@ void Measurements_print(OE oe) {
       if (cur) {
         MeasurementImpl curi = (MeasurementImpl)cur->impl;
         char mmm[512] = {0};
-        osal_sprintf(mmm, "%s\t%u\%u\%u\%u", 
+        osal_sprintf(mmm, "%s\t%u\t%u\t%u\t%u", 
                      curi->name, curi->min, curi->max, curi->avg, curi->count);
+        _oe_->p(mmm);
       }
     }
   } else {
@@ -174,7 +181,7 @@ Measurement Measurement_New(char * name) {
     mcpy(impl->name, name, lname);
   }
 
-  impl->start = _nano_time();
+  impl->start = impl->min = impl->max = impl->avg = impl->count = 0;
 
   COO_ATTACH(Measurement, res, get_name);
   COO_ATTACH(Measurement, res, measure);

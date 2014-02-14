@@ -360,9 +360,6 @@ MiniMacsRep minimacs_create_rep_public_plaintext_fast(
   memset(res,0,sizeof(*res));
 
   res->lval = ltext;
-#ifndef STATS_ON
-#error No Statistics 
-#endif
   MEASURE_FN(res->codeword = encoder->encode((polynomial*)text,ltext));
   if (!res->codeword) goto failure;
   res->lcodeword = codelength;
@@ -637,9 +634,11 @@ MiniMacsRep minimacs_rep_add_const_fast(MiniMacsEnc encoder, MiniMacsRep rep, by
   r->lval = rep->lval;
 
   // compute r->dx_codeword = rep->dx_codeword - C(u)
+  /*
   for(i = 0; i < lencoded_c;++i) {
      r->dx_codeword[i] = sub( rep->dx_codeword[i], 0x00 );
-  }
+     }
+  */
   
   // allocate codeword
   r->codeword = (byte*)malloc(rep->lcodeword);
