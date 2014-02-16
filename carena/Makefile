@@ -62,7 +62,7 @@ $(depshapedir):
 # along side with this part).
 $(DEPS)/libosal.a: 
 	[ -d deps ] || svn export $(REPO)/$(DEPS_VERSION) ./deps
-	@[ -f $(DEV_OSAL) ]&&( cp $(DEV_OSAL) ./deps && echo "OSAL Updated to DEV Version")
+	-@[ -f $(DEV_OSAL) ]&&( cp $(DEV_OSAL) ./deps && echo "OSAL Updated to DEV Version")
 
 
 # Go Nuke it all. The wipe.sh script deletes Makefile.in and m4 stuff
