@@ -1,5 +1,3 @@
-all: clean build
-
 build:
 	cd osal && make depshape 
 	cd ds && make  depshape
@@ -7,8 +5,10 @@ build:
 	cd carena && make  depshape
 	cd math && make  depshape
 	cd cminimacs && make clean depshape
-	cd caes && make  depshape
+	cd caes && make depshape CFLAGS="-O0"
 	cd cinterp && make  depshape
+
+all: clean build
 
 clean:
 	cd osal && make clean
@@ -36,4 +36,4 @@ release: clean up build
 	cp -r caes/build/caes/* ./$(REV_DIR)
 	cp -r cinterp/build/cinterp/* ./$(REV_DIR)
 
-.PHONY=all clean release
+.PHONY=build all clean release
