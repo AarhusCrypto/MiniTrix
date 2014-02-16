@@ -58,7 +58,8 @@ lsrep_LDADD=$(CMINIMACS_LIB) -losal
 
 
 genpre_SOURCES = minimacs/genpre.c 
-genpre_LDADD = $(CMINIMACS_LIB) -static
+genpre_LDADD = $(CMINIMACS_LIB) 
+genpre_LDFLAGS = -static
 
 #libcminimacs_a_LIBADD = $(DEPS_OSAL_A)
 
