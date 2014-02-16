@@ -21,7 +21,7 @@ depshapedir=$(BUILDDIR)/$(PART_NAME)
 # e.g. for creating a dependency on mpclib:
 #
 DEPS_VERSION=parvusfortis_r3927
-DEPS=deps/$(DEPS_VERSION)
+DEPS=deps/
 REPO="svn://sun.bitlab.dk/Rasmus/phd/mpccode/tags"
 
 
