@@ -39,7 +39,7 @@ $(BUILDDIR):
 
 # create the configure scripts in BUILDDIR invoking Autotools and then
 # configure and build the whole thing.
-$(BUILDDIR)/stamp-h1: $(BUILDDIR) configure.ac Makefile.am $(DEPS)/libosal.a 
+$(BUILDDIR)/stamp-h1: $(BUILDDIR) configure.ac Makefile.am $(DEPS)libosal.a 
 	aclocal
 	autoconf
 	autoheader
@@ -63,7 +63,7 @@ $(depshapedir):
 # this target copies the libmpc.a and the headers directory from the
 # released mpclib (assuming mpclib is placed in the parent folder
 # along side with this part).
-$(DEPS)/libosal.a: 
+$(DEPS)libosal.a: 
 	[ -d deps ] || svn export $(REPO)/$(DEPS_VERSION) ./deps
 	@[ -f $(DEV_OSAL) ]&&( cp $(DEV_OSAL) ./deps && echo "OSAL Updated to DEV Version")
 	@[ -f $(DEV_DS) ] && ( cp $(DEV_DS) ./deps && echo "DS Updated to DEV Version")
