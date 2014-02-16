@@ -64,9 +64,9 @@ $(depshapedir):
 # released mpclib (assuming mpclib is placed in the parent folder
 # along side with this part).
 $(DEPS)libosal.a: 
-	[ -d deps ] || svn export $(REPO)/$(DEPS_VERSION) ./deps
-	@[ -f $(DEV_OSAL) ]&&( cp $(DEV_OSAL) ./deps && echo "OSAL Updated to DEV Version")
-	@[ -f $(DEV_DS) ] && ( cp $(DEV_DS) ./deps && echo "DS Updated to DEV Version")
+	[ -d deps ] || (svn export $(REPO)/$(DEPS_VERSION) ./deps && echo $!)
+	-@[ -f $(DEV_OSAL) ]&&( cp $(DEV_OSAL) ./deps && echo "OSAL Updated to DEV Version")
+	-@[ -f $(DEV_DS) ] && ( cp $(DEV_DS) ./deps && echo "DS Updated to DEV Version")
 
 # Go Nuke it all. The wipe.sh script deletes Makefile.in and m4 stuff
 # created by aclocal, autoconf and automake. 
