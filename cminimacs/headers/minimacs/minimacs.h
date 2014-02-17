@@ -33,17 +33,13 @@
 #include "minimacs_rep.h"
 
 typedef unsigned int hptr;
-
+struct _observer_;
 typedef struct _minimacs_result_ {
   char msg[128];
   uint lmsg;
   uint rc;
 } MR;
 
-typedef struct _observer_ {
-  MiniMacs instance;
-  void(*notify)(void * data);
-} * Observer;
 
 #define MR_RET_OK {\
     MR mr = {{0}}; \
@@ -82,7 +78,7 @@ typedef struct _minimacs_ {
   /*!
    * Add an observer to this mini macs instance.
    */
-  void (*observe_add)(struct _observer * obs);
+  void (*observe_add)(struct _observer_ * obs);
 
   /*!
    * Notify the world that something has happened.
@@ -167,7 +163,7 @@ typedef struct _minimacs_ {
   /*!
    * Connect to host at address {ip} on {port}.
    */
-  MR (*connect)(const char * ip, uint port);
+  MR (*connect)(char * ip, uint port);
 
   /*!
    * Number of peers

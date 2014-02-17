@@ -1,8 +1,8 @@
 #ifndef COO_H
 #define COO_H
 #include <memory.h>
-#define STUB_SIZE 80
-
+#define STUB_SIZE 256
+#include<stdio.h>
 /* COO ATTACH
  *
  *
@@ -57,13 +57,15 @@
  */
 #define COO_DEF_RET_ARGS(CLZ, RET, NAME, TYPES, ...)	\
   static __attribute__((optimize("O0"))) RET stub_##CLZ##_##NAME(__VA_ARGS__) TYPES \
-  {							\
-    register void * ths = (void*)0xDEADBEEFDEADBEEFL;			\
-    RET (*k)(void * t, ...) = (void*)&CLZ##_##NAME;	\
-    return k(ths, __VA_ARGS__ );			\
-  }								\
-  static RET CLZ##_##NAME(t, ##__VA_ARGS__) void * t; TYPES \
-  {								\
+  {                                                                     \
+    register void * ths = (void*)0xDEADBEEFDEADBEEFL;                   \
+    register RET (*k)(void * t, ...) = (void*)&CLZ##_##NAME;                     \
+    RET val = k(ths, __VA_ARGS__ );                                     \
+    return val;                                                         \
+  }                                                                     \
+                                                                        \
+  static RET CLZ##_##NAME(t, ##__VA_ARGS__) void * t; TYPES             \
+  {                                                                     \
   CLZ this = (CLZ)t;
 
 /* COO_DEF_RET_NOARGS

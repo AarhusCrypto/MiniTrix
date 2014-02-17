@@ -24,6 +24,7 @@ DEPS_VERSION=parvusfortis_r3975
 DEPS=deps/
 REPO="svn://sun.bitlab.dk/Rasmus/phd/mpccode/tags"
 
+DEV_OSAL="../osal/build/osal"
 
 # This "all" target builds the whole project every time. To re-compile
 # the project without rebuilding the whole thing do "cd build && make
@@ -66,7 +67,7 @@ $(depshapedir):
 #	cp -r $(top_srcdir)../mpclib/build/mpclib/* $(DEPS_mpclib)
 $(DEPS)/libosal.a: 
 	[ -d deps ] || svn export $(REPO)/$(DEPS_VERSION) ./deps
-
+	-@ ( [ -d $(DEV_OSAL) ] && cp -r $(DEV_OSAL)/* ./deps ) || echo "NO LOCAL OSAL"
 
 
 # Go Nuke it all. The wipe.sh script deletes Makefile.in and m4 stuff

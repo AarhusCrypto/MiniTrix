@@ -48,19 +48,25 @@ int main(int c, char **a) {
   if (oe) {
     MR mr = {{0}};
     MiniMacs mm = setup_generic_minimacs(oe, a[1]);
+    if (mm == 0) {
+      printf("Uable to create MiniMacs Instance, leaving\n");
+      return 42;
+    }
     printf("Inviting 1 party to computate on port 2020\n");
     mm->invite(1,2020);
     mm->init_heap(6);
     
+    /*
     C(mm->secret_input(0,0,Data_shallow("Rasmus",7)));
-    C(mm->open(0));
     
+    C(mm->open(0));
+
     C(mm->secret_input(0,1,Data_shallow("\001",1)));
     C(mm->secret_input(0,2,Data_shallow("\001",1)));
     C(mm->mul(3,2,1));
     C(mm->add(3,3,3));
     C(mm->open(3));
-
+    */
     GenericMiniMacs_destroy( & mm );
   }
 

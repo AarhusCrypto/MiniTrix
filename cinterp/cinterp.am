@@ -47,22 +47,11 @@
 #
 #
 BUILDDIR=$(top_srcdir)/build
-DEPS_INCLUDE=-I$(top_srcdir)/deps/osal/headers\
-	-I$(top_srcdir)/deps/cminimacs/headers\
-	-I$(top_srcdir)/deps/math/headers\
-	-I$(top_srcdir)/deps/encoding/headers\
-	-I$(top_srcdir)/headers\
-	-I$(top_srcdir)/deps/carena/headers\
-	-I$(top_srcdir)/deps/ds/headers\
+DEPS_INCLUDE=-I$(top_srcdir)/deps/headers\
 	-I$(top_srcdir)/circuits
 
 DEPS_LIB=\
-	-L$(top_srcdir)/deps/cminimacs -lcminimacs\
-	-L$(top_srcdir)/deps/math -lmath\
-	-L$(top_srcdir)/deps/encoding -lencoding\
-	-L$(top_srcdir)/deps/carena -lcarena\
-	-L$(top_srcdir)/deps/ds -lds\
-	-L$(top_srcdir)/deps/osal -losal -lpthread
+	-L$(top_srcdir)/deps -lcminimacs -lmath -lencoding -lcarena -lds -losal -lpthread
 
 AM_CFLAGS=$(DEPS_INCLUDE)
 

@@ -466,15 +466,21 @@ OE OperatingEnvironment_LinuxNew() {
   COO_ATTACH(OE, oe, syslog);
   COO_ATTACH(OE, oe, p);
 
+  oe->impl = simpleOE;
+  simpleOE->lock = oe->newmutex();
   simpleOE->mm = m;
   simpleOE->sm = special_mem;
   simpleOE->threads = SingleLinkedList_new(oe);
   simpleOE->filedescriptors = SingleLinkedList_new(oe);
-  simpleOE->lock = oe->newmutex();
-  oe->impl = simpleOE;
+
   oe->p("************************************************************");
   oe->p("   "PACKAGE_STRING" - "CODENAME );
   oe->p("************************************************************");
+  {
+    char m[64] = {0};
+    osal_sprintf(m,"STUB SIZE %u",STUB_SIZE);
+    oe->p(m);
+  }
   return oe;
 }
 

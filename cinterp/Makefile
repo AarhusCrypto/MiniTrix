@@ -20,12 +20,16 @@ depshapedir=$(BUILDDIR)/$(PART_NAME)
 # it later. (This is by convention, not enforced or necessary)
 # e.g. for creating a dependency on mpclib:
 #
-DEPS_osal=deps/osal
-DEPS_encoding=deps/encoding
-DEPS_cminimacs=deps/cminimacs
-DEPS_math=deps/math
-DEPS_carena=deps/carena
-DEPS_ds=deps/ds
+DEPS_VERSION=parvusfortis_r3975
+DEPS=deps/
+REPO="svn://sun.bitlab.dk/Rasmus/phd/mpccode/tags"
+
+DEV_OSAL="../osal/build/osal"
+DEV_ENCODING="../encoding/build/encoding"
+DEV_MINIMACS="../cminimacs/build/cminimacs"
+DEV_MATH="../math/build/math"
+DEV_CARENA="../carena/build/carena"
+DEV_DS="../ds/build/ds"
 
 # This "all" target builds the whole project every time. To re-compile
 # the project without rebuilding the whole thing do "cd build && make
@@ -40,9 +44,7 @@ $(BUILDDIR):
 # create the configure scripts in BUILDDIR invoking Autotools and then
 # configure and build the whole thing.
 $(BUILDDIR)/stamp-h1: $(BUILDDIR) configure.ac Makefile.am\
-	$(DEPS_osal)/libosal.a $(DEPS_encoding)/libencoding.a\
-	$(DEPS_cminimacs)/libcminimacs.a $(DEPS_math)/libmath.a\
-	$(DEPS_carena)/libcarena.a $(DEPS_ds)/libds.a
+	$(DEPS)libosal.a 
 	aclocal
 	autoconf
 	autoheader
@@ -66,29 +68,14 @@ $(depshapedir):
 # this target copies the libmpc.a and the headers directory from the
 # released mpclib (assuming mpclib is placed in the parent folder
 # along side with this part).
-$(DEPS_osal)/libosal.a: ../osal/build/osal/libosal.a
-	mkdir -p $(DEPS_osal)
-	cp -r $(top_srcdir)../osal/build/osal/* $(DEPS_osal)
-
-$(DEPS_encoding)/libencoding.a: ../encoding/build/encoding/libencoding.a
-	mkdir -p $(DEPS_encoding)
-	cp -r $(top_srcdir)../encoding/build/encoding/* $(DEPS_encoding)
-
-$(DEPS_math)/libmath.a: ../math/build/math/libmath.a
-	mkdir -p $(DEPS_math)
-	cp -r $(top_srcdir)../math/build/math/* $(DEPS_math)
-
-$(DEPS_cminimacs)/libcminimacs.a: ../cminimacs/build/cminimacs/libcminimacs.a
-	mkdir -p $(DEPS_cminimacs)
-	cp -r $(top_srcdir)../cminimacs/build/cminimacs/* $(DEPS_cminimacs)
-
-$(DEPS_carena)/libcarena.a: ../carena/build/carena/libcarena.a
-	mkdir -p $(DEPS_carena)
-	cp -r $(top_srcdir)../carena/build/carena/* $(DEPS_carena)
-
-$(DEPS_ds)/libds.a: ../ds/build/ds/libds.a
-	mkdir -p $(DEPS_ds)
-	cp -r $(top_srcdir)../ds/build/ds/* $(DEPS_ds)
+$(DEPS)libosal.a: 
+	[ -d deps ] || svn export $(REPO)/$(DEPS_VERSION) ./deps
+	-@ ([ -d $(DEV_OSAL) ] && cp -r $(DEV_OSAL)/* ./deps) || echo "OSAL NO LOC"
+	-@ ([ -d $(DEV_ENCODING) ] && cp -r $(DEV_ENCODING)/* ./deps) || echo "ENC NO LOC"
+	-@ ([ -d $(DEV_MINIMACS) ] && cp -r $(DEV_MINIMACS)/* ./deps) || echo "MINI NO LOC"
+	-@ ([ -d $(DEV_MATH) ] && cp -r $(DEV_MATH)/* ./deps) || echo "MATH NO LOC"
+	-@ ([ -d $(DEV_CARENA) ] && cp -r $(DEV_CARENA)/* ./deps) || echo "CARENA NO LOC"
+	-@ ([ -d $(DEV_DS) ] && cp -r $(DEV_DS)/* ./deps) || echo "DS NO LOC"
 
 # Go Nuke it all. The wipe.sh script deletes Makefile.in and m4 stuff
 # created by aclocal, autoconf and automake. 

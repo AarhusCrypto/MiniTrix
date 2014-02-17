@@ -110,12 +110,14 @@ static void * special_alloc_impl(uint size)
   void * res = 0;
   /* TODO(rwl): Free list implementation not working */
   if (lspecial_mem > idx + size) { 
+    /*
     unsigned long long used = lspecial_mem-idx;
     uint percentage = (100*used)/lspecial_mem;
-    if (percentage != last_percentage) {
+    if (percentage > last_percentage) {
       last_percentage = percentage;
       printf("%u %u %u %% speciial_mem free\n",idx, lspecial_mem, percentage);
     }
+    */
     res = special_mem + idx; idx += size; 
   }
   else { 
