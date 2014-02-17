@@ -40,10 +40,17 @@ typedef struct _minimacs_result_ {
   uint rc;
 } MR;
 
+typedef struct _observer_ {
+  MiniMacs instance;
+  void(*notify)(void * data);
+} * Observer;
+
 #define MR_RET_OK {\
     MR mr = {{0}}; \
     return mr;	   \
 }
+
+
 
 #define MRRF(MSG,...) {                         \
     MR mr = {{0}};                              \
@@ -71,6 +78,17 @@ typedef struct _minimacs_result_ {
     return mr;}
 
 typedef struct _minimacs_ {
+
+  /*!
+   * Add an observer to this mini macs instance.
+   */
+  void (*observe_add)(struct _observer * obs);
+
+  /*!
+   * Notify the world that something has happened.
+   *
+   */
+  void (*notify)( void * );
 
   /*!
    * When given raw material an id can be determined. Thus function
@@ -159,5 +177,13 @@ typedef struct _minimacs_ {
   void * impl;
 
 } * MiniMacs;
+
+
+typedef struct _observer_ {
+  MiniMacs instance;
+  void(*notify)(void * data);
+} * Observer;
+
+Observer Observer_DefaultNew( OE oe,  void (*fn)(void *data) );
 
 #endif
