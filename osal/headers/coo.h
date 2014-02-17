@@ -1,7 +1,7 @@
 #ifndef COO_H
 #define COO_H
 #include <memory.h>
-#define STUB_SIZE 256
+#define STUB_SIZE 360
 #include<stdio.h>
 /* COO ATTACH
  *
@@ -20,16 +20,16 @@
  * printf("FATAL: Unable to attach %s\n", #NAME);
  */
 #define COO_ATTACH(CLZ,OBJ,NAME) {					\
- OBJ->NAME = coo_patch((byte*)stub_##CLZ##_##NAME, STUB_SIZE, OBJ );\
- if ( !( (OBJ->NAME) ) ) {					    \
-       \
- }}
+    OBJ->NAME = coo_patch((byte*)stub_##CLZ##_##NAME, STUB_SIZE, OBJ ); \
+    if ( !( (OBJ->NAME) ) ) {                                           \
+                                                                        \
+    }}
 
 
-#define COO_ATTACH_FN(CLZ,OBJ,NAME,FN) {                                   \
- OBJ->NAME = coo_patch((byte*)stub_##CLZ##_##FN, STUB_SIZE, OBJ );\
- if ( !( (OBJ->NAME) ) ) {					    \
-       \
+#define COO_ATTACH_FN(CLZ,OBJ,NAME,FN) {                                \
+    OBJ->NAME = coo_patch((byte*)stub_##CLZ##_##FN, STUB_SIZE , OBJ );  \
+    if ( !( (OBJ->NAME) ) ) {                                           \
+                                                                        \
  }}
 
 /* COO_DCL
@@ -59,7 +59,7 @@
   static __attribute__((optimize("O0"))) RET stub_##CLZ##_##NAME(__VA_ARGS__) TYPES \
   {                                                                     \
     register void * ths = (void*)0xDEADBEEFDEADBEEFL;                   \
-    register RET (*k)(void * t, ...) = (void*)&CLZ##_##NAME;                     \
+    register RET (*k)(void * t, ...) = (void*)&CLZ##_##NAME;            \
     RET val = k(ths, __VA_ARGS__ );                                     \
     return val;                                                         \
   }                                                                     \
@@ -75,15 +75,16 @@
  *
  * Otherwise as COO_DEF_RET_ARGS above.
  */
-#define COO_DEF_RET_NOARGS(CLZ, RET, NAME)	\
+#define COO_DEF_RET_NOARGS(CLZ, RET, NAME)                             \
   static __attribute__((optimize("O0"))) RET stub_##CLZ##_##NAME(void) \
-  {						\
+  {                                                                    \
     register void * ths = (void*)0xDEADBEEFDEADBEEFL;		\
-    RET (*k)(void * t) = (void*)&CLZ##_##NAME;	\
-    return k(ths);				\
-  }						\
-  static RET CLZ##_##NAME(void * t)		\
- {\
+    RET (*k)(void * t) = (void*)&CLZ##_##NAME;                          \
+    RET val = k(ths);                                                   \
+    return val;                                                         \
+  }                                                                     \
+  static RET CLZ##_##NAME(void * t)                                     \
+  {                                                                     \
   CLZ this = (CLZ)t;
 
 /* COO_DEF_NORET_NOARGS
@@ -94,15 +95,15 @@
  *
  * Otherwise as COO_DEF_RET_ARGS above. 
  */
-#define COO_DEF_NORET_NOARGS(CLZ, NAME) \
-  static __attribute__((optimize("O0"))) void stub_##CLZ##_##NAME(void)		\
-  {					\
-    register void * ths = (void*)0xDEADBEEFDEADBEEFL;	\
-    void (*k)(void * t) = (void*)&CLZ##_##NAME;	\
-    k(ths);				\
-  }					\
-  static void CLZ##_##NAME(void * t)		\
-  {					\
+#define COO_DEF_NORET_NOARGS(CLZ, NAME)                                 \
+  static __attribute__((optimize("O0"))) void stub_##CLZ##_##NAME(void) \
+  {                                                                     \
+  register void * ths = (void*)0xDEADBEEFDEADBEEFL;                     \
+  void (*k)(void * t) = (void*)&CLZ##_##NAME;                           \
+  k(ths);                                                               \
+  }                                                                     \
+  static void CLZ##_##NAME(void * t)                                    \
+  {                                                                     \
   CLZ this = (CLZ)t;
 
 /* COO_DEF_NORET_ARGS
@@ -115,10 +116,11 @@
 #define COO_DEF_NORET_ARGS(CLZ, NAME, TYPES, ...)	\
   static __attribute__((optimize("O0"))) void stub_##CLZ##_##NAME(__VA_ARGS__) TYPES		\
   {							\
-    register void * ths = (void*)0xDEADBEEFDEADBEEFL;			\
-    void (*k)(void * t, ...) = (void*)&CLZ##_##NAME;		\
-    k(ths, __VA_ARGS__ );				\
-  }							\
+    register void * ths = (void*)0xDEADBEEFDEADBEEFL;         \
+    void (*k)(void * t, ...) = (void*)&CLZ##_##NAME;          \
+    k(ths, __VA_ARGS__ );                                     \
+    return;                                                   \
+  }                                                           \
   static void CLZ##_##NAME(t, ##__VA_ARGS__) void * t; TYPES	\
   {							\
   CLZ this = (CLZ)t;

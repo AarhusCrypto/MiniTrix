@@ -67,9 +67,9 @@ $(depshapedir):
 # along side with this part).
 $(DEPS)/libosal.a: 
 	[ -d deps ] || svn export $(REPO)/$(DEPS_VERSION) ./deps
-	-@[ -f $(DEV_OSAL) ]&&( cp -r $(DEV_OSAL)/* ./deps && echo "OSAL Updated to DEV Version")
-	-@[ -f $(DEV_DS) ] && ( cp -r $(DEV_DS)/* ./deps && echo "DS Updated to DEV Version")
-	-@[ -f $(DEV_CMINIMACS) ]&&( cp -r $(DEV_CMINIMACS)/* ./deps && echo "CMiniMacs Updated to DEV Version")
+	-@[ -d $(DEV_OSAL) ]&&( cp -r $(DEV_OSAL)/* ./deps && echo "OSAL Updated to DEV Version")
+	-@[ -d $(DEV_DS) ] && ( cp -r $(DEV_DS)/* ./deps && echo "DS Updated to DEV Version")
+	-@[ -d $(DEV_CMINIMACS) ]&&( cp -r $(DEV_CMINIMACS)/* ./deps && echo "CMiniMacs Updated to DEV Version")
 
 
 
