@@ -73,13 +73,14 @@
 #include <minimacs/minimacs.h>
 #include "ast.h"
 #define YYSTYPE AstNode
+#include <stdlib.h>
   MiniMacs mm;
   AstNodeFactory anf;  
   AstNode root;
   
 
 /* Line 268 of yacc.c  */
-#line 83 "grammar.tab.c"
+#line 84 "grammar.tab.c"
 
 /* Enabling traces.  */
 #ifndef YYDEBUG
@@ -137,7 +138,7 @@ typedef int YYSTYPE;
 
 
 /* Line 343 of yacc.c  */
-#line 141 "grammar.tab.c"
+#line 142 "grammar.tab.c"
 
 #ifdef short
 # undef short
@@ -432,8 +433,8 @@ static const yytype_int8 yyrhs[] =
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,    30,    30,    39,    49,    53,    59,    65,    67,    70,
-      72,    75,    77,    79,    81,    83,    85,    87,    89,    91
+       0,    31,    31,    42,    52,    56,    62,    71,    73,    78,
+      80,    85,    92,   101,   110,   116,   125,   134,   142,   149
 };
 #endif
 
@@ -1387,12 +1388,14 @@ yyreduce:
         case 2:
 
 /* Line 1806 of yacc.c  */
-#line 30 "grammar.y"
-    { 
+#line 31 "grammar.y"
+    {
   AstNode numbers = (yyvsp[(1) - (3)]);
   AstNode consts = (yyvsp[(2) - (3)]);
   AstNode circuit = (yyvsp[(3) - (3)]);
   AstNode result = anf->NewList(numbers);
+  result = anf->AppList(result, consts);
+  result = anf->AppList(result, circuit);
   root = result;
  }
     break;
@@ -1400,7 +1403,7 @@ yyreduce:
   case 3:
 
 /* Line 1806 of yacc.c  */
-#line 39 "grammar.y"
+#line 42 "grammar.y"
     {
   AstNode res = anf->NewList((yyvsp[(1) - (4)]));
   anf->AppList(res, (yyvsp[(2) - (4)]));
@@ -1413,7 +1416,7 @@ yyreduce:
   case 4:
 
 /* Line 1806 of yacc.c  */
-#line 49 "grammar.y"
+#line 52 "grammar.y"
     {
   (yyval) = anf->NewList((yyvsp[(1) - (1)]));
 }
@@ -1422,7 +1425,7 @@ yyreduce:
   case 5:
 
 /* Line 1806 of yacc.c  */
-#line 53 "grammar.y"
+#line 56 "grammar.y"
     {
   AstNode list = (yyvsp[(2) - (2)]);
   (yyval) = anf->AppList(list,(yyvsp[(1) - (2)]));
@@ -1432,108 +1435,169 @@ yyreduce:
   case 6:
 
 /* Line 1806 of yacc.c  */
-#line 59 "grammar.y"
+#line 62 "grammar.y"
     { 
-
-  (yyval) = anf->NewConst
-;}
+  AstNode t = (yyvsp[(1) - (5)]);
+  AstNode name = (yyvsp[(2) - (5)]);
+  AstNode num_list = (yyvsp[(4) - (5)]);
+  (yyval) = anf->NewConst(t->pos, t->line, t->offset,
+                     name, num_list);
+}
     break;
 
   case 7:
 
 /* Line 1806 of yacc.c  */
-#line 65 "grammar.y"
-    { }
+#line 71 "grammar.y"
+    { (yyval) = anf->NewList((yyvsp[(1) - (1)])); }
     break;
 
   case 8:
 
 /* Line 1806 of yacc.c  */
-#line 67 "grammar.y"
-    { }
+#line 73 "grammar.y"
+    { 
+  (yyval) = anf->AppList((yyvsp[(2) - (2)]),(yyvsp[(1) - (2)]));
+}
     break;
 
   case 9:
 
 /* Line 1806 of yacc.c  */
-#line 70 "grammar.y"
-    { }
+#line 78 "grammar.y"
+    { (yyval) = anf->NewList((yyvsp[(1) - (1)]));}
     break;
 
   case 10:
 
 /* Line 1806 of yacc.c  */
-#line 72 "grammar.y"
-    { }
+#line 80 "grammar.y"
+    { 
+  (yyval) = anf->AppList((yyvsp[(2) - (2)]),(yyvsp[(1) - (2)]));
+}
     break;
 
   case 11:
 
 /* Line 1806 of yacc.c  */
-#line 75 "grammar.y"
-    { mm->init_heap(1024); }
+#line 85 "grammar.y"
+    { 
+  AstNode token = (yyvsp[(1) - (2)]);
+  AstNode number = (yyvsp[(2) - (2)]);
+  (yyval) = anf->NewInitHeap(token->pos, token->line, token->offset, 
+                        number);
+}
     break;
 
   case 12:
 
 /* Line 1806 of yacc.c  */
-#line 77 "grammar.y"
-    {}
+#line 92 "grammar.y"
+    {
+  AstNode token = (yyvsp[(1) - (4)]);
+  AstNode dest = (yyvsp[(2) - (4)]);
+  AstNode op1 = (yyvsp[(3) - (4)]);
+  AstNode op2 = (yyvsp[(4) - (4)]);
+  (yyval) = anf->NewAdd(token->pos, token->line, token->offset,
+                   dest,op1,op2);
+}
     break;
 
   case 13:
 
 /* Line 1806 of yacc.c  */
-#line 79 "grammar.y"
-    {}
+#line 101 "grammar.y"
+    {
+  AstNode token = (yyvsp[(1) - (4)]);
+  AstNode dest = (yyvsp[(2) - (4)]);
+  AstNode op1 = (yyvsp[(3) - (4)]);
+  AstNode name = (yyvsp[(4) - (4)]);
+  (yyval) = anf->NewSadd(token->pos, token->line, token->offset,
+                    dest, op1, name);
+}
     break;
 
   case 14:
 
 /* Line 1806 of yacc.c  */
-#line 81 "grammar.y"
-    {}
+#line 110 "grammar.y"
+    {
+  AstNode token = (yyvsp[(1) - (2)]);
+  AstNode num = (yyvsp[(2) - (2)]);
+  (yyval) = anf->NewMulPar(token->pos, token->line, token->offset,num);
+}
     break;
 
   case 15:
 
 /* Line 1806 of yacc.c  */
-#line 83 "grammar.y"
-    {}
+#line 116 "grammar.y"
+    {
+  AstNode t = (yyvsp[(1) - (5)]);
+  AstNode dest = (yyvsp[(2) - (5)]);
+  AstNode op1 = (yyvsp[(3) - (5)]);
+  AstNode op2 = (yyvsp[(4) - (5)]);
+  (yyval) = anf->NewMul(t->pos,t->line,t->offset,
+                   dest,op1,op2);
+}
     break;
 
   case 16:
 
 /* Line 1806 of yacc.c  */
-#line 85 "grammar.y"
-    {}
+#line 125 "grammar.y"
+    {
+  AstNode t = (yyvsp[(1) - (4)]);
+  AstNode dst = (yyvsp[(2) - (4)]);
+  AstNode op1 = (yyvsp[(3) - (4)]);
+  AstNode op2_name = (yyvsp[(4) - (4)]);
+  (yyval) = anf->NewSmul(t->pos, t->line, t->offset,
+                    dst, op1, op2_name);
+}
     break;
 
   case 17:
 
 /* Line 1806 of yacc.c  */
-#line 87 "grammar.y"
-    {}
+#line 134 "grammar.y"
+    {
+  AstNode t = (yyvsp[(1) - (3)]);
+  AstNode dst = (yyvsp[(2) - (3)]);
+  AstNode src = (yyvsp[(3) - (3)]);
+  (yyval) = anf->NewMov(t->pos, t->line, t->offset,
+                   dst, src);
+}
     break;
 
   case 18:
 
 /* Line 1806 of yacc.c  */
-#line 89 "grammar.y"
-    { mm->public_input(0,Data_shallow("rasmus",6)); }
+#line 142 "grammar.y"
+    { 
+  AstNode t = (yyvsp[(1) - (3)]);
+  AstNode dst = (yyvsp[(2) - (3)]);
+  AstNode name = (yyvsp[(3) - (3)]);
+  (yyval) = anf->NewLoad(t->pos, t->line, t->offset, dst, name);
+}
     break;
 
   case 19:
 
 /* Line 1806 of yacc.c  */
-#line 91 "grammar.y"
-    { mm->secret_input(0,0,Data_shallow("rasmus",6));}
+#line 149 "grammar.y"
+    { 
+  AstNode t = (yyvsp[(1) - (3)]);
+  AstNode dst = (yyvsp[(2) - (3)]);
+  AstNode name = (yyvsp[(3) - (3)]);
+  (yyval) = anf->NewSload(t->pos, t->line, t->offset,
+                     dst,name);
+}
     break;
 
 
 
 /* Line 1806 of yacc.c  */
-#line 1537 "grammar.tab.c"
+#line 1601 "grammar.tab.c"
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires

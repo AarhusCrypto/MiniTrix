@@ -499,9 +499,12 @@ char *yytext;
 #include <minimacs/generic_minimacs.h>
 #include <math/polynomial.h>
 #include <stdio.h>
-#include "y.tab.h"
 #include "ast.h"
+#define YYSTYPE AstNode
+#include "y.tab.h"
+#include "interp.h"
 
+  extern AstNodeFactory anf;
   static int line;
   static int offset;
   static int pos;
@@ -521,8 +524,12 @@ char *yytext;
     offset += yyleng;
   }
 
+  static void token() {
+    yylval = anf->NewToken(pos,line,offset,yytext);
+  }
 
-#line 526 "lex.yy.c"
+
+#line 533 "lex.yy.c"
 
 #define INITIAL 0
 #define COMMENT 1
@@ -710,10 +717,10 @@ YY_DECL
 	register char *yy_cp, *yy_bp;
 	register int yy_act;
     
-#line 31 "grammar.lex"
+#line 38 "grammar.lex"
 
 
-#line 717 "lex.yy.c"
+#line 724 "lex.yy.c"
 
 	if ( !(yy_init) )
 		{
@@ -798,117 +805,124 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 33 "grammar.lex"
+#line 40 "grammar.lex"
 { ++pos;BEGIN(COMMENT); }
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 34 "grammar.lex"
+#line 41 "grammar.lex"
 { ++pos; }
 	YY_BREAK
 case 3:
 /* rule 3 can match eol */
 YY_RULE_SETUP
-#line 35 "grammar.lex"
+#line 42 "grammar.lex"
 { nl();BEGIN(INITIAL); }
 	YY_BREAK
 case 4:
 /* rule 4 can match eol */
 YY_RULE_SETUP
-#line 36 "grammar.lex"
+#line 43 "grammar.lex"
 { nl(); }
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 37 "grammar.lex"
+#line 44 "grammar.lex"
 { ch(); }
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 38 "grammar.lex"
-{ ch();return NUMBER; }
+#line 45 "grammar.lex"
+{ 
+  ch(); 
+  yylval = anf->NewNumber(pos,line,offset,atoi(yytext));  
+  return NUMBER; 
+}
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 39 "grammar.lex"
-{ ch();return INIT_HEAP; }
+#line 50 "grammar.lex"
+{ ch();token();return INIT_HEAP; }
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 40 "grammar.lex"
-{ ch();return CONST; }
+#line 51 "grammar.lex"
+{ ch();token();return CONST; }
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 41 "grammar.lex"
-{ ch();return ADD; }
+#line 52 "grammar.lex"
+{ ch();token();return ADD; }
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 42 "grammar.lex"
-{ ch();return SADD; }
+#line 53 "grammar.lex"
+{ ch();token();return SADD; }
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 43 "grammar.lex"
-{ ch();return MULPAR; }
+#line 54 "grammar.lex"
+{ ch();token();return MULPAR; }
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 44 "grammar.lex"
-{ ch();return MUL; }
+#line 55 "grammar.lex"
+{ ch();token();return MUL; }
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 45 "grammar.lex"
-{ ch();return SMUL; }
+#line 56 "grammar.lex"
+{ ch();token();return SMUL; }
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 46 "grammar.lex"
-{ ch();return MOV; }
+#line 57 "grammar.lex"
+{ ch();token();return MOV; }
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 47 "grammar.lex"
-{ ch();return LOAD; }
+#line 58 "grammar.lex"
+{ ch();token();return LOAD; }
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 48 "grammar.lex"
-{ ch();return SLOAD; }
+#line 59 "grammar.lex"
+{ ch();token();return SLOAD; }
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 49 "grammar.lex"
-{ ch();return LSQBRACK; }
+#line 60 "grammar.lex"
+{ ch();token();return LSQBRACK; }
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 50 "grammar.lex"
-{ ch();return RSQBRACK; }
+#line 61 "grammar.lex"
+{ ch();token();return RSQBRACK; }
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
-#line 51 "grammar.lex"
-{ ch();return NAME; }
+#line 62 "grammar.lex"
+{ ch();
+  yylval = anf->NewName(pos, line, offset, yytext);
+  return NAME; 
+}
 	YY_BREAK
 case YY_STATE_EOF(INITIAL):
 case YY_STATE_EOF(COMMENT):
-#line 52 "grammar.lex"
+#line 66 "grammar.lex"
 { return -1; }
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
-#line 53 "grammar.lex"
+#line 67 "grammar.lex"
 { ch();printf("Error at line %u:%u\n",line+1,pos+1); }
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
-#line 54 "grammar.lex"
+#line 68 "grammar.lex"
 ECHO;
 	YY_BREAK
-#line 912 "lex.yy.c"
+#line 926 "lex.yy.c"
 
 	case YY_END_OF_BUFFER:
 		{
@@ -1904,7 +1918,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 54 "grammar.lex"
+#line 68 "grammar.lex"
 
 
 
@@ -1912,12 +1926,13 @@ int main(int c, char **a) {
   OE oe = OperatingEnvironment_LinuxNew();
   extern MiniMacs mm;  
   extern AstNode root;
-  extern AstNodeFactory anf;
+
   if (oe == 0) {
     return -1;
   }
   init_polynomial();
   anf = AstNodeFactory_New(oe);
+  /*
   mm = GenericMiniMacs_DefaultLoadNew(oe,a[2]);
   if (!mm) return -2;
   if (mm->get_id() == 0) {
@@ -1926,14 +1941,16 @@ int main(int c, char **a) {
   } else {
     mm->connect("127.0.0.1",2020);
   }
-
+  */
   yyin = fopen(a[1],"rb");
   if (yyin) {
-
+    Visitor interp = 0;
     yyparse();
     
     printf("Done %p\n",root);
 
+    interp = mpc_circuit_interpreter( oe,  root, mm);
+    root->visit(interp);
   } else {
     printf("Error: Unable to open file\n");
   }

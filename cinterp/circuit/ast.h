@@ -4,6 +4,10 @@
 #include <osal.h>
 #include <singlelinkedlist.h>
 
+typedef struct _token_ {
+  char * cstr;
+} * Token;
+
 typedef struct _number_ {
   uint val;
 } * Number;
@@ -40,7 +44,8 @@ typedef struct _mul_ {
 } * Mul;
 
 typedef struct _smul_ {
-  uint dst,op1,op2;
+  uint dst,op1;
+  Name op2_name;
 } * Smul;
 
 typedef struct _mov_ {
@@ -65,6 +70,7 @@ typedef struct _visitor_ {
   void(*Sload)(Sload l);
   void(*Load)(Load l);
   void(*Mov)(Mov m);
+  void(*Mul)(Mul m);
   void(*Smul)(Smul m);
   void(*MulPar)(MulPar mp);
   void(*Sadd)(Sadd sa);
@@ -90,6 +96,8 @@ typedef struct _ast_node_fac_ {
   AstNode (*NewSload)(uint pos, uint line, uint offset, AstNode addr, AstNode name);
   AstNode (*NewLoad)(uint pos, uint line, uint offset, AstNode addr, AstNode name);
   AstNode (*NewMov)(uint pos, uint line, uint offset, AstNode src, AstNode dst);
+  AstNode (*NewMul)(uint pos, uint line, uint offset, AstNode dst, AstNode op1,
+                    AstNode op2);
   AstNode (*NewSmul)(uint  pos, uint line, uint offset, 
                   AstNode dst, AstNode op1, AstNode op2);
   AstNode (*NewMulPar)(uint  pos, uint line, uint offset, AstNode addr);
@@ -107,7 +115,7 @@ typedef struct _ast_node_fac_ {
 
   AstNode (*NewList)(AstNode first);
   AstNode (*AppList)(AstNode list, AstNode next);
-  
+  AstNode (*NewToken)(uint pos, uint line, uint offset, char * str);
 } * AstNodeFactory;
 AstNodeFactory AstNodeFactory_New(OE oe);
 #endif
