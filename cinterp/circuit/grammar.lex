@@ -8,7 +8,7 @@
 #define YYSTYPE AstNode
 #include "y.tab.h"
 #include "interp.h"
-
+#include <unistd.h>
   extern AstNodeFactory anf;
   static int line;
   static int offset;
@@ -77,9 +77,11 @@ int main(int c, char **a) {
   }
   init_polynomial();
   anf = AstNodeFactory_New(oe);
-  /*
+
+  
   mm = GenericMiniMacs_DefaultLoadNew(oe,a[2]);
   if (!mm) return -2;
+  /*
   if (mm->get_id() == 0) {
     oe->p("One party invited, waiting ... ");
     mm->invite(1,2020);
@@ -95,7 +97,8 @@ int main(int c, char **a) {
     printf("Done %p\n",root);
 
     interp = mpc_circuit_interpreter( oe,  root, mm);
-    root->visit(interp);
+    if (root) 
+      root->visit(interp);
   } else {
     printf("Error: Unable to open file\n");
   }

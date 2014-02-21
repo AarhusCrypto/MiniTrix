@@ -68,7 +68,8 @@ CONST NAME LSQBRACK NUMLIST RSQBRACK {
 }
 
 NUMLIST:
-NUMBER { $$ = anf->NewList($1); }
+NUMBER { $$ = anf->NewList($1);
+ }
 |
 NUMBER NUMLIST { 
   $$ = anf->AppList($2,$1);

@@ -1,9 +1,68 @@
 #include "interp.h"
+#include <osal.h>
 #include <coo.h>
+#include <map.h>
+#include <hashmap.h>
+#include <unistd.h>
+
+static uint str_hash(void * s) {
+  char *ss = (char*)s;
+  uint lss = 1;
+  uint res = 0;
+  if (!s) return 0;
+
+  while(ss[lss]) {
+    res += 101*ss[lss]+65537;
+    ++lss;
+  }
+  
+  return res;
+}
+
+static int str_compare(void * a, void * b) {
+  char * as = (char*)a;
+  char * bs = (char*)b;
+  uint las = 0;
+  uint lbs = 0;
+  uint i = 0, l = 0;
+  // as==bs
+  if (!as && !bs) return 0;
+  // bs > as
+  if (!as && bs) return -1;
+  // as > bs
+  if (as && !bs) return 1;
+
+  while(as[las]) ++las;
+  while(bs[lbs]) ++lbs;
+
+  l = las > lbs ? lbs : las;
+  for(i = 0;i < l;++i) {   
+    if (as[i] > bs[i]) return 1;
+    if (as[i] < bs[i]) return -1;
+  }
+  if (las > lbs) return 1;
+  if (las < lbs) return -1;
+
+  return 0;
+}
+
+
+typedef struct _interp_impl_ {
+  OE oe;
+  MiniMacs mm;
+  Map env;
+  uint constant_pool; 
+} * InterpImpl;
 
 COO_DCL(Visitor, void, v_name, Name n);
 COO_DEF_NORET_ARGS(Visitor, v_name, Name n;,n) {
+  InterpImpl ii = (InterpImpl)this->impl;
+
+  if (ii->env->contains(n->data)) {
+    n->addr = (++(ii->constant_pool));
+  }
   printf("Name\n");
+  
 }}
 
 COO_DCL(Visitor, void, v_Sload, Sload n);
@@ -40,9 +99,31 @@ COO_DEF_NORET_ARGS(Visitor, v_Add, Add n;,n) {
   printf("Add\n");
 }}
 
+static 
+int required_bits(uint n) {
+  uint answer = 1;
+  while(n >>= 1) ++answer;
+  return answer;
+}
+
 COO_DCL(Visitor, void, v_Const, Const c);
 COO_DEF_NORET_ARGS(Visitor, v_Const, Const n;,n) {
+  InterpImpl ii = (InterpImpl)this->impl;
+  Name id = n->name;
+  List vals = n->vals;
+  uint i  = 0;
+  uint val = 0;
   printf("Const\n");
+
+  for(i = 0;i < vals->size();++i) {
+    AstNode node = vals->get_element(i);
+    Number n = (Number)node->impl;
+    uint bits = required_bits(n->val);
+    val = val << bits;
+    val += n->val;
+  }
+  sleep(1);
+  ii->env->put(id->data, (void*)(ull)val);
 }}
 COO_DCL(Visitor, void, v_init_heap, InitHeap ih);
 COO_DEF_NORET_ARGS(Visitor, v_init_heap, InitHeap n;,n) {
@@ -66,7 +147,14 @@ COO_DEF_NORET_ARGS(Visitor, v_List, List n;,n) {
 
 Visitor mpc_circuit_interpreter(OE oe, AstNode root,MiniMacs mm) {
   Visitor res = (Visitor)oe->getmem(sizeof(*res));
-  if (!res) return 0;
+  InterpImpl ii = (InterpImpl)oe->getmem(sizeof(*ii));
+  if (!res) goto failure;
+  if (!ii) goto failure;
+  
+  res->impl = ii;
+  ii->mm = mm;
+  ii->oe = oe;
+  ii->env = HashMap_new(oe, str_hash, str_compare, 32);
 
   COO_ATTACH_FN(Visitor, res, Name, v_name);
   COO_ATTACH_FN(Visitor, res, Sload, v_Sload);
@@ -82,5 +170,13 @@ Visitor mpc_circuit_interpreter(OE oe, AstNode root,MiniMacs mm) {
   COO_ATTACH_FN(Visitor, res, Number, v_Number);
   COO_ATTACH_FN(Visitor, res, List, v_List);
 
+  return res;
+ failure:
+  if (res) {
+    oe->putmem(res);res=0;
+  }
+  if (ii) {
+    oe->putmem(ii);ii = 0;
+  }
   return res;
 }

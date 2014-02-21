@@ -333,7 +333,6 @@ COO_DEF_RET_ARGS(AstNodeFactory, AstNode, NewNumber,
   AstNode result = AstNode_New(this->oe, pos, line, offset, impl);
 
   impl->val = number;
-
   COO_ATTACH_FN(AstNode, result, visit, visit_number);
 
   return result;

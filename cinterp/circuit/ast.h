@@ -79,6 +79,7 @@ typedef struct _visitor_ {
   void(*init_heap)(InitHeap ih);
   void(*Number)(Number n);
   void(*List)(List l);
+  void * impl;
 } * Visitor;
 
 typedef struct _ast_node_ {
