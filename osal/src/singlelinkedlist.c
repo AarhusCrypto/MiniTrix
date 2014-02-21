@@ -13,6 +13,8 @@ typedef struct _SingleLinkedList_ {
   OE oe;
   Node first;
   int size;
+  Node last;
+  uint lasti;
 } * SingleLinkedList;
 
 
@@ -50,11 +52,29 @@ COO_DCL(List, void *, get_element, uint i)
 COO_DEF_RET_ARGS(List, void *, get_element, uint i;, i) {
   SingleLinkedList ths = (SingleLinkedList)this->impl;
   if (i >= ths->size) return 0;
+
+
+  if (ths->last) {
+    // are we asking for the next item
+    if (i == ths->lasti+1) {
+      Node res = ths->last->next;
+      ths->last = res;
+      return res->element;
+    }
+
+    // are we asking for the prev element again
+    if (i == ths->lasti) {
+      Node res = ths->last;
+      return res->element;
+    }
+  }
+
   {
     uint j = 0;
     Node cur = ths->first;
     while(cur->next && j++ < i)
       cur = cur->next;
+    ths->last = cur;
     return cur->element;
   }
 }}
@@ -62,7 +82,6 @@ COO_DEF_RET_ARGS(List, void *, get_element, uint i;, i) {
 COO_DCL(List, uint, size) 
 COO_DEF_RET_NOARGS(List, uint, size) {
   SingleLinkedList ths = (SingleLinkedList)this->impl;
-
   return ths->size;
 }}
 

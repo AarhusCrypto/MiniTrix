@@ -67,7 +67,7 @@ polynomial hard_multiply(polynomial p1, polynomial p2)
   for (counter = 0; counter < 8; counter++)
     {
       if ((p2 & 1) == 1)
-	p ^= p1;
+        p ^= p1;
       hi_bit_set = (p1 & 0x80);
       p1 <<= 1;
       if (hi_bit_set == 0x80)

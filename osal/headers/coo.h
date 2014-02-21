@@ -30,7 +30,7 @@
     OBJ->NAME = coo_patch((byte*)stub_##CLZ##_##FN, STUB_SIZE , OBJ );  \
     if ( !( (OBJ->NAME) ) ) {                                           \
                                                                         \
- }}
+    }}                                                                  
 
 /* COO_DCL
  *

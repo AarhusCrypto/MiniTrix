@@ -38,7 +38,12 @@
 # Example creating one binary executable from main.c
 SUBDIRS = math
 include $(top_srcdir)/math.am
-bin_PROGRAMS = gf8calc
+bin_PROGRAMS = gf8calc ec
+
+ec_SOURCES=ec.c
+ec_LDADD=$(LIB_MATH)
+
+
 
 gf8calc_SOURCES = gf8calc.c
 gf8calc_LDADD = $(LIB_MATH)

@@ -18,8 +18,8 @@ COO_DEF_NORET_ARGS(Map, put, void * key; void * elm;,key,elm) {
   MapEntry ent = 0;
   uint i = 0;
 
-  if (!elm) return;
-
+  if (!elm) return ;
+  
   ent = MapEntry_new(hmap->oe, key, elm);
 
   hash_code = hmap->hfn(key);

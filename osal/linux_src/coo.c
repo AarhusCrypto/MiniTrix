@@ -122,7 +122,7 @@ static void * special_alloc_impl(uint size)
   }
   else { 
     printf("FATAL: COO Library ran out of memory.");
-    return 0;
+    exit(-1);
   }
   return res;
 }
@@ -148,7 +148,7 @@ static void special_free_all_impl(void)
 }
 
 
-#define SPECIAL_MEM_SIZ 4*1024*1024*16 // 1 GB
+#define SPECIAL_MEM_SIZ 4*1024*1024*32
 
 Memory LinuxSpecialMemoryNew(Memory m) 
 {

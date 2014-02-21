@@ -231,6 +231,7 @@ COO_DEF_RET_ARGS(MiniMacs,MR, mul, uint dst; uint l; uint r;,dst,l,r) {
     epsilon_in[id] = Data_new(gmm->oe, epsilon->lcodeword);
     if (!epsilon_in[id]) MRGF("Ran out of memory allocating shares for receiving epsilon (%u).", id);
   }
+
   for(id = 0;id<gmm->peer_map->size()+1;++id) {
     if (id == gmm->myid) continue;
 
@@ -395,6 +396,7 @@ COO_DEF_RET_ARGS(MiniMacs,MR, mul, uint dst; uint l; uint r;,dst,l,r) {
     }
 
     MEASURE_FN(sigma = gmm->encoder->encode(sigma_star_plain->data, triple->a->lval));
+
     if (!sigma) MRGF("Failed to create sigma representation.");
 
     for(id = 0;id<gmm->peer_map->size()+1;++id) {
