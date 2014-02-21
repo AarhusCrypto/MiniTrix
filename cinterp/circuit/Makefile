@@ -1,6 +1,6 @@
 INCL=-I../deps/headers 
 
-LIBS=-L../deps -lcminimacs -lcarena -lencoding -lmath -lds -losal -lpthread
+LIBS=-L../deps -lcminimacs -lcarena -lencoding -lmath -lds -losal -lpthread -lrt
 
 TARGET=interp
 

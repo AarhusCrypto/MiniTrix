@@ -28,11 +28,13 @@
 %%
 
 ROOT:
-intro consts circuit {
+intro heapinit consts circuit {
   AstNode numbers = $1;
-  AstNode consts = $2;
-  AstNode circuit = $3;
+  AstNode heapi = $2;
+  AstNode consts = $3;
+  AstNode circuit = $4;
   AstNode result = anf->NewList(numbers);
+  result = anf->AppList(result, heapi);
   result = anf->AppList(result, consts);
   result = anf->AppList(result, circuit);
   root = result;
@@ -49,13 +51,14 @@ NUMBER NUMBER NUMBER NUMBER {
 
 
 consts:
-aconst {
-  $$ = anf->NewList($1);
-}
+{ $$ = 0; }
 |
-aconst consts {
-  AstNode list = $2;
-  $$ = anf->AppList(list,$1);
+consts aconst {
+  if ($1 == 0) {
+    $$ = anf->NewList($2);
+  } else {
+    $$ = anf->AppList($1,$2);
+  }
 }
 
 aconst:
@@ -76,25 +79,32 @@ NUMBER NUMLIST {
 }
 
 circuit:
-INSTR  { $$ = anf->NewList($1);}
+{ $$ = 0; }
 | 
-INSTR circuit { 
-  $$ = anf->AppList($2,$1);
+circuit INSTR  { 
+  if ($1 == 0) {
+    $$ = anf->NewList($2);
+  }  else {
+    $$ = anf->AppList($1,$2);
+  }
 }
 
-INSTR:
+heapinit:
 INIT_HEAP NUMBER { 
   AstNode token = $1;
   AstNode number = $2;
   $$ = anf->NewInitHeap(token->pos, token->line, token->offset, 
                         number);
 }
-|
+
+
+INSTR:
 ADD NUMBER NUMBER NUMBER {
   AstNode token = $1;
   AstNode dest = $2;
   AstNode op1 = $3;
   AstNode op2 = $4;
+  printf("ADDDDDDDD \n");
   $$ = anf->NewAdd(token->pos, token->line, token->offset,
                    dest,op1,op2);
 }
@@ -151,6 +161,5 @@ SLOAD NUMBER NAME {
   AstNode t = $1;
   AstNode dst = $2;
   AstNode name = $3;
-  $$ = anf->NewSload(t->pos, t->line, t->offset,
-                     dst,name);
+  $$ = anf->NewSload(t->pos, t->line, t->offset,                  dst,name);
 }

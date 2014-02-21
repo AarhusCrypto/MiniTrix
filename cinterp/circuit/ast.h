@@ -32,7 +32,8 @@ typedef struct _add_ {
 } * Add;
 
 typedef struct _sadd_ {
-  uint dst,op1,op2;
+  uint dst,op1;
+  Name name;
 } * Sadd;
 
 typedef struct _mulpar_ {

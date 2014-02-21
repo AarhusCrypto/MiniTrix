@@ -232,7 +232,7 @@ COO_DEF_RET_ARGS(AstNodeFactory, AstNode, NewSadd,
 
   impl->dst = ((Number)dst->impl)->val;
   impl->op1 = ((Number)op1->impl)->val;
-  impl->op2 = ((Number)op2->impl)->val;
+  impl->name = ((Name)op2->impl);
 
   COO_ATTACH_FN(AstNode, result, visit, visit_sadd);
   

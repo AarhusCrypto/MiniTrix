@@ -51,17 +51,11 @@ typedef struct _interp_impl_ {
   OE oe;
   MiniMacs mm;
   Map env;
-  uint constant_pool; 
+  uint cp; 
 } * InterpImpl;
 
 COO_DCL(Visitor, void, v_name, Name n);
 COO_DEF_NORET_ARGS(Visitor, v_name, Name n;,n) {
-  InterpImpl ii = (InterpImpl)this->impl;
-
-  if (ii->env->contains(n->data)) {
-    n->addr = (++(ii->constant_pool));
-  }
-  printf("Name\n");
   
 }}
 
@@ -79,6 +73,8 @@ COO_DEF_NORET_ARGS(Visitor, v_Mov, Mov n;,n) {
 }}
 COO_DCL(Visitor, void, v_Mul, Mul m);
 COO_DEF_NORET_ARGS(Visitor, v_Mul, Mul m;,m) {
+  InterpImpl ii = (InterpImpl)this->impl;
+  ii->mm->mul(m->dst,m->op1,m->op2);
   printf("Mul\n");
 }}
 COO_DCL(Visitor, void, v_Smul, Smul m);
@@ -91,11 +87,21 @@ COO_DEF_NORET_ARGS(Visitor, v_MulPar, MulPar n;,n) {
 }}
 COO_DCL(Visitor, void, v_Sadd, Sadd a);
 COO_DEF_NORET_ARGS(Visitor, v_Sadd, Sadd n;,n) {
+  InterpImpl ii = (InterpImpl)this->impl;
+  Name op2 = n->name;
+  if (ii->env->contains(op2->data)) {
+    ull v = (ull)(void*)ii->env->get(op2->data);
+    ii->mm->add(n->dst+ii->cp, n->op1+ii->cp, (hptr)v);
+  } else {
+    printf("Unknown identifier \"%s\"\n",op2->data);
+  }
   printf("Sadd\n");
 }}
 
 COO_DCL(Visitor, void, v_Add, Add a);
 COO_DEF_NORET_ARGS(Visitor, v_Add, Add n;,n) {
+  InterpImpl ii = (InterpImpl)this->impl;
+  ii->mm->add(n->dst+ii->cp,n->op1+ii->cp,n->op2+ii->cp);
   printf("Add\n");
 }}
 
@@ -122,12 +128,18 @@ COO_DEF_NORET_ARGS(Visitor, v_Const, Const n;,n) {
     val = val << bits;
     val += n->val;
   }
-  sleep(1);
-  ii->env->put(id->data, (void*)(ull)val);
+  id->addr = ii->cp++;
+  ii->mm->public_input(id->addr,Data_shallow((byte*)&val,1));
+  ii->env->put(id->data, (void*)(ull)id->addr);
+  i = ii->env->contains(id->data);
+  printf("%u ]] \n",
+         i);
 }}
+
 COO_DCL(Visitor, void, v_init_heap, InitHeap ih);
 COO_DEF_NORET_ARGS(Visitor, v_init_heap, InitHeap n;,n) {
-  printf("init heap\n");
+  InterpImpl ii = (InterpImpl)this->impl;
+  ii->mm->init_heap(n->val);
 }}
 COO_DCL(Visitor, void, v_Number, Number n);
 COO_DEF_NORET_ARGS(Visitor, v_Number, Number n;,n) {
@@ -153,6 +165,7 @@ Visitor mpc_circuit_interpreter(OE oe, AstNode root,MiniMacs mm) {
   
   res->impl = ii;
   ii->mm = mm;
+  ii->cp = 1;
   ii->oe = oe;
   ii->env = HashMap_new(oe, str_hash, str_compare, 32);
 
