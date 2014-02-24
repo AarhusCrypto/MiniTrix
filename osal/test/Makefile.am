@@ -1,6 +1,9 @@
 include $(top_srcdir)/osal.am
 
-bin_PROGRAMS =  utf8test opentest threadtest mutextest testoe
+bin_PROGRAMS =  utf8test opentest threadtest mutextest testoe singlelinkedlisttest
+
+singlelinkedlisttest_SOURCES = singlelinkedlisttest.c
+singlelinkedlisttest_LDADD = $(LIB_OSAL)
 
 testoe_SOURCES = testoe.c
 testoe_LDADD = $(LIB_OSAL)

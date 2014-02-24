@@ -33,28 +33,33 @@ COO_DCL(List, void, add_element, void * e)
 COO_DEF_NORET_ARGS(List, add_element, void * e;, e) {
   SingleLinkedList ths = (SingleLinkedList)this->impl;
   OE oe = ths->oe;
-  if (ths->first == 0)
-    {
-      ths->first = NodeNew(oe, e, 0);
-    }
-  else
-    {
-      Node cur = ths->first;
-      while(cur->next)
-        cur = cur->next;
-      cur->next = NodeNew(oe,e,0);
-    }
-  ths->size ++;
+  if (ths->first == 0) {
+    ths->first = NodeNew(oe, e, 0);
+    ths->size = 1;
+    ths->last = 0;
+    ths->lasti = 0;
+  } else {
+    Node cur = ths->first;
+    while(cur->next)
+      cur = cur->next;
+    cur->next = NodeNew(oe,e,0);
+    ths->size++;
+    ths->last = 0;
+    ths->lasti = 0;
+  }
+
 }}
 
 
 COO_DCL(List, void *, get_element, uint i)
 COO_DEF_RET_ARGS(List, void *, get_element, uint i;, i) {
   SingleLinkedList ths = (SingleLinkedList)this->impl;
+
   if (i >= ths->size) return 0;
 
 
   if (ths->last) {
+
     // are we asking for the next item
     if (i == ths->lasti+1) {
       Node res = ths->last->next;
@@ -108,6 +113,8 @@ COO_DEF_RET_ARGS(List, void * , rem_element, uint i;,i)
     elm = cur->element;
     oe->putmem(cur);
     ths->size--;
+    ths->last = 0;
+    ths->lasti = 0;
     return elm;
   }
 }}
