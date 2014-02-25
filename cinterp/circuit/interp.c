@@ -65,10 +65,24 @@ COO_DEF_NORET_ARGS(Visitor, v_Sload, Sload n;,n) {
 }}
 COO_DCL(Visitor, void, v_Load, Load l);
 COO_DEF_NORET_ARGS(Visitor, v_Load, Load n;,n) {
+  InterpImpl ii = (InterpImpl)this->impl;
+  
+  if (ii->env->contains( (void*)(ull)n->n->data ) ) {
+    uint addr = (uint)(ull)ii->env->get(n->n->data);
+    MiniMacsRep rep = ii->mm->heap_get(addr);
+    ii->mm->heap_set(n->dst+ii->cp,rep);
+  } else {
+    printf("Named Constant %s is undefined.\n", n->n->data );
+  }
+  
+  
   printf("Load\n");
 }}
 COO_DCL(Visitor, void, v_Mov, Mov m);
 COO_DEF_NORET_ARGS(Visitor, v_Mov, Mov n;,n) {
+  InterpImpl ii = (InterpImpl)this->impl;
+  MiniMacsRep rep = ii->mm->heap_get(n->src);
+  ii->mm->heap_set(n->dst, rep);
   printf("Mov\n");
 }}
 COO_DCL(Visitor, void, v_Mul, Mul m);
@@ -91,6 +105,7 @@ COO_DEF_NORET_ARGS(Visitor, v_Sadd, Sadd n;,n) {
   Name op2 = n->name;
   if (ii->env->contains(op2->data)) {
     ull v = (ull)(void*)ii->env->get(op2->data);
+    printf("cp=%u\n", ii->cp);
     ii->mm->add(n->dst+ii->cp, n->op1+ii->cp, (hptr)v);
   } else {
     printf("Unknown identifier \"%s\"\n",op2->data);
@@ -135,6 +150,18 @@ COO_DEF_NORET_ARGS(Visitor, v_Const, Const n;,n) {
   printf("%u ]] \n",
          i);
 }}
+
+
+COO_DCL(Visitor, void, v_open, Open o);
+COO_DEF_NORET_ARGS(Visitor, v_open, Open o;,o) {
+  InterpImpl ii = (InterpImpl)this->impl;
+  MiniMacs mm = ii->mm;
+  
+  mm->open(o->addr);
+  printf("open\n");
+}}
+
+
 
 COO_DCL(Visitor, void, v_init_heap, InitHeap ih);
 COO_DEF_NORET_ARGS(Visitor, v_init_heap, InitHeap n;,n) {
@@ -182,6 +209,7 @@ Visitor mpc_circuit_interpreter(OE oe, AstNode root,MiniMacs mm) {
   COO_ATTACH_FN(Visitor, res, init_heap, v_init_heap);
   COO_ATTACH_FN(Visitor, res, Number, v_Number);
   COO_ATTACH_FN(Visitor, res, List, v_List);
+  COO_ATTACH_FN(Visitor, res, Open, v_open );
 
   return res;
  failure:

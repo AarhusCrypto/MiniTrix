@@ -369,11 +369,27 @@ COO_DEF_RET_ARGS(AstNodeFactory, AstNode, AppList, AstNode list; AstNode next;,l
   return list;
 }}
 
+COO_DCL(AstNode, void, visit_open, Visitor v);
+COO_DEF_NORET_ARGS(AstNode, visit_open, Visitor v;,v) {
+  v->Open( (Open)this->impl );
+
+}}
+
+COO_DCL(AstNodeFactory, AstNode, NewOpen, AstNode addr);
+COO_DEF_RET_ARGS(AstNodeFactory, AstNode, NewOpen, AstNode addr;,addr) {
+  if (addr) {
+    Open impl = (Open)this->oe->getmem(sizeof(*impl));
+    AstNode result = AstNode_New(this->oe, addr->pos, addr->line, addr->offset, impl);
+    impl->addr = ((Number)addr->impl)->val;
+    COO_ATTACH_FN(AstNode, result, visit, visit_open);
+    return result;
+  }
+}}
+
 
 AstNodeFactory AstNodeFactory_New(OE oe) {
   AstNodeFactory anf = (AstNodeFactory)oe->getmem(sizeof(*anf));
   if (!anf) return 0;
-
   COO_ATTACH(AstNodeFactory, anf, NewName);
   COO_ATTACH(AstNodeFactory, anf, NewSload);
   COO_ATTACH(AstNodeFactory, anf, NewLoad);
@@ -389,6 +405,7 @@ AstNodeFactory AstNodeFactory_New(OE oe) {
   COO_ATTACH(AstNodeFactory, anf, NewList);
   COO_ATTACH(AstNodeFactory, anf, AppList);
   COO_ATTACH(AstNodeFactory, anf, NewToken);
+  COO_ATTACH(AstNodeFactory, anf, NewOpen);
   anf->oe = oe;
 
   return anf;

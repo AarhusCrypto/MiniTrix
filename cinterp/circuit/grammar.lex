@@ -81,14 +81,14 @@ int main(int c, char **a) {
   
   mm = GenericMiniMacs_DefaultLoadNew(oe,a[2]);
   if (!mm) return -2;
-  /*
+  
   if (mm->get_id() == 0) {
     oe->p("One party invited, waiting ... ");
     mm->invite(1,2020);
   } else {
     mm->connect("127.0.0.1",2020);
   }
-  */
+  
   yyin = fopen(a[1],"rb");
   if (yyin) {
     Visitor interp = 0;

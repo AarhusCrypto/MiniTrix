@@ -24,7 +24,7 @@
 %token INIT_HEAP
 %token SLOAD
 %token LOAD
-
+%token OPEN
 %%
 
 ROOT:
@@ -162,4 +162,12 @@ SLOAD NUMBER NAME {
   AstNode dst = $2;
   AstNode name = $3;
   $$ = anf->NewSload(t->pos, t->line, t->offset,                  dst,name);
+}
+|
+OPEN NUMBER {
+  AstNode t = $1;
+  AstNode addr = $2;
+
+  $$ = anf->NewOpen(t->pos, t->line, t->offset, addr);
+  
 }

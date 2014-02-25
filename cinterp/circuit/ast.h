@@ -1,8 +1,55 @@
+/*
+  Copyright (c) 2013, Rasmus Lauritsen, Aarhus University
+  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are met:
+  1. Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
+  2. Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer in the
+  documentation and/or other materials provided with the distribution.
+  3. All advertising materials mentioning features or use of this software
+
+  must display the following acknowledgement:
+  This product includes software developed by the Aarhus University.
+  4. Neither the name of the Aarhus University nor the
+  names of its contributors may be used to endorse or promote products
+  derived from this software without specific prior written permission.
+
+  THIS SOFTWARE IS PROVIDED BY Rasmus Lauritsen at Aarhus University ''AS IS'' AND ANY
+  EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+  WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+  DISCLAIMED. IN NO EVENT SHALL Rasmus Lauritsen at Aarhus University BE LIABLE FOR ANY
+  DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+  ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+  Created: 2014-02-11
+
+  Author: Rasmus Winther Lauritsen, rwl@cs.au.dk
+
+  Changes: 
+  20-02-2014 Look in the Subversion log for older comments
+  25-02-2014 Updated with NewOpen and Open astNode.
+*/
+
 #ifndef AST_H
 #define AST_H
 
 #include <osal.h>
 #include <singlelinkedlist.h>
+
+/************************************************************
+ Concrete Ast node data elements
+ ************************************************************/
+typedef struct _open_ {
+  uint addr;
+} * Open;
 
 typedef struct _token_ {
   char * cstr;
@@ -63,9 +110,18 @@ typedef struct _sload_ {
   Name n;
   uint dst;
 } * Sload;
+/************************************************************/
 
 
-
+/*!
+ * A Visitor instance can be given to the {visit} method on any
+ * AstNode. Which in turn will invoke the function on the visitor
+ * corresponding to its concrete type.
+ *
+ * E.g. an AstNode from invoking NewOpen on the factory below will
+ * invoke the {Open} function on a visitor given to it's {visit}
+ * method.
+ */
 typedef struct _visitor_ {
   void(*Name)(Name n);
   void(*Sload)(Sload l);
@@ -80,9 +136,15 @@ typedef struct _visitor_ {
   void(*init_heap)(InitHeap ih);
   void(*Number)(Number n);
   void(*List)(List l);
+  void(*Open)(Open o);
   void * impl;
 } * Visitor;
 
+
+
+/*
+ * AstNode 
+ */
 typedef struct _ast_node_ {
   OE oe;
   uint line;
@@ -92,6 +154,12 @@ typedef struct _ast_node_ {
   void * impl;
 } *AstNode;
 
+
+
+/*
+ * Ast Node Factory. Use an instance of this factory to create ast
+ * nodes.
+ */
 typedef struct _ast_node_fac_ {
   OE oe;
   AstNode (*NewName)(uint pos, uint line, uint offset, char * str);
@@ -118,6 +186,14 @@ typedef struct _ast_node_fac_ {
   AstNode (*NewList)(AstNode first);
   AstNode (*AppList)(AstNode list, AstNode next);
   AstNode (*NewToken)(uint pos, uint line, uint offset, char * str);
+  AstNode (*NewOpen)(uint pos, uint line, uint offset, AstNode addr);
 } * AstNodeFactory;
+
+/*
+ * Create a default factory.
+ */
 AstNodeFactory AstNodeFactory_New(OE oe);
+
+// TODO(rwl): Write a free AST function.
+
 #endif
