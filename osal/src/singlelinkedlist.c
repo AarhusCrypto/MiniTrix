@@ -64,6 +64,7 @@ COO_DEF_RET_ARGS(List, void *, get_element, uint i;, i) {
     if (i == ths->lasti+1) {
       Node res = ths->last->next;
       ths->last = res;
+      ths->lasti = i;
       return res->element;
     }
 
@@ -80,6 +81,7 @@ COO_DEF_RET_ARGS(List, void *, get_element, uint i;, i) {
     while(cur->next && j++ < i)
       cur = cur->next;
     ths->last = cur;
+    ths->lasti = i;
     return cur->element;
   }
 }}
