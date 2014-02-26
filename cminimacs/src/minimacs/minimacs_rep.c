@@ -629,13 +629,13 @@ MiniMacsRep minimacs_rep_add_const_fast(MiniMacsEnc encoder, MiniMacsRep rep, by
   if (!r->dx_codeword) {
     goto failure;
   }
-  memset(r->dx_codeword,0,rep->lcodeword);
+  memset(r->dx_codeword,0,rep->ldx_codeword);
   r->ldx_codeword = rep->ldx_codeword;
   r->lval = rep->lval;
 
   // compute r->dx_codeword = rep->dx_codeword - C(u)
   for(i = 0; i < lencoded_c;++i) {
-    r->dx_codeword[i] = sub( rep->dx_codeword[i], 0x00 );
+    r->dx_codeword[i] = rep->dx_codeword[i];
   }
 
   

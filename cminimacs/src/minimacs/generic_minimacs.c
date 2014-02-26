@@ -53,14 +53,20 @@ COO_DEF_RET_ARGS(MiniMacs, MR, add, uint dst; uint l; uint r;,dst,l,r) {
   MiniMacsRep res = 0;
   MR mr = {0};
   
-  oe->p("Generic MiniMacs add");
-
   if (gmm->peer_map->size() < 1) MRRF("[add] No peers connected.");
 
   if (!left) MRRF("Left operand (%d) was not set.",l);
   if (!right) MRRF("Right operand (%d) was not set.", r);
 
   mr = gmm->__add__(&res,left,right);
+  if (res->ldx_codeword == 0) {
+    
+    printf("############################################################\n");
+    printf("############################################################\n");
+    printf("dst=%u,left=%u,right=%u\n",dst,l,r);
+    
+  }
+
   if(mr.rc == 0) this->heap_set(dst,res);
   return mr;
 }}
@@ -86,7 +92,6 @@ COO_DEF_RET_ARGS(GenericMiniMacs, MR, __add__,MiniMacsRep * res_out; MiniMacsRep
   // left is proper rep and right is a public constant
   if (left_const && !right_const) {
     MiniMacsEnc enc = this->encoder;
-    //    if (left->lval == matrix_getwidth(this->big_encoder)) enc = this->big_encoder;
     result = minimacs_rep_add_const_fast(enc, right, left->codeword, left->lval);
   }
 
@@ -112,6 +117,11 @@ COO_DEF_RET_ARGS(GenericMiniMacs, MR, __add__,MiniMacsRep * res_out; MiniMacsRep
   if (!left_const && !right_const) {
     result = minimacs_rep_xor(left, right);
   }
+
+  if (!result) {
+    MRRF("Result is null add failed. left_const=%u,right_const=%u\n",left_const, right_const);
+  }
+
   *res_out = result;
   MR_RET_OK;
 }}
@@ -166,6 +176,11 @@ COO_DEF_RET_ARGS(MiniMacs,MR, mul, uint dst; uint l; uint r;,dst,l,r) {
     }
     result = minimacs_create_rep_public_plaintext_fast(gmm->encoder,tmpd->data, tmpd->ldata, left->lcodeword);
     this->heap_set(dst, result);
+    if (result->ldx_codeword == 0) {
+      printf("1 ############################################################\n");
+      printf("############################################################\n");
+      printf("%u,%u,%u\n",dst,l,r);
+    }
     Data_destroy(gmm->oe,&tmpd);
     MR_RET_OK;
   }
@@ -173,7 +188,12 @@ COO_DEF_RET_ARGS(MiniMacs,MR, mul, uint dst; uint l; uint r;,dst,l,r) {
   // left public constant, right proper rep
   if (!left_const && right_const) {
     MiniMacsEnc enc = gmm->encoder;
-    result = minimacs_rep_mul_const_fast(enc, right, left->codeword, left->lval); 
+    result = minimacs_rep_mul_const_fast(enc, left, right->codeword, right->lval); 
+    if (result->ldx_codeword == 0) {
+      printf("2 ############################################################\n");
+      printf("############################################################\n");
+      printf("%u,%u,%u\n",dst,l,r);
+    }
     this->heap_set(dst, result);
     MR_RET_OK;
   }
@@ -181,12 +201,15 @@ COO_DEF_RET_ARGS(MiniMacs,MR, mul, uint dst; uint l; uint r;,dst,l,r) {
   // left proper rep, right public constant
   if (left_const && !right_const) {
     MiniMacsEnc enc = gmm->encoder;
-    result = minimacs_rep_mul_const_fast(enc,left,right->codeword, right->lval);
+    result = minimacs_rep_mul_const_fast(enc,right,left->codeword, left->lval);
+    if (result->ldx_codeword == 0) {
+      printf("3 ############################################################\n");
+      printf("############################################################\n");
+      printf("%u,%u,%u\n",dst,l,r);
+    }
     this->heap_set(dst, result);
     MR_RET_OK;
   }
-
-  oe->p("Generic MiniMacs mul");
 
   triple = gmm->next_triple();
   if (!triple) MUL_FAIL("No more triples (%d taken).", gmm->idx_triple);
@@ -411,6 +434,13 @@ COO_DEF_RET_ARGS(MiniMacs,MR, mul, uint dst; uint l; uint r;,dst,l,r) {
     result = minimacs_rep_add_const_fast(gmm->encoder,star_pair[0],sigma,left->lval);
     if (!result) MRGF("Computing result failed");
     
+    if (result->ldx_codeword == 0) {
+
+      printf("############################################################\n");
+      printf("############################################################\n");
+      
+    }
+
     this->heap_set(dst, result);
     MR_RET_OK;
   } else {
@@ -435,7 +465,6 @@ COO_DEF_RET_ARGS(MiniMacs,MR, mul, uint dst; uint l; uint r;,dst,l,r) {
   }
 
 
-  oe->p("Generic MiniMacs mul");
   MR_RET_OK;
  failure:
   return mr;
@@ -557,6 +586,11 @@ COO_DEF_RET_ARGS(MiniMacs,MR,secret_input, uint pid; hptr dst; Data plain_val;, 
     result = minimacs_rep_add_const_fast(gmm->encoder,r,epsilon->data, r->lval);
     minimacs_rep_clean_up(&r);    
     if (!result) MRGF("Unable to add constant to the random a.");
+    if (result->ldx_codeword == 0) {
+      printf("secret input################################################\n");
+      printf("############################################################\n");
+      printf("%u,%u\n",dst,gmm->singles[0]->lcodeword);
+    }
 
 
     mr = this->heap_set(dst, result);
@@ -599,7 +633,7 @@ COO_DEF_RET_ARGS(MiniMacs,MR,secret_input, uint pid; hptr dst; Data plain_val;, 
   Data_destroy(oe,&encoded_r);
   Data_destroy(oe,&epsilon);
   minimacs_rep_clean_up(&result);
-  oe->p("Generic MiniMacs secret input");
+
   return mr;
 }}
 
@@ -609,7 +643,7 @@ COO_DEF_RET_ARGS(MiniMacs,MR,public_input, hptr dst; Data pub_val;,dst,pub_val) 
   OE oe = gmm->oe;
   MiniMacsRep vrep = minimacs_create_rep_public_plaintext_fast(gmm->encoder, pub_val->data, pub_val->ldata, gmm->singles[0]->lcodeword);
   this->heap_set(dst, vrep);
-  oe->p("Generic MiniMacs public input");
+
   MR_RET_OK;
  failure:
   MR_RET_OK;
@@ -674,7 +708,6 @@ COO_DEF_RET_ARGS(MiniMacs,MR,open,hptr dst;,dst) {
   result = minimacs_create_rep_public_plaintext_fast(gmm->encoder, clear->data, clear->ldata, v->lcodeword);
   this->heap_set(dst, result);
 
-  //  oe->p("Generic MiniMacs open");
  failure:
   minimacs_rep_clean_up( &v );
   if (shares) {
