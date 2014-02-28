@@ -47,6 +47,10 @@
 /************************************************************
  Concrete Ast node data elements
  ************************************************************/
+typedef struct _print_ {
+  uint addr;
+} * Print;
+
 typedef struct _open_ {
   uint addr;
 } * Open;
@@ -71,6 +75,8 @@ typedef struct _init_heap_ {
 
 typedef struct _const_ {
   List vals;
+  bool secret;
+  uint id;
   Name name;
 } * Const;
 
@@ -112,6 +118,21 @@ typedef struct _sload_ {
 } * Sload;
 /************************************************************/
 
+struct _visitor_;
+
+/*
+ * AstNode 
+ */
+typedef struct _ast_node_ {
+  OE oe;
+  uint line;
+  uint pos;
+  uint offset;
+  void (*visit)(struct _visitor_ * v);
+  void * impl;
+} *AstNode;
+
+
 
 /*!
  * A Visitor instance can be given to the {visit} method on any
@@ -123,36 +144,23 @@ typedef struct _sload_ {
  * method.
  */
 typedef struct _visitor_ {
-  void(*Name)(Name n);
-  void(*Sload)(Sload l);
-  void(*Load)(Load l);
-  void(*Mov)(Mov m);
-  void(*Mul)(Mul m);
-  void(*Smul)(Smul m);
-  void(*MulPar)(MulPar mp);
-  void(*Sadd)(Sadd sa);
-  void(*Add)(Add a);
-  void(*Const)(Const c);
-  void(*init_heap)(InitHeap ih);
-  void(*Number)(Number n);
-  void(*List)(List l);
-  void(*Open)(Open o);
+  void(*Name)(AstNode n);
+  void(*Sload)(AstNode l);
+  void(*Load)(AstNode l);
+  void(*Mov)(AstNode m);
+  void(*Mul)(AstNode m);
+  void(*Smul)(AstNode m);
+  void(*MulPar)(AstNode mp);
+  void(*Sadd)(AstNode sa);
+  void(*Add)(AstNode a);
+  void(*Const)(AstNode c);
+  void(*init_heap)(AstNode ih);
+  void(*Number)(AstNode n);
+  void(*List)(AstNode l);
+  void(*Open)(AstNode o);
+  void(*Print)(AstNode p);
   void * impl;
 } * Visitor;
-
-
-
-/*
- * AstNode 
- */
-typedef struct _ast_node_ {
-  OE oe;
-  uint line;
-  uint pos;
-  uint offset;
-  void (*visit)(Visitor v);
-  void * impl;
-} *AstNode;
 
 
 
@@ -176,7 +184,7 @@ typedef struct _ast_node_fac_ {
   AstNode (*NewAdd)(uint  pos, uint line, uint offset,
                  AstNode dst, AstNode op1, AstNode op2);
   AstNode (*NewConst)(uint  pos, uint line, uint offset,
-                   AstNode name, AstNode numlist);
+                      AstNode name, AstNode numlist, AstNode id, bool secret);
   AstNode (*NewInitHeap)(uint  pos, uint line, uint offset,
                       AstNode size);
 
@@ -187,6 +195,7 @@ typedef struct _ast_node_fac_ {
   AstNode (*AppList)(AstNode list, AstNode next);
   AstNode (*NewToken)(uint pos, uint line, uint offset, char * str);
   AstNode (*NewOpen)(uint pos, uint line, uint offset, AstNode addr);
+  AstNode (*NewPrint)(uint pos, uint line, uint offset, AstNode addr);
 } * AstNodeFactory;
 
 /*

@@ -11,11 +11,12 @@
 #include <math/matrix.h>
 #include <hashmap.h>
 
-#define MUL_FAIL( MSG, ... ) {						\
-    osal_sprintf(mr.msg,"MUL(dst=%u,left=%u,right=%u): " MSG,dst,l,r,##__VA_ARGS__); \
-    mr.lmsg = osal_strlen(mr.msg);					\
-    printf("Failure: %s\n",mr.msg);         \
-    goto failure;}
+#define MUL_FAIL(OE, MSG, ... ) {                                       \
+  char _mmm_[128] = {0};                                                \
+  osal_sprintf(_mmm_,"MUL(dst=%u,left=%u,right=%u): " MSG,dst,l,r,##__VA_ARGS__); \
+  (OE)->p(_mmm_);                                                       \
+  mr = 1;                                                               \
+  goto failure;}
 
 typedef struct _generic_minimacs_ {
 

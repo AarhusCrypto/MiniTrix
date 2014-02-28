@@ -16,7 +16,7 @@ AstNode AstNode_New(OE oe, uint pos, uint line, uint offset, void * impl) {
 
 COO_DCL(AstNode, void, visit_name, Visitor v);
 COO_DEF_NORET_ARGS(AstNode, visit_name, Visitor v;,v) {
-  v->Name( (Name)this->impl );
+  v->Name( this );
   return;
 }}
 
@@ -68,7 +68,7 @@ COO_DEF_RET_ARGS(AstNodeFactory, AstNode, NewToken,
 
 COO_DCL(AstNode, void, visit_sload, Visitor v);
 COO_DEF_NORET_ARGS( AstNode, visit_sload, Visitor v;,v) {
-  v->Sload((Sload)this->impl);
+  v->Sload(this);
   return;
 }}
 
@@ -91,7 +91,7 @@ COO_DEF_RET_ARGS(AstNodeFactory, AstNode, NewSload,
 
 COO_DCL(AstNode, void, visit_load, Visitor v);
 COO_DEF_NORET_ARGS( AstNode, visit_load, Visitor v;,v) {
-  v->Load((Load)this->impl);
+  v->Load(this);
   return;
 }}
 
@@ -115,7 +115,7 @@ COO_DEF_RET_ARGS(AstNodeFactory, AstNode, NewLoad,
 
 COO_DCL(AstNode, void, visit_mov, Visitor v);
 COO_DEF_NORET_ARGS( AstNode, visit_mov, Visitor v;,v) {
-  v->Mov((Mov)this->impl);
+  v->Mov(this);
   return;
 }}
 
@@ -139,7 +139,7 @@ COO_DEF_RET_ARGS(AstNodeFactory, AstNode, NewMov,
 
 COO_DCL(AstNode, void, visit_smul, Visitor v);
 COO_DEF_NORET_ARGS( AstNode, visit_smul, Visitor v;,v) {
-  v->Smul((Smul)this->impl);
+  v->Smul(this);
   return;
 }}
 
@@ -164,7 +164,7 @@ COO_DEF_RET_ARGS(AstNodeFactory, AstNode, NewSmul,
  
 COO_DCL(AstNode, void, visit_mul, Visitor v);
 COO_DEF_NORET_ARGS( AstNode, visit_mul, Visitor v;,v) {
-  v->Mul((Mul)this->impl);
+  v->Mul(this);
   return;
 }}
 
@@ -192,7 +192,7 @@ COO_DEF_RET_ARGS(AstNodeFactory, AstNode, NewMul,
 
 COO_DCL(AstNode, void, visit_mulpar, Visitor v);
 COO_DEF_NORET_ARGS( AstNode, visit_mulpar, Visitor v;,v) {
-  v->MulPar((MulPar)this->impl);
+  v->MulPar(this);
   return;
 }}
 
@@ -215,7 +215,7 @@ COO_DEF_RET_ARGS(AstNodeFactory, AstNode, NewMulPar,
 
 COO_DCL(AstNode, void, visit_sadd, Visitor v);
 COO_DEF_NORET_ARGS( AstNode, visit_sadd, Visitor v;,v) {
-  v->Sadd((Sadd)this->impl);
+  v->Sadd(this);
   return;
 }}
 
@@ -241,7 +241,7 @@ COO_DEF_RET_ARGS(AstNodeFactory, AstNode, NewSadd,
 
 COO_DCL(AstNode, void, visit_add, Visitor v);
 COO_DEF_NORET_ARGS( AstNode, visit_add, Visitor v;,v) {
-  v->Add((Add)this->impl);
+  v->Add(this);
   return;
 }}
 
@@ -270,24 +270,28 @@ COO_DEF_RET_ARGS(AstNodeFactory, AstNode, NewAdd,
 
 COO_DCL(AstNode, void, visit_const, Visitor v);
 COO_DEF_NORET_ARGS( AstNode, visit_const, Visitor v;,v) {
-  v->Const((Const)this->impl);
+  v->Const(this);
   return;
 }}
 
 
 COO_DCL(AstNodeFactory, AstNode, NewConst,
         uint  pos, uint line, uint offset,
-        AstNode name, AstNode numlist);
+        AstNode name, AstNode numlist, AstNode id, bool secret);
 COO_DEF_RET_ARGS(AstNodeFactory, AstNode, NewConst,
                  uint  pos; uint line; uint offset;
-                 AstNode name; AstNode numlist;,
-                 pos, line, offset, name, numlist) {
+                 AstNode name; AstNode numlist; AstNode id; bool secret;,
+                 pos, line, offset, name, numlist, id, secret) {
   
   Const impl = (Const)this->oe->getmem(sizeof(*impl));
   AstNode result = AstNode_New(this->oe, pos, line, offset, impl);
 
   impl->vals = (List)numlist->impl;
   impl->name = (Name)name->impl;
+  impl->secret = secret;
+  if (secret == True) {
+    impl->id  = ((Number)id->impl)->val;
+  }
   
   COO_ATTACH_FN(AstNode, result, visit, visit_const);
 
@@ -297,7 +301,7 @@ COO_DEF_RET_ARGS(AstNodeFactory, AstNode, NewConst,
 
 COO_DCL(AstNode, void, visit_initheap, Visitor v);
 COO_DEF_NORET_ARGS( AstNode, visit_initheap, Visitor v;,v) {
-  v->init_heap((InitHeap)this->impl);
+  v->init_heap(this);
   return;
 }}
 
@@ -318,7 +322,7 @@ COO_DEF_RET_ARGS(AstNodeFactory, AstNode, NewInitHeap,
 
 COO_DCL(AstNode, void, visit_number, Visitor v);
 COO_DEF_NORET_ARGS( AstNode, visit_number, Visitor v;,v) {
-  v->Number((Number)this->impl);
+  v->Number(this);
   return;
 }}
 
@@ -341,7 +345,7 @@ COO_DEF_RET_ARGS(AstNodeFactory, AstNode, NewNumber,
 
 COO_DCL(AstNode, void, visit_list, Visitor v);
 COO_DEF_NORET_ARGS( AstNode, visit_list, Visitor v;,v) {
-  v->List((List)this->impl);
+  v->List(this);
   return;
 }}
 
@@ -371,21 +375,38 @@ COO_DEF_RET_ARGS(AstNodeFactory, AstNode, AppList, AstNode list; AstNode next;,l
 
 COO_DCL(AstNode, void, visit_open, Visitor v);
 COO_DEF_NORET_ARGS(AstNode, visit_open, Visitor v;,v) {
-  v->Open( (Open)this->impl );
+  v->Open( this );
 
 }}
 
-COO_DCL(AstNodeFactory, AstNode, NewOpen, AstNode addr);
-COO_DEF_RET_ARGS(AstNodeFactory, AstNode, NewOpen, AstNode addr;,addr) {
+COO_DCL(AstNodeFactory, AstNode, NewOpen, uint pos, uint line, uint offset, AstNode addr);
+COO_DEF_RET_ARGS(AstNodeFactory, AstNode, NewOpen, uint pos; uint line; uint offset; AstNode addr;,pos,line,offset,addr) {
   if (addr) {
     Open impl = (Open)this->oe->getmem(sizeof(*impl));
-    AstNode result = AstNode_New(this->oe, addr->pos, addr->line, addr->offset, impl);
+    AstNode result = AstNode_New(this->oe, pos, line, offset, impl);
     impl->addr = ((Number)addr->impl)->val;
     COO_ATTACH_FN(AstNode, result, visit, visit_open);
     return result;
   }
 }}
 
+
+COO_DCL(AstNode, void, visit_print, Visitor v);
+COO_DEF_NORET_ARGS(AstNode, visit_print, Visitor v;,v) {
+  v->Print( this );
+}}
+
+COO_DCL(AstNodeFactory, AstNode, NewPrint, uint pos, uint line, uint offset, AstNode addr);
+COO_DEF_RET_ARGS(AstNodeFactory, AstNode, NewPrint, uint pos; uint line; uint offset; AstNode addr;,
+                 pos, line, offset, addr) {
+  if (addr) {
+    Print impl = (Print)this->oe->getmem(sizeof(*impl));
+    AstNode result = AstNode_New(this->oe, pos, line, offset, impl);
+    impl->addr = ((Number)addr->impl)->val;
+    COO_ATTACH_FN(AstNode, result, visit, visit_print);
+    return result;
+  }
+}}
 
 AstNodeFactory AstNodeFactory_New(OE oe) {
   AstNodeFactory anf = (AstNodeFactory)oe->getmem(sizeof(*anf));
@@ -406,6 +427,8 @@ AstNodeFactory AstNodeFactory_New(OE oe) {
   COO_ATTACH(AstNodeFactory, anf, AppList);
   COO_ATTACH(AstNodeFactory, anf, NewToken);
   COO_ATTACH(AstNodeFactory, anf, NewOpen);
+  COO_ATTACH(AstNodeFactory, anf, NewPrint);
+
   anf->oe = oe;
 
   return anf;

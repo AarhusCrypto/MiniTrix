@@ -46,7 +46,7 @@ int main(int c, char **a) {
   InitStats(oe);
   init_polynomial();
   if (oe) {
-    MR mr = {{0}};
+    MR mr = 0;
     MiniMacs mm = setup_generic_minimacs(oe, a[1]);
     if (mm == 0) {
       printf("Uable to create MiniMacs Instance, leaving\n");

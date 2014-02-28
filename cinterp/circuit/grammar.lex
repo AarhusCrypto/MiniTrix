@@ -14,8 +14,11 @@
   static int offset;
   static int pos;
 
+  int error = 0;
+
   void yyerror(int t) {
-    printf("Parser error token after line %u:%u",line+1,pos+1);
+    printf("Parser error. Token on line %u:%u-%u was unexpected.",line+1,pos+1-yyleng,pos);
+    error = 1;
   }
 
   static void nl() {
@@ -49,6 +52,7 @@
 }
 "init_heap" { ch();token();return INIT_HEAP; }
 "CONST"     { ch();token();return CONST; }
+"SECRET"    { ch();token();return SECRET; }
 "add"       { ch();token();return ADD; }
 "sadd"      { ch();token();return SADD; }
 "mulpar"    { ch();token();return MULPAR; }
@@ -57,6 +61,8 @@
 "mov"       { ch();token();return MOV; }
 "load"      { ch();token();return LOAD; }
 "sload"     { ch();token();return SLOAD; }
+"open"      { ch();token();return OPEN; }
+"print"     { ch();token();return PRINT; }
 "["         { ch();token();return LSQBRACK; }
 "]"         { ch();token();return RSQBRACK; }
 [a-zA-Z_0-9]+ { ch();
@@ -82,27 +88,33 @@ int main(int c, char **a) {
   mm = GenericMiniMacs_DefaultLoadNew(oe,a[2]);
   if (!mm) return -2;
   
-  if (mm->get_id() == 0) {
-    oe->p("One party invited, waiting ... ");
-    mm->invite(1,2020);
-  } else {
-    mm->connect("127.0.0.1",2020);
-  }
   
   yyin = fopen(a[1],"rb");
   if (yyin) {
     Visitor interp = 0;
-    yyparse();
-    
-    printf("Done %p\n",root);
 
+    // parse
+    yyparse();
+    if (error) {   printf("\n");return -1; }
+
+    // connect peers now that we read a circuit
+    if (mm->get_id() == 0) {
+      oe->p("One party invited, waiting ... ");
+      mm->invite(1,2020);
+    } else {
+      mm->connect(a[3],2020);
+    }
+
+    // create interpreter
     interp = mpc_circuit_interpreter( oe,  root, mm);
     if (root) 
       root->visit(interp);
+
+    printf("Done %p\n",root);
   } else {
     printf("Error: Unable to open file\n");
   }
-
+  
   return 0 ;
 }
 

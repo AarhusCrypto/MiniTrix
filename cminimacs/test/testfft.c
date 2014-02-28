@@ -8,7 +8,7 @@
 
 #define C( CALL ) {				\
   mr = (CALL);					\
-  if (mr.rc != 0) {printf("Error: %s",mr.msg);return mr.rc;}}
+  if (mr != 0) {printf("Error: See above.");return mr;}}
 
 
 static MiniMacs setup_generic_minimacs(OE oe, const char * raw_material_file) {
@@ -51,7 +51,7 @@ int main(int c, char **a) {
   OE oe = OperatingEnvironment_LinuxNew();
   init_polynomial();
   if (oe) {
-    MR mr = {{0}};
+    MR mr = 0;
     MiniMacs mm = setup_generic_minimacs(oe, a[1]);
     printf("Inviting 1 party to computate on port 2020\n");
     mm->invite(1,2020);

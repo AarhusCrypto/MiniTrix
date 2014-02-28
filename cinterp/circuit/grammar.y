@@ -25,6 +25,8 @@
 %token SLOAD
 %token LOAD
 %token OPEN
+%token PRINT
+%token SECRET
 %%
 
 ROOT:
@@ -62,20 +64,40 @@ consts aconst {
 }
 
 aconst:
-CONST NAME LSQBRACK NUMLIST RSQBRACK { 
+CONST NAME LSQBRACK NUMLIST RSQBRACK  { 
   AstNode t = $1;
   AstNode name = $2;
   AstNode num_list = $4;
   $$ = anf->NewConst(t->pos, t->line, t->offset,
-                     name, num_list);
+                     name, num_list, 0, False);
+}
+|
+SECRET NUMBER RSQBRACK CONST NAME LSQBRACK NUMLIST RSQBRACK {
+  AstNode t = $1;
+  AstNode name = $5;
+  AstNode num_list = $7;
+  AstNode id = $2;
+  $$ = anf->NewConst(t->pos, t->line, t->offset,
+                     name, num_list, id, True);
+}
+|
+SECRET NUMBER RSQBRACK CONST NAME {
+  AstNode t = $1;
+  AstNode name = $5;
+  AstNode id = $2;
+  $$ = anf->NewConst(t->pos, t->line, t->offset,
+                     name, 0, id, True);
 }
 
 NUMLIST:
-NUMBER { $$ = anf->NewList($1);
- }
+{ $$ = 0; }
 |
-NUMBER NUMLIST { 
-  $$ = anf->AppList($2,$1);
+NUMLIST NUMBER { 
+  if ($1 == 0) {
+    $$ = anf->NewList($2);
+  } else {
+    $$ = anf->AppList($1,$2);
+  }
 }
 
 circuit:
@@ -104,7 +126,6 @@ ADD NUMBER NUMBER NUMBER {
   AstNode dest = $2;
   AstNode op1 = $3;
   AstNode op2 = $4;
-  printf("ADDDDDDDD \n");
   $$ = anf->NewAdd(token->pos, token->line, token->offset,
                    dest,op1,op2);
 }
@@ -144,10 +165,10 @@ SMUL NUMBER NUMBER NAME {
 |
 MOV NUMBER NUMBER {
   AstNode t = $1;
-  AstNode dst = $2;
-  AstNode src = $3;
+  AstNode src = $2;
+  AstNode dst = $3;
   $$ = anf->NewMov(t->pos, t->line, t->offset,
-                   dst, src);
+                   src, dst);
 }
 |
 LOAD NUMBER NAME { 
@@ -161,13 +182,17 @@ SLOAD NUMBER NAME {
   AstNode t = $1;
   AstNode dst = $2;
   AstNode name = $3;
-  $$ = anf->NewSload(t->pos, t->line, t->offset,                  dst,name);
+  $$ = anf->NewSload(t->pos, t->line, t->offset, dst,name);
 }
 |
 OPEN NUMBER {
   AstNode t = $1;
   AstNode addr = $2;
-
   $$ = anf->NewOpen(t->pos, t->line, t->offset, addr);
-  
+}
+|
+PRINT NUMBER {
+  AstNode t = $1;
+  AstNode addr = $2;
+  $$ = anf->NewPrint(t->pos, t->line, t->offset, addr);
 }

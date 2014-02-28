@@ -37,7 +37,7 @@ static MiniMacs setup_generic_minimacs(OE oe, const char * raw_material_file) {
 
 #define C( CALL ) {				\
   mr = (CALL);					\
-  if (mr.rc != 0) {printf("Error: %s",mr.msg);return mr.rc;}}
+  if (mr != 0) {printf("Error: See above");return mr;}}
 
 
 
@@ -46,11 +46,11 @@ int main(int c, char **a) {
   OE oe = OperatingEnvironment_LinuxNew();
   init_polynomial();
   if (oe) {
-    MR mr = {{0}};
+    MR mr = 0;
     MiniMacs mm = setup_generic_minimacs(oe, a[1]);
     mr = mm->connect("127.0.0.1",2020);
-    if (mr.rc != 0) {
-      printf("Error: %s\n",mr.msg);
+    if (mr != 0) {
+      printf("Error: See above.\n");
       return 0;
     }
     mm->init_heap(6); 

@@ -623,7 +623,6 @@ MiniMacsRep minimacs_rep_add_const_fast(MiniMacsEnc encoder, MiniMacsRep rep, by
     goto failure;
   }
   memset(r,0,sizeof(*r));
-  
   // allocate dx_codeword
   r->dx_codeword = (byte*)malloc(rep->ldx_codeword);
   if (!r->dx_codeword) {
@@ -703,11 +702,11 @@ MiniMacsRep minimacs_rep_add_const_fast(MiniMacsEnc encoder, MiniMacsRep rep, by
       bedoza_mac_key k = 0;
       k = r->mac_keys_to_others[i] = bedoza_mac_key_copy( rep->mac_keys_to_others[i] );
       if (i == 0) {
-	uint j = 0;
-	for(j = 0;j<rep->lcodeword;++j) {
-	  polynomial new_beta_j = add(k->beta[j], multiply(k->alpha[j],encoded_c[j]));
-	  k->beta[j] = new_beta_j;
-	}
+        uint j = 0;
+        for(j = 0;j<rep->lcodeword;++j) {
+          polynomial new_beta_j = add(k->beta[j], multiply(k->alpha[j],encoded_c[j]));
+          k->beta[j] = new_beta_j;
+        }
       }
     }
   }
@@ -775,7 +774,10 @@ MiniMacsRep minimacs_rep_mul_const_fast(MiniMacsEnc encoder, MiniMacsRep rep, by
     goto failure;
   }
   
+  // TODO(rwl): This might have been an early bug !
+  // 
   r->lval = 2*rep->lval;
+  // r->lval = rep->lval;
 
   // dx codeword 
   r->dx_codeword = (byte*)malloc(rep->ldx_codeword);
@@ -823,9 +825,11 @@ MiniMacsRep minimacs_rep_mul_const_fast(MiniMacsEnc encoder, MiniMacsRep rep, by
   memset(r->mac_keys_to_others,0,sizeof(bedoza_mac_key)*rep->lmac_keys_to_others);
   r->lmac_keys_to_others = rep->lmac_keys_to_others;
   for(i = 0; i < r->lmac_keys_to_others;++i) {
-    r->mac_keys_to_others[i] = bedoza_mac_key_mul_const( rep->mac_keys_to_others[i], encoded_c, r->lcodeword);
-    if (!r->mac_keys_to_others[i]) {
-      goto failure;
+    if (rep->mac_keys_to_others[i]) {
+      r->mac_keys_to_others[i] = bedoza_mac_key_mul_const( rep->mac_keys_to_others[i], encoded_c, r->lcodeword);
+      if (!r->mac_keys_to_others[i]) {
+        goto failure;
+      }
     }
   }
   

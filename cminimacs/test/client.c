@@ -42,7 +42,7 @@ int main(int c, char **a) {
   OE oe = OperatingEnvironment_LinuxNew();
   init_polynomial();
   if (oe) {
-    MR mr = {{0}};
+    MR mr = 0;
 
     MiniMacs mm = setup_generic_minimacs(oe, a[1]);
     if (!mm) return -42;

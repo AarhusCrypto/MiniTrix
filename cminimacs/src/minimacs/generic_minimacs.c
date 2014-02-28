@@ -51,23 +51,17 @@ COO_DEF_RET_ARGS(MiniMacs, MR, add, uint dst; uint l; uint r;,dst,l,r) {
   MiniMacsRep left = this->heap_get(l);
   MiniMacsRep right = this->heap_get(r);
   MiniMacsRep res = 0;
-  MR mr = {0};
+  MR mr = 0;
   
-  if (gmm->peer_map->size() < 1) MRRF("[add] No peers connected.");
+  if (gmm->peer_map->size() < 1) MRRF(oe,"[add] No peers connected.");
 
-  if (!left) MRRF("Left operand (%d) was not set.",l);
-  if (!right) MRRF("Right operand (%d) was not set.", r);
+  if (!left) MRRF(oe,"Left operand (%d) was not set.",l);
+  if (!right) MRRF(oe, "Right operand (%d) was not set.", r);
 
   mr = gmm->__add__(&res,left,right);
-  if (res->ldx_codeword == 0) {
-    
-    printf("############################################################\n");
-    printf("############################################################\n");
-    printf("dst=%u,left=%u,right=%u\n",dst,l,r);
-    
-  }
-
-  if(mr.rc == 0) this->heap_set(dst,res);
+  if (res == 0) MRRF(oe, "[add] Failed with null.");
+  if (mr != 0) return mr;
+  this->heap_set(dst,res);
   return mr;
 }}
 
@@ -79,14 +73,14 @@ COO_DEF_RET_ARGS(GenericMiniMacs, MR, __add__,MiniMacsRep * res_out; MiniMacsRep
   MiniMacsRep result = 0;
 
   if (!res_out) {
-    MRRF("Programing error no pointer to store result");
+    MRRF(oe,"Programing error no pointer to store result");
   }
   if (!left) {
-    MRRF("Left operand not set");
+    MRRF(oe,"Left operand not set");
   }
 
   if (!right) {
-    MRRF("Right operand not set");
+    MRRF(oe,"Right operand not set");
   }
 
   // left is proper rep and right is a public constant
@@ -119,7 +113,7 @@ COO_DEF_RET_ARGS(GenericMiniMacs, MR, __add__,MiniMacsRep * res_out; MiniMacsRep
   }
 
   if (!result) {
-    MRRF("Result is null add failed. left_const=%u,right_const=%u\n",left_const, right_const);
+    MRRF(oe,"Result is null add failed. left_const=%u,right_const=%u\n",left_const, right_const);
   }
 
   *res_out = result;
@@ -138,7 +132,7 @@ COO_DEF_RET_ARGS(MiniMacs,MR, mul, uint dst; uint l; uint r;,dst,l,r) {
   bool right_const = minimacs_rep_is_public_const(right);
   MiniMacsRep result = 0;
   
-  MR mr = {{0}};
+  MR mr = 0;
   MiniMacsRep * star_pair = 0;
   MiniMacsTripleRep triple = 0;
   MiniMacsRep delta = 0;
@@ -163,9 +157,9 @@ COO_DEF_RET_ARGS(MiniMacs,MR, mul, uint dst; uint l; uint r;,dst,l,r) {
   Data sigma_star_plain=0;
   byte * sigma = 0;
 
-  if (!left) MUL_FAIL("Left operand (%d) is not set.", l);
+  if (!left) MUL_FAIL(oe,"Left operand (%d) is not set.", l);
 
-  if (!right) MUL_FAIL("Right operand (%d) is not set.", r);
+  if (!right) MUL_FAIL(oe,"Right operand (%d) is not set.", r);
 
   // Both public constants
   if (left_const && right_const) {
@@ -175,20 +169,18 @@ COO_DEF_RET_ARGS(MiniMacs,MR, mul, uint dst; uint l; uint r;,dst,l,r) {
       tmpd->data[j] = multiply(left->codeword[j],right->codeword[j]);
     }
     result = minimacs_create_rep_public_plaintext_fast(gmm->encoder,tmpd->data, tmpd->ldata, left->lcodeword);
+    if (!result) MUL_FAIL(oe,"%u Result gave null, some condition is wrong.",__LINE__);
     this->heap_set(dst, result);
-    if (result->ldx_codeword == 0) {
-      printf("1 ############################################################\n");
-      printf("############################################################\n");
-      printf("%u,%u,%u\n",dst,l,r);
-    }
     Data_destroy(gmm->oe,&tmpd);
     MR_RET_OK;
   }
 
+  /*
   // left public constant, right proper rep
   if (!left_const && right_const) {
     MiniMacsEnc enc = gmm->encoder;
     result = minimacs_rep_mul_const_fast(enc, left, right->codeword, right->lval); 
+    if (!result) MUL_FAIL(oe,"%u Result gave null, some condition is wrong.",__LINE__);
     if (result->ldx_codeword == 0) {
       printf("2 ############################################################\n");
       printf("############################################################\n");
@@ -202,6 +194,7 @@ COO_DEF_RET_ARGS(MiniMacs,MR, mul, uint dst; uint l; uint r;,dst,l,r) {
   if (left_const && !right_const) {
     MiniMacsEnc enc = gmm->encoder;
     result = minimacs_rep_mul_const_fast(enc,right,left->codeword, left->lval);
+    if (!result) MUL_FAIL(oe,"Result gave null, some condition is wrong.");
     if (result->ldx_codeword == 0) {
       printf("3 ############################################################\n");
       printf("############################################################\n");
@@ -210,166 +203,190 @@ COO_DEF_RET_ARGS(MiniMacs,MR, mul, uint dst; uint l; uint r;,dst,l,r) {
     this->heap_set(dst, result);
     MR_RET_OK;
   }
+  */
 
-  triple = gmm->next_triple();
-  if (!triple) MUL_FAIL("No more triples (%d taken).", gmm->idx_triple);
-  
   star_pair = gmm->next_pair();
-  if (!star_pair) MUL_FAIL("No more pairs (%d taken).",gmm->idx_pair);
+  if (!star_pair) MUL_FAIL(oe,"No more pairs (%d taken).",gmm->idx_pair);
+
+  if (right_const) {
+    MiniMacsEnc enc = gmm->encoder;
+    res_star = minimacs_rep_mul_const_fast(enc, left, right->codeword, right->lval); 
+    if (!res_star) MUL_FAIL(oe,"%u Result gave null, some condition is wrong.",__LINE__);
+    
+    sigma_star = minimacs_rep_xor(res_star, star_pair[1]);
+    if (!sigma_star) MRGF(oe,"Failed to compute sigma*.");
+    
+  }
+
+
+  if (left_const) {
+    MiniMacsEnc enc = gmm->encoder;
+    res_star = minimacs_rep_mul_const_fast(enc,right,left->codeword, left->lval);
+    if (!res_star) MUL_FAIL(oe,"%u Result gave null, some condition is wrong.",__LINE__);
+
+    sigma_star = minimacs_rep_xor(res_star, star_pair[1]);
+    if (!sigma_star) MRGF(oe,"Failed to compute sigma*.");
+  }
+
   
-  mr = gmm->__add__(&delta,triple->a, left);
-  if (mr.rc != 0) MUL_FAIL("Could not add triple->a and left");
-
-  mr = gmm->__add__(&epsilon,triple->b, right);
-  if (mr.rc != 0) MUL_FAIL("Could not add triple->b and right");
-
-  if (epsilon->lval != delta->lval) MUL_FAIL("Inconsistent epsilon and delta");
-
-  // broadcast delta and epsilon
-  for(id = 0;id < gmm->peer_map->size()+1;++id) {
-    if (id == gmm->myid) continue; 
+  if (!right_const && !left_const) {
+    triple = gmm->next_triple();
+    if (!triple) MUL_FAIL(oe,"No more triples (%d taken).", gmm->idx_triple);
     
-    peer = gmm->peer_map->get( (void*)(unsigned long long)id );
-    if (!peer) MUL_FAIL("Peer with id, %u, is undefined",id);
+    mr = gmm->__add__(&delta,triple->a, left);
+    if (mr != 0) MUL_FAIL(oe,"Could not add triple->a and left");
     
-    peer->send(Data_shallow(delta->codeword, delta->lcodeword));
-    peer->send(Data_shallow(delta->mac[id]->mac, delta->mac[id]->lmac));
-    peer->send(Data_shallow(epsilon->codeword, epsilon->lcodeword));
-    peer->send(Data_shallow(epsilon->mac[id]->mac, epsilon->mac[id]->lmac));
-  }
-
-  deltamac = Data_new(oe, delta->lcodeword);
-  epsilonmac = Data_new(oe,epsilon->lcodeword);
-
-  // receive and check epsilon and delta from every one else.
-  delta_in = oe->getmem(sizeof(*delta_in)*(gmm->peer_map->size()+1));
-  if (!delta_in) MRGF("Ran out of memory allocating shares for receiving delta.");
-  for(id = 0;id<gmm->peer_map->size()+1;++id) {
-    delta_in[id] = Data_new(gmm->oe,delta->lcodeword);
-    if (!delta_in[id]) MRGF("Ran out of memory allocating shares for receiving delta (%u).",id);
-  }
-  epsilon_in = oe->getmem(sizeof(*epsilon_in)*(gmm->peer_map->size()+1));
-  if (!epsilon_in) MRGF("Ran out of memory allocating shares for receiving epsilon.");
-  for(id = 0;id<gmm->peer_map->size()+1;++id) {
-    epsilon_in[id] = Data_new(gmm->oe, epsilon->lcodeword);
-    if (!epsilon_in[id]) MRGF("Ran out of memory allocating shares for receiving epsilon (%u).", id);
-  }
-
-  for(id = 0;id<gmm->peer_map->size()+1;++id) {
-    if (id == gmm->myid) continue;
-
-    peer = gmm->peer_map->get( (void*)(ull)id);
-    if (!peer) MUL_FAIL("Peer with id, %u, is undefined (after sending to him)", id);
+    mr = gmm->__add__(&epsilon,triple->b, right);
+    if (mr != 0) MUL_FAIL(oe,"Could not add triple->b and right");
     
-    peer->receive(delta_in[id]);
-    if (delta_in[id]->ldata != delta->lcodeword) 
-      MRGF("Received delta with invalid length (%u) from %u",
-	   delta_in[id]->ldata, id);
-
-    peer->receive(deltamac);
-    if (deltamac->ldata < delta->lcodeword) 
-      MRGF("Received delta mac with invalid length (%u) from %u",
-	   deltamac->ldata, id);
-
-    peer->receive(epsilon_in[id]);
-    if (epsilon_in[id]->ldata != epsilon->lcodeword) 
-      MRGF("Received epsilon with invalid length (%u) from %u",
-	   epsilon_in[id]->ldata, id);
-
-    peer->receive(epsilonmac);
-    if (epsilonmac->ldata != epsilon->lcodeword) 
-      MRGF("Received epsilon with invalid length (%u) from %u",
-	   epsilonmac->ldata, id);
-
-    if (!
-	minimacs_check_othershare_fast(gmm->encoder,delta,
-				      id,
-				      delta_in[id]->data,
-				      deltamac->data,
-				      delta_in[id]->ldata) ) {
-      MRGF("Peer %u is cheating, mac didn't check out on delta.",id);
+    if (epsilon->lval != delta->lval) MUL_FAIL(oe,"Inconsistent epsilon and delta");
+    
+    // broadcast delta and epsilon
+    for(id = 0;id < gmm->peer_map->size()+1;++id) {
+      if (id == gmm->myid) continue; 
+      
+      peer = gmm->peer_map->get( (void*)(unsigned long long)id );
+      if (!peer) MUL_FAIL(oe,"Peer with id, %u, is undefined",id);
+      
+      peer->send(Data_shallow(delta->codeword, delta->lcodeword));
+      peer->send(Data_shallow(delta->mac[id]->mac, delta->mac[id]->lmac));
+      peer->send(Data_shallow(epsilon->codeword, epsilon->lcodeword));
+      peer->send(Data_shallow(epsilon->mac[id]->mac, epsilon->mac[id]->lmac));
     }
-
-    if (!minimacs_check_othershare_fast(gmm->encoder,epsilon,
-					id, 
-					epsilon_in[id]->data,
-					epsilonmac->data,
-					epsilon_in[id]->ldata)) {
-      MRGF("Peer %u is cheating, mac didn't check out on epsilon.",id);
+    
+    deltamac = Data_new(oe, delta->lcodeword);
+    epsilonmac = Data_new(oe,epsilon->lcodeword);
+    
+    // receive and check epsilon and delta from every one else.
+    delta_in = oe->getmem(sizeof(*delta_in)*(gmm->peer_map->size()+1));
+    if (!delta_in) MRGF(oe,"Ran out of memory allocating shares for receiving delta.");
+    for(id = 0;id<gmm->peer_map->size()+1;++id) {
+      delta_in[id] = Data_new(gmm->oe,delta->lcodeword);
+      if (!delta_in[id]) MRGF(oe, "Ran out of memory allocating shares for receiving delta (%u).",id);
     }
-  }
-
-  Data_destroy(oe,&deltamac);
-  Data_destroy(oe,&epsilonmac);
-
-  // TODO(rwl): delta_in is one share that we can receive, if peer_map
-  // has two or more peers this strategy fails. Fix it for more than
-  // two peers be having a share list!
-
-  //compute clear text delta
-  delta_clear = Data_new(gmm->oe,delta->lval);
-  for(id = 0;id < gmm->peer_map->size()+1;++id) {
-    for(i = 0;i < delta->lval;++i) {
-      delta_clear->data[i] = add(delta_clear->data[i],delta_in[id]->data[i]);
+    epsilon_in = oe->getmem(sizeof(*epsilon_in)*(gmm->peer_map->size()+1));
+    if (!epsilon_in) MRGF(oe,"Ran out of memory allocating shares for receiving epsilon.");
+    for(id = 0;id<gmm->peer_map->size()+1;++id) {
+      epsilon_in[id] = Data_new(gmm->oe, epsilon->lcodeword);
+      if (!epsilon_in[id]) MRGF(oe,"Ran out of memory allocating shares for receiving epsilon (%u).", id);
     }
-    Data_destroy(gmm->oe, &delta_in[id] );
-  }
-  oe->putmem(delta_in);delta_in = 0;
-  for(i = 0;i<delta->lval;++i) {
-    delta_clear->data[i] = add(delta->dx_codeword[i],add(delta->codeword[i], delta_clear->data[i]));
-  }
-  minimacs_rep_clean_up( & delta );
-  // compute clear text epsilon
-  epsilon_clear = Data_new(gmm->oe,epsilon->lval);
-  for(id = 0; id < gmm->peer_map->size()+1;++id) {
+    
+    for(id = 0;id<gmm->peer_map->size()+1;++id) {
+      if (id == gmm->myid) continue;
+      
+      peer = gmm->peer_map->get( (void*)(ull)id);
+      if (!peer) MUL_FAIL(oe,"Peer with id, %u, is undefined (after sending to him)", id);
+      
+      peer->receive(delta_in[id]);
+      if (delta_in[id]->ldata != delta->lcodeword) 
+        MRGF(oe,"Received delta with invalid length (%u) from %u",
+             delta_in[id]->ldata, id);
+      
+      peer->receive(deltamac);
+      if (deltamac->ldata < delta->lcodeword) 
+        MRGF(oe,"Received delta mac with invalid length (%u) from %u",
+             deltamac->ldata, id);
+      
+      peer->receive(epsilon_in[id]);
+      if (epsilon_in[id]->ldata != epsilon->lcodeword) 
+        MRGF(oe,"Received epsilon with invalid length (%u) from %u",
+             epsilon_in[id]->ldata, id);
+      
+      peer->receive(epsilonmac);
+      if (epsilonmac->ldata != epsilon->lcodeword) 
+        MRGF(oe,"Received epsilon with invalid length (%u) from %u",
+             epsilonmac->ldata, id);
+      
+      if (!
+          minimacs_check_othershare_fast(gmm->encoder,delta,
+                                         id,
+                                         delta_in[id]->data,
+                                         deltamac->data,
+                                         delta_in[id]->ldata) ) {
+        MRGF(oe,"Peer %u is cheating, mac didn't check out on delta.",id);
+      }
+      
+      if (!minimacs_check_othershare_fast(gmm->encoder,epsilon,
+                                          id, 
+                                          epsilon_in[id]->data,
+                                          epsilonmac->data,
+                                          epsilon_in[id]->ldata)) {
+        MRGF(oe,"Peer %u is cheating, mac didn't check out on epsilon.",id);
+      }
+    }
+    
+    Data_destroy(oe,&deltamac);
+    Data_destroy(oe,&epsilonmac);
+    
+    // TODO(rwl): delta_in is one share that we can receive, if peer_map
+    // has two or more peers this strategy fails. Fix it for more than
+    // two peers be having a share list!
+    
+    //compute clear text delta
+    delta_clear = Data_new(gmm->oe,delta->lval);
+    for(id = 0;id < gmm->peer_map->size()+1;++id) {
+      for(i = 0;i < delta->lval;++i) {
+        delta_clear->data[i] = add(delta_clear->data[i],delta_in[id]->data[i]);
+      }
+      Data_destroy(gmm->oe, &delta_in[id] );
+    }
+    oe->putmem(delta_in);delta_in = 0;
+    for(i = 0;i<delta->lval;++i) {
+      delta_clear->data[i] = add(delta->dx_codeword[i],add(delta->codeword[i], delta_clear->data[i]));
+    }
+    minimacs_rep_clean_up( & delta );
+    // compute clear text epsilon
+    epsilon_clear = Data_new(gmm->oe,epsilon->lval);
+    for(id = 0; id < gmm->peer_map->size()+1;++id) {
+      for(i = 0;i < epsilon->lval;++i) {
+        epsilon_clear->data[i] = add(epsilon_clear->data[i],epsilon_in[id]->data[i]);
+      }
+      Data_destroy(gmm->oe, &epsilon_in[id] );
+    }
+    oe->putmem(epsilon_in);epsilon_in = 0;
     for(i = 0;i < epsilon->lval;++i) {
-      epsilon_clear->data[i] = add(epsilon_clear->data[i],epsilon_in[id]->data[i]);
+      epsilon_clear->data[i] = add(epsilon_clear->data[i],add(epsilon->dx_codeword[i],epsilon->codeword[i]));
     }
-    Data_destroy(gmm->oe, &epsilon_in[id] );
+    minimacs_rep_clean_up( &epsilon );
+    
+    
+    delta_b = minimacs_rep_mul_const_fast(gmm->encoder, triple->b, delta_clear->data, delta_clear->ldata);
+    if (!delta_b) MRGF(oe,"Failed to compute the product of delta clear and triple->b");
+    
+    epsilon_a = minimacs_rep_mul_const_fast(gmm->encoder, triple->a, 
+                                            epsilon_clear->data, epsilon_clear->ldata);
+    if (!epsilon_a) MRGF(oe,"Failed to compute the product of epsilon clear and triple->a");
+    
+    epsilon_times_delta = Data_new(gmm->oe,delta_clear->ldata);
+    if (!epsilon_times_delta) MRGF(oe,"Ran out of memory computing epsilon times delta");
+    
+    for(i = 0;i < delta_clear->ldata;++i) {
+      epsilon_times_delta->data[i] = multiply(delta_clear->data[i],
+                                              epsilon_clear->data[i]);
+    }
+    
+    tmp = minimacs_rep_xor(delta_b, epsilon_a);
+    if (!tmp) MRGF(oe,"Failed to add delta_b and epsilon_a");
+    
+    minimacs_rep_clean_up(&delta_b);
+    
+    tmp2 = minimacs_rep_add_const_fast(gmm->encoder, tmp, epsilon_times_delta->data,
+                                       epsilon_times_delta->ldata);
+    if (!tmp2) MRGF(oe,"Failed to add epsilon*delta with (b*delta + epsolon*a).");
+    
+    minimacs_rep_clean_up(&epsilon_a);
+    minimacs_rep_clean_up(&tmp);
+    
+    res_star = minimacs_rep_xor(tmp2, triple->cstar);
+    if (!res_star) MRGF(oe,"Failed to compute result shur transform.");
+    minimacs_rep_clean_up(&tmp2);
+    
+    sigma_star = minimacs_rep_xor(res_star, star_pair[1]);
+    if (!sigma_star) MRGF(oe,"Failed to compute sigma*.");
+    
+    // TODO(rwl): This is kind of strange:
   }
-  oe->putmem(epsilon_in);epsilon_in = 0;
-  for(i = 0;i < epsilon->lval;++i) {
-    epsilon_clear->data[i] = add(epsilon_clear->data[i],add(epsilon->dx_codeword[i],epsilon->codeword[i]));
-  }
-  minimacs_rep_clean_up( &epsilon );
-
-  
-  delta_b = minimacs_rep_mul_const_fast(gmm->encoder, triple->b, delta_clear->data, delta_clear->ldata);
-  if (!delta_b) MRGF("Failed to compute the product of delta clear and triple->b");
-
-  epsilon_a = minimacs_rep_mul_const_fast(gmm->encoder, triple->a, 
-					  epsilon_clear->data, epsilon_clear->ldata);
-  if (!epsilon_a) MRGF("Failed to compute the product of epsilon clear and triple->a");
-
-  epsilon_times_delta = Data_new(gmm->oe,delta_clear->ldata);
-  if (!epsilon_times_delta) MRGF("Ran out of memory computing epsilon times delta");
-  
-  for(i = 0;i < delta_clear->ldata;++i) {
-    epsilon_times_delta->data[i] = multiply(delta_clear->data[i],
-					    epsilon_clear->data[i]);
-  }
-
-  tmp = minimacs_rep_xor(delta_b, epsilon_a);
-  if (!tmp) MRGF("Failed to add delta_b and epsilon_a");
-
-  minimacs_rep_clean_up(&delta_b);
-  
-  tmp2 = minimacs_rep_add_const_fast(gmm->encoder, tmp, epsilon_times_delta->data,
-				     epsilon_times_delta->ldata);
-  if (!tmp2) MRGF("Failed to add epsilon*delta with (b*delta + epsolon*a).");
-  
-  minimacs_rep_clean_up(&epsilon_a);
-  minimacs_rep_clean_up(&tmp);
-
-  res_star = minimacs_rep_xor(tmp2, triple->cstar);
-  if (!res_star) MRGF("Failed to compute result shur transform.");
-  minimacs_rep_clean_up(&tmp2);
-
-  sigma_star = minimacs_rep_xor(res_star, star_pair[1]);
-  if (!sigma_star) MRGF("Failed to compute sigma*.");
-
-  // TODO(rwl): This is kind of strange:
-  res_star->lval = star_pair[1]->lval;
+    res_star->lval = star_pair[1]->lval;
 
   // Now sigma star is opened privately to player one who checks it is
   // a codeword in the shur transform. Then player one broadcasts
@@ -379,6 +396,7 @@ COO_DEF_RET_ARGS(MiniMacs,MR, mul, uint dst; uint l; uint r;,dst,l,r) {
   // receives sigma star. 
   //
   // every peer forms the representation of left*right.
+  //
   if (gmm->myid == 0) {
     Data * sigma_star_in = oe->getmem(sizeof(*sigma_star_in)*(gmm->peer_map->size()+1));
     Data sigmamac = Data_new(oe, sigma_star->lcodeword);
@@ -390,7 +408,7 @@ COO_DEF_RET_ARGS(MiniMacs,MR, mul, uint dst; uint l; uint r;,dst,l,r) {
       if (id == gmm->myid) continue;
 
       peer = gmm->peer_map->get( (void*)(ull)id );
-      if (!peer) MRGF("Peer %u is not defined, did it disconnect?");
+      if (!peer) MRGF(oe,"Peer %u is not defined, did it disconnect?");
       
       peer->receive(sigma_star_in[id]);
       peer->receive(sigmamac);
@@ -401,12 +419,12 @@ COO_DEF_RET_ARGS(MiniMacs,MR, mul, uint dst; uint l; uint r;,dst,l,r) {
 					  sigma_star_in[id]->data,
 					  sigmamac->data,
 					  sigma_star_in[id]->ldata) ) {
-	MRGF("Peer %u is cheating");
+        MRGF(oe,"Peer %u is cheating");
       }
     }
 
     sigma_star_plain = Data_new(oe,sigma_star->lval);
-    if (!sigma_star_plain) MRGF("Ran out of memory while opening sigma star");
+    if (!sigma_star_plain) MRGF(oe,"Ran out of memory while opening sigma star");
     
     for(id = 0;id < gmm->peer_map->size()+1;++id) {
       for(i = 0; i < sigma_star->lval;++i) {
@@ -418,21 +436,21 @@ COO_DEF_RET_ARGS(MiniMacs,MR, mul, uint dst; uint l; uint r;,dst,l,r) {
 	add(sigma_star_plain->data[i],add(sigma_star->dx_codeword[i],sigma_star->codeword[i]));
     }
 
-    MEASURE_FN(sigma = gmm->encoder->encode(sigma_star_plain->data, triple->a->lval));
+    MEASURE_FN(sigma = gmm->encoder->encode(sigma_star_plain->data, star_pair[0]->lval));
 
-    if (!sigma) MRGF("Failed to create sigma representation.");
+    if (!sigma) MRGF(oe,"Failed to create sigma representation.");
 
     for(id = 0;id<gmm->peer_map->size()+1;++id) {
       if (id == gmm->myid) continue;
 
       peer = (MpcPeer)gmm->peer_map->get( (void*)(ull)id);
-      if (!peer) MRGF("Peer %u disconnected.");
+      if (!peer) MRGF(oe,"Peer %u disconnected.");
 
       peer->send(Data_shallow(sigma,sigma_star->lcodeword));
     }
 
     result = minimacs_rep_add_const_fast(gmm->encoder,star_pair[0],sigma,left->lval);
-    if (!result) MRGF("Computing result failed");
+    if (!result) MRGF(oe,"Computing result failed");
     
     if (result->ldx_codeword == 0) {
 
@@ -446,7 +464,7 @@ COO_DEF_RET_ARGS(MiniMacs,MR, mul, uint dst; uint l; uint r;,dst,l,r) {
   } else {
     Data sigma_plain = 0;
     peer = gmm->peer_map->get(0);
-    if (!peer) MRGF("Party one disconnected.");
+    if (!peer) MRGF(oe,"Party one disconnected.");
     
     peer->send(Data_shallow(sigma_star->codeword, sigma_star->lcodeword));
     peer->send(Data_shallow(sigma_star->mac[0]->mac, sigma_star->mac[0]->lmac));
@@ -455,10 +473,10 @@ COO_DEF_RET_ARGS(MiniMacs,MR, mul, uint dst; uint l; uint r;,dst,l,r) {
     peer->receive(sigma_plain);
 
     if (!gmm->encoder->validate(sigma_plain->data, left->lval)) 
-      MRGF("Invalid sigma player one is cheating.");
+      MRGF(oe,"Invalid sigma player one is cheating.");
     
     result = minimacs_rep_add_const_fast(gmm->encoder, star_pair[0], sigma_plain->data, left->lval);
-    if (!result) MRGF("Failed to compute result.");
+    if (!result) MRGF(oe,"Failed to compute result.");
     
     this->heap_set(dst ,result);
     MR_RET_OK;
@@ -483,14 +501,14 @@ COO_DEF_RET_ARGS(MiniMacs,MR,secret_input, uint pid; hptr dst; Data plain_val;, 
   Data epsilon = 0;
   MiniMacsRep result = 0;
   MpcPeer peer = 0;
-  MR mr = {{0}};
+  MR mr = 0;
   uint id=0,i=0;
   Data val = 0;
 
-  if (gmm->peer_map->size() < 1) MRRF("[secret input] No peers connected.");
+  if (gmm->peer_map->size() < 1) MRRF(oe,"[secret input] No peers connected.");
 
   r = gmm->next_single();
-  if (!r) MRGF("Ran out of singles, unable to input");
+  if (!r) MRGF(oe,"Ran out of singles, unable to input");
   
 
   // ------------------------------------------------------------
@@ -498,30 +516,30 @@ COO_DEF_RET_ARGS(MiniMacs,MR,secret_input, uint pid; hptr dst; Data plain_val;, 
   // ------------------------------------------------------------
   if (gmm->myid == pid) {
     shares = oe->getmem(sizeof(*shares)*(gmm->peer_map->size()+1));
-    if (!shares) MRGF("Ran out of memory");
+    if (!shares) MRGF(oe,"Ran out of memory");
 
     val = Data_new(oe, r->lval);
-    if (!val) MRGF("Ran out of memory during input.");
+    if (!val) MRGF(oe,"Ran out of memory during input.");
     
     if (plain_val->ldata > val->ldata) 
-      MRGF("Raw preprocessing material is setup for messages up length %u bytes."
+      MRGF(oe,"Raw preprocessing material is setup for messages up length %u bytes."
            "The given message is too long (%u).",plain_val->ldata,val->ldata); 
   
     mcpy(val->data, plain_val->data, plain_val->ldata);
 
 
     shares = (Data *)oe->getmem(sizeof(*shares)*(gmm->peer_map->size()+1));
-    if (!shares) MRGF("Ran out of memory.");
+    if (!shares) MRGF(oe,"Ran out of memory.");
 
     for(id = 0;id < gmm->peer_map->size()+1;++id) {
       shares[id] = Data_new(oe, r->lcodeword);
-      if (!shares[id]) MRGF("Ran out of memory for shares %u.",id);
+      if (!shares[id]) MRGF(oe,"Ran out of memory for shares %u.",id);
     }
     sharemac = Data_new(oe, r->lcodeword);
-    if (!sharemac) MRGF("Ran out of memory for sharemac.");
+    if (!sharemac) MRGF(oe,"Ran out of memory for sharemac.");
 
     clear_r = Data_new(oe,r->lval);
-    if (!clear_r) MRGF("Ran out of memory allocating clear_r.");
+    if (!clear_r) MRGF(oe,"Ran out of memory allocating clear_r.");
     
     for(id = 0; id < gmm->peer_map->size()+1;++id) {
       if (gmm->myid == id) {
@@ -529,7 +547,7 @@ COO_DEF_RET_ARGS(MiniMacs,MR,secret_input, uint pid; hptr dst; Data plain_val;, 
       }
 
       peer = gmm->peer_map->get( (void*)(ull)id);
-      if (!peer) MRGF("Peer %u disconnected aborting computation",id);
+      if (!peer) MRGF(oe,"Peer %u disconnected aborting computation",id);
 
       peer->receive(shares[id]);
       peer->receive(sharemac);
@@ -540,7 +558,7 @@ COO_DEF_RET_ARGS(MiniMacs,MR,secret_input, uint pid; hptr dst; Data plain_val;, 
 					  shares[id]->data,
 					  sharemac->data,
 					  shares[id]->ldata)) {
-        MRGF("Peer %u is cheating, mac does not check out on randomness r.",id);
+        MRGF(oe,"Peer %u is cheating, mac does not check out on randomness r.",id);
       }
 
       for(i = 0;i < clear_r->ldata;++i) {
@@ -561,13 +579,13 @@ COO_DEF_RET_ARGS(MiniMacs,MR,secret_input, uint pid; hptr dst; Data plain_val;, 
     encoded_r = Data_new(oe, r->lcodeword);
     encoded_val->data = gmm->encoder->encode(val->data, val->ldata);
     encoded_val->ldata = r->lcodeword;
-    if (!encoded_val->data) MRGF("Failed to encode input value.");
+    if (!encoded_val->data) MRGF(oe,"Failed to encode input value.");
     encoded_r->data = gmm->encoder->encode(clear_r->data, clear_r->ldata);
     encoded_r->ldata = r->lcodeword;
-    if (!encoded_r->data) MRGF("Failed to encode single.");
+    if (!encoded_r->data) MRGF(oe,"Failed to encode single.");
     Data_destroy(oe,&clear_r);
     epsilon = Data_new(oe,r->lcodeword);
-    if (!epsilon) MRGF("Ran out of memory during open operation.");
+    if (!epsilon) MRGF(oe,"Ran out of memory during open operation.");
 
     for(i=0;i<encoded_val->ldata;++i) {
       epsilon->data[i] = add(encoded_r->data[i], encoded_val->data[i]);
@@ -585,7 +603,7 @@ COO_DEF_RET_ARGS(MiniMacs,MR,secret_input, uint pid; hptr dst; Data plain_val;, 
 
     result = minimacs_rep_add_const_fast(gmm->encoder,r,epsilon->data, r->lval);
     minimacs_rep_clean_up(&r);    
-    if (!result) MRGF("Unable to add constant to the random a.");
+    if (!result) MRGF(oe,"Unable to add constant to the random a.");
     if (result->ldx_codeword == 0) {
       printf("secret input################################################\n");
       printf("############################################################\n");
@@ -594,7 +612,7 @@ COO_DEF_RET_ARGS(MiniMacs,MR,secret_input, uint pid; hptr dst; Data plain_val;, 
 
 
     mr = this->heap_set(dst, result);
-    if (mr.rc != 0) return mr;
+    if (mr != 0) return mr;
     MR_RET_OK;
     
   } else {
@@ -602,18 +620,18 @@ COO_DEF_RET_ARGS(MiniMacs,MR,secret_input, uint pid; hptr dst; Data plain_val;, 
     // Hey I am not the inputter
     // ------------------------------------------------------------
     peer = gmm->peer_map->get( (void*)(ull)pid);
-    if (!peer) MRGF("Peer %u is disconnected",pid);
+    if (!peer) MRGF(oe,"Peer %u is disconnected",pid);
 
     peer->send(Data_shallow(r->codeword,r->lcodeword));
     peer->send(Data_shallow(r->mac[pid]->mac, r->mac[pid]->lmac));
     epsilon = Data_new(oe,r->lcodeword);
     peer->receive(epsilon);
     if (!gmm->encoder->validate((polynomial*)epsilon->data, r->lval)) {
-      MRGF("Data received during input for peer %u was not a codeword.",pid);
+      MRGF(oe,"Data received during input for peer %u was not a codeword.",pid);
     }
 
     result = minimacs_rep_add_const_fast(gmm->encoder,r,epsilon->data, r->lval);
-    if (!result) MRGF("Failed to perform input, add constant to form result failed.");
+    if (!result) MRGF(oe,"Failed to perform input, add constant to form result failed.");
     Data_destroy(oe,&epsilon);
     minimacs_rep_clean_up(&r);
     this->heap_set(dst, result);
@@ -656,25 +674,25 @@ COO_DEF_RET_ARGS(MiniMacs,MR,open,hptr dst;,dst) {
   Data * shares = 0;
   OE oe = gmm->oe;
   MiniMacsRep v = this->heap_get(dst);
-  MR mr = {{0}};
+  MR mr = 0;
   uint id = 0;
   MpcPeer peer = 0;
   Data clear = 0;
   Data sharemac = 0;
   MiniMacsRep result = 0;
 
-  if (gmm->peer_map->size() > 1) MRRF("No peers connected.");
+  if (gmm->peer_map->size() > 1) MRRF(oe,"No peers connected.");
 
-  if(!v) MRGF("Value at %u is not set",dst);
+  if(!v) MRGF(oe,"Value at %u is not set",dst);
 
   if (minimacs_rep_is_public_const(v)) return;
 
   shares = (Data *)oe->getmem(sizeof(*shares)*(gmm->peer_map->size()+1));
-  if (!shares) MRGF("Failed to allocate shares for opening.");
+  if (!shares) MRGF(oe,"Failed to allocate shares for opening.");
 
   for(id = 0;id < gmm->peer_map->size()+1;++id) {
     shares[id] = Data_new(oe, v->lcodeword);
-    if (!shares[id]) MRGF("Ran out of memory.");
+    if (!shares[id]) MRGF(oe,"Ran out of memory.");
   }
   sharemac = Data_new(oe,v->lcodeword);
   clear = Data_new(oe,v->lval);
@@ -693,7 +711,7 @@ COO_DEF_RET_ARGS(MiniMacs,MR,open,hptr dst;,dst) {
 					shares[id]->data,
 					sharemac->data,
 					shares[id]->ldata)) {
-      MRGF("Opening invalid mac on share, peer %u is cheating.",id);
+      MRGF(oe,"Opening invalid mac on share, peer %u is cheating.",id);
     }
 
     for(i = 0; i < v->lval;++i) {
@@ -725,7 +743,7 @@ COO_DCL(MiniMacs, MR, init_heap, uint size)
 COO_DEF_RET_ARGS(MiniMacs, MR, init_heap, uint size;,size) {
   GenericMiniMacs gmm = (GenericMiniMacs)this->impl;
   OE oe = gmm->oe;
-  MR mr = {{0}};
+  MR mr = 0;
   
   gmm->heap = oe->getmem(size*sizeof(MiniMacsRep));
   gmm->lheap = size;
@@ -737,7 +755,7 @@ COO_DEF_RET_ARGS(MiniMacs, MR, init_heap, uint size;,size) {
 
 COO_DCL(MiniMacs, MR, heap_set, hptr addr, MiniMacsRep rep)
 COO_DEF_RET_ARGS(MiniMacs, MR, heap_set ,hptr addr; MiniMacsRep rep;, addr, rep) {
-  MR mr = {{0}};
+  MR mr = 0;
   GenericMiniMacs gmm = (GenericMiniMacs)this->impl;
   OE oe = gmm->oe;
   
@@ -748,7 +766,7 @@ COO_DEF_RET_ARGS(MiniMacs, MR, heap_set ,hptr addr; MiniMacsRep rep;, addr, rep)
       oe->p(m);
     }
     gmm->heap[addr] = rep;
-  } else MRGF("Address %u is out of range (0-%u). Invoke init_heap with a greater number ;).", gmm->lheap, (gmm->lheap==0?0:gmm->lheap-1));
+  } else MRGF(oe,"Address %u is out of range (0-%u). Invoke init_heap with a greater number ;).", gmm->lheap, (gmm->lheap==0?0:gmm->lheap-1));
   
   return mr;
  failure:
@@ -799,11 +817,10 @@ COO_DEF_RET_ARGS(MiniMacs, MR, invite, uint count; uint port;, count, port) {
     osal_sprintf(m,"registering peer with id %u.",peer_id);
     oe->p(m);
     if (gmm->peer_map->contains( ((void*)(ull)peer_id) )) {
-      MRRF("Peer id %u already registered.",peer_id);
+      MRRF(oe,"Peer id %u already registered.",peer_id);
     }
     gmm->peer_map->put( ((void*)(ull)peer_id), peer);
   }
-  usleep(500);
   MR_RET_OK;
 }}
 
@@ -900,7 +917,7 @@ COO_DEF_RET_ARGS(MiniMacs, MR, connect,  char * ip; uint port;, ip, port) {
   MpcPeer * map = 0;
   arena->add_conn_listener(cl);
   car = arena->connect(ip,port);
-  if (car.rc != 0) MR_RET_FAIL(car.msg);
+  if (car.rc != 0) MR_RET_FAIL(oe,car.msg);
   wcl->wait_for(1);
 
   MR_RET_OK;

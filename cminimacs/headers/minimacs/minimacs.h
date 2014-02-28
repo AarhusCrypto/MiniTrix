@@ -34,43 +34,34 @@
 
 typedef unsigned int hptr;
 struct _observer_;
-typedef struct _minimacs_result_ {
-  char msg[128];
-  uint lmsg;
-  uint rc;
-} MR;
+typedef uint MR;
 
 
 #define MR_RET_OK {\
-    MR mr = {{0}}; \
+    MR mr = 0;     \
     return mr;	   \
 }
 
 
 
-#define MRRF(MSG,...) {                         \
-    MR mr = {{0}};                              \
-    osal_sprintf(mr.msg,(MSG),##__VA_ARGS__);   \
-    mr.lmsg = osal_strlen(mr.msg);              \
-    mr.rc = -1;                                 \
-    printf("Failure: %s\n",mr.msg);             \
+#define MRRF(OE,MSG,...) {                      \
+    MR mr = 1;                                  \
+    char _mmm_[96] = {0};                       \
+    osal_sprintf(_mmm_,(MSG),##__VA_ARGS__);    \
+    (OE)->p(_mmm_);                               \
     return mr;}
   
-#define MRGF(MSG,...) {                     \
-    osal_sprintf(mr.msg,(MSG),##__VA_ARGS__);   \
-    mr.lmsg = osal_strlen(mr.msg);              \
-    mr.rc = -1;                                 \
-    printf("Failure: %s\n",mr.msg);             \
-    goto failure;}
+#define MRGF(OE,MSG,...) {                      \
+    mr = 1;                                     \
+    char _mmm_[96] = {0};                       \
+    osal_sprintf(_mmm_,(MSG),##__VA_ARGS__);    \
+    (OE)->p(_mmm_);                             \
+    goto failure;}                              
   
 
-#define MR_RET_FAIL(MSG){                       \
-    MR mr = {{0}};                              \
-    uint lmsg = osal_strlen( (MSG) );           \
-    mcpy(mr.msg,(MSG),lmsg);                    \
-    mr.lmsg=lmsg;                               \
-    mr.rc = -1;                                 \
-    printf("Failure: %s\n",mr.msg);             \
+#define MR_RET_FAIL(OE,MSG){                    \
+    MR mr = 1;                                  \
+    (OE)->p((MSG));                             \
     return mr;}
 
 typedef struct _minimacs_ {

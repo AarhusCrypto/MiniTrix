@@ -9,7 +9,7 @@
 #
 
 480 192 16 768
-
+init_heap 6800
 CONST a_0 [1 1 0 0 0 1 1]
 CONST a_1 [1 1 1 1 0 0 0 1]
 CONST a_2 [1 0 1 0 1 1 0 1]
@@ -36,6 +36,277 @@ CONST M_10 [0 1]
 # M_13 = 0x01
 CONST M_14 [1 1]
 CONST M_15 [0 1]
+
+
+############################################################
+CONST zero [ 0 ]
+
+SECRET 0] CONST key_00 [ 0 ]
+SECRET 0] CONST key_01 [ 0 ]
+SECRET 0] CONST key_02 [ 0 ]
+SECRET 0] CONST key_03 [ 0 ]
+SECRET 0] CONST key_04 [ 0 ]
+SECRET 0] CONST key_05 [ 0 ]
+SECRET 0] CONST key_06 [ 0 ]
+SECRET 0] CONST key_07 [ 0 ]
+SECRET 0] CONST key_08 [ 0 ]
+SECRET 0] CONST key_09 [ 0 ]
+SECRET 0] CONST key_0A [ 0 ]
+SECRET 0] CONST key_0B [ 0 ]
+SECRET 0] CONST key_0C [ 0 ]
+SECRET 0] CONST key_0D [ 0 ]
+SECRET 0] CONST key_0E [ 0 ]
+SECRET 0] CONST key_0F [ 0 ]
+
+SECRET 1] CONST key_10 [ 0 ]
+SECRET 1] CONST key_11 [ 0 ]
+SECRET 1] CONST key_12 [ 0 ]
+SECRET 1] CONST key_13 [ 0 ]
+SECRET 1] CONST key_14 [ 0 ]
+SECRET 1] CONST key_15 [ 0 ]
+SECRET 1] CONST key_16 [ 0 ]
+SECRET 1] CONST key_17 [ 0 ]
+SECRET 1] CONST key_18 [ 0 ]
+SECRET 1] CONST key_19 [ 0 ]
+SECRET 1] CONST key_1A [ 0 ]
+SECRET 1] CONST key_1B [ 0 ]
+SECRET 1] CONST key_1C [ 0 ]
+SECRET 1] CONST key_1D [ 0 ]
+SECRET 1] CONST key_1E [ 0 ]
+SECRET 1] CONST key_1F [ 0 ]
+
+# initialise the first 16 entries of the heap (after constant pool) to
+# zero.
+
+load 0 zero
+load 1 zero
+load 2 zero
+load 3 zero
+load 4 zero
+load 5 zero
+load 6 zero
+load 7 zero
+load 8 zero
+load 9 zero
+load 10 zero
+load 11 zero
+load 12 zero
+load 13 zero
+load 14 zero
+load 15 zero
+
+# Player one's share is loaded into address 16 through 31
+#
+
+load 16 key_00
+load 17 key_01
+load 18 key_02
+load 19 key_03
+load 20 key_04
+load 21 key_05
+load 22 key_06
+load 23 key_07
+load 24 key_08
+load 25 key_09
+load 26 key_0A
+load 27 key_0B
+load 28 key_0C
+load 29 key_0D
+load 30 key_0E
+load 31 key_0F
+
+# Player two's share is added to player one's share given the plain
+# key in addresses 16 through 31
+ 
+sadd 16 16 key_10
+sadd 17 17 key_11
+sadd 18 18 key_12
+sadd 19 19 key_13
+sadd 20 20 key_14
+sadd 21 21 key_15
+sadd 22 22 key_16
+sadd 23 23 key_17
+sadd 24 24 key_18
+sadd 25 25 key_19
+sadd 26 26 key_1A
+sadd 27 27 key_1B
+sadd 28 28 key_1C
+sadd 29 29 key_1D
+sadd 30 30 key_1E
+sadd 31 31 key_1F
+
+############################################################
+
+load 32 zero
+load 33 zero
+load 34 zero
+load 35 zero
+load 36 zero
+load 37 zero
+load 38 zero
+load 39 zero
+load 40 zero
+load 41 zero
+load 42 zero
+load 43 zero
+load 44 zero
+load 45 zero
+load 46 zero
+load 47 zero
+
+load 48 zero
+load 49 zero
+load 50 zero
+load 51 zero
+load 52 zero
+load 53 zero
+load 54 zero
+load 55 zero
+load 56 zero
+load 57 zero
+load 58 zero
+load 59 zero
+load 60 zero
+load 61 zero
+load 62 zero
+load 63 zero
+
+load 64 zero
+load 65 zero
+load 66 zero
+load 67 zero
+load 68 zero
+load 69 zero
+load 70 zero
+load 71 zero
+load 72 zero
+load 73 zero
+load 74 zero
+load 75 zero
+load 76 zero
+load 77 zero
+load 78 zero
+load 79 zero
+
+load 80 zero
+load 81 zero
+load 82 zero
+load 83 zero
+load 84 zero
+load 85 zero
+load 86 zero
+load 87 zero
+load 88 zero
+load 89 zero
+load 90 zero
+load 91 zero
+load 92 zero
+load 93 zero
+load 94 zero
+load 95 zero
+
+load 96 zero
+load 97 zero
+load 98 zero
+load 99 zero
+load 100 zero
+load 101 zero
+load 102 zero
+load 103 zero
+load 104 zero
+load 105 zero
+load 106 zero
+load 107 zero
+load 108 zero
+load 109 zero
+load 110 zero
+load 111 zero
+
+load 112 zero
+load 113 zero
+load 114 zero
+load 115 zero
+load 116 zero
+load 117 zero
+load 118 zero
+load 119 zero
+load 120 zero
+load 121 zero
+load 122 zero
+load 123 zero
+load 124 zero
+load 125 zero
+load 126 zero
+load 127 zero
+
+load 128 zero
+load 129 zero
+load 130 zero
+load 131 zero
+load 132 zero
+load 133 zero
+load 134 zero
+load 135 zero
+load 136 zero
+load 137 zero
+load 138 zero
+load 139 zero
+load 140 zero
+load 141 zero
+load 142 zero
+load 143 zero
+
+load 144 zero
+load 145 zero
+load 146 zero
+load 147 zero
+load 148 zero
+load 149 zero
+load 150 zero
+load 151 zero
+load 152 zero
+load 153 zero
+load 154 zero
+load 155 zero
+load 156 zero
+load 157 zero
+load 158 zero
+load 159 zero
+
+load 160 zero
+load 161 zero
+load 162 zero
+load 163 zero
+load 164 zero
+load 165 zero
+load 166 zero
+load 167 zero
+load 168 zero
+load 169 zero
+load 170 zero
+load 171 zero
+load 172 zero
+load 173 zero
+load 174 zero
+load 175 zero
+
+
+load 176 zero
+load 177 zero
+load 178 zero
+load 179 zero
+load 180 zero
+load 181 zero
+load 182 zero
+load 183 zero
+load 184 zero
+load 185 zero
+load 186 zero
+load 187 zero
+load 188 zero
+load 189 zero
+load 190 zero
+load 191 zero
 
 #                               key addition
 add 0 0 16
@@ -4641,7 +4912,7 @@ mov 207 14
 mov 208 15
 
 #                               key addition
-add 0 0 32
+add 0 193 32
 add 1 1 33
 add 2 2 34
 add 3 3 35
@@ -45949,3 +46220,36 @@ add 13 13 189
 add 14 14 190
 add 15 15 191
 
+open 0
+open 1
+open 2
+open 3
+open 4
+open 5
+open 6
+open 7
+open 8
+open 9
+open 10
+open 11
+open 12
+open 13
+open 14
+open 15
+
+print 0
+print 1
+print 2
+print 3
+print 4
+print 5
+print 6
+print 7
+print 8
+print 9
+print 10
+print 11
+print 12
+print 13
+print 14
+print 15

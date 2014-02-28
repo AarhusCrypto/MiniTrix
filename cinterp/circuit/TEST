@@ -4,8 +4,19 @@
 # 
 1 2 3 4
 init_heap 128
-CONST y [ 1 1 ]
-CONST x [ 0 1 ]
-load 0 x
-sadd 0 0 y
-open 0
+
+#################### INPUT ####################
+
+CONST zero [ 0 ]
+
+SECRET 0] CONST key_0
+SECRET 1] CONST key_2 [ 1 ]
+
+################### CIRCUIT ###################
+
+load 0 zero
+add 0 0 0
+sadd 0 0 key_0
+sadd 0 0 key_0
+mov 0 1
+sadd 0 1 key_0

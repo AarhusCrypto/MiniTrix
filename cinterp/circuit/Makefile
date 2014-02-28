@@ -7,7 +7,7 @@ TARGET=interp
 all:
 	bison --defines=y.tab.h grammar.y
 	flex grammar.lex
-	cc -O0 -g3 lex.yy.c grammar.tab.c ast.c interp.c -lfl $(INCL) $(LIBS) -o $(TARGET)
+	cc lex.yy.c grammar.tab.c ast.c interp.c -lfl $(INCL) $(LIBS) -o $(TARGET)
 
 clean:
 	rm -rf grammar.tab.c lex.yy.c interp y.tab.h
