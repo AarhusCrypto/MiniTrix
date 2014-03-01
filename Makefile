@@ -6,7 +6,7 @@ build:
 	cd math && make  depshape
 	cd cminimacs && make clean depshape
 	cd caes && make depshape CFLAGS="-O0"
-	cd cinterp && make  depshape
+	cd cinterp && make depshape
 
 all: clean build
 
