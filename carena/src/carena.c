@@ -43,9 +43,10 @@
 #include <common.h>
 #include <encoding/hex.h>
 #include <encoding/int.h>
-
+#include <stats.h>
 #include <unistd.h>
 #include <time.h>
+/*
 static
 unsigned long long _nano_time() {
   struct timespec tspec = {0};
@@ -55,7 +56,7 @@ unsigned long long _nano_time() {
     return 0;
   }
 }
-
+*/
 
 typedef struct _carena_impl_ {
 
@@ -121,37 +122,46 @@ typedef struct _mpcpeer_impl_ {
 
 } * MpcPeerImpl;
 
+
+
 COO_DCL(MpcPeer, CAR, send, Data data)
 COO_DEF_RET_ARGS(MpcPeer, CAR, send, Data data;, data) {
   CAR c = {{0}};
   MpcPeerImpl peer_i = (MpcPeerImpl)this->impl;
+  CHECK_POINT_S(__FUNCTION__);
   peer_i->outgoing->put(Data_copy(peer_i->oe,data));
+  CHECK_POINT_E(__FUNCTION__);
   return c;
 }}
+
+
 
 COO_DCL(MpcPeer, CAR, receive, Data data)
 COO_DEF_RET_ARGS(MpcPeer, CAR, receive, Data data;, data) {
   MpcPeerImpl peer_i = (MpcPeerImpl)this->impl;
   CAR c = {{0}};
-
   // ldata is the number of bytes successfully read so far
   uint ldata = 0;
+
+  CHECK_POINT_S(__FUNCTION__);
   if (!data) { 
     osal_sprintf(c.msg,"CArena receive, bad input data is null");
     return c;
   }
+
   while(ldata < data->ldata) {
 
     Data chunk = 0;
     if (peer_i->drem != 0) {
-      printf("DREM in use\n");
+      //      printf("DREM in use\n");
       chunk = peer_i->drem;
       peer_i->drem = 0;
     } else {
-      ull start = _nano_time();
-      printf("Waiting for ... ");
+      //      printf("get\n");
+      CHECK_POINT_S("BIBI's idea Take");
       chunk = peer_i->incoming->get();
-      printf(" %llu ns\n",_nano_time()-start);
+      //      printf("get done\n");
+      CHECK_POINT_E("BIBI's idea Take");
     }
     if (chunk) {
       // data->ldata-ldata >= chunk->ldata
@@ -180,6 +190,7 @@ COO_DEF_RET_ARGS(MpcPeer, CAR, receive, Data data;, data) {
       RETERR("Shutting down or out of memory", NO_MEM);
     }
   }
+  CHECK_POINT_E(__FUNCTION__);
   return c;
 }}
 
@@ -206,12 +217,26 @@ static void * peer_rec_function(void * a) {
   mei = (MpcPeerImpl)me->impl;
   oe = mei->oe;
   while(mei->running) {
+    uint sofar = 0;
     byte len[4] = {0};
     uint lenlen = 4;
     RC rc = 0 ; 
+    char _o[64] = {0};
+
+
     rc = mei->oe->read(mei->fd,len,&lenlen);
-    if (lenlen <= 0) continue;
+    
+    if (lenlen <= 3) continue;
+
+    if (rc != RC_OK) {
+      oe->p("Failed to read leaving");
+      return 0;
+    }
+
     l = b2i(len);
+
+    //    osal_sprintf(_o,"expecting %u bytes to come",l);
+    //    oe->p(_o);
 
     if (l > 1024*1024*10) {
       char m[32] = {0};
@@ -227,28 +252,44 @@ static void * peer_rec_function(void * a) {
       continue;
     }
 
+    sofar = 0;
+    CHECK_POINT_S("Read data");
     while(1) {
-      // read the data we need
-      rc = mei->oe->read(mei->fd, buf->data, &buf->ldata);
+      uint read_bytes = 0;
+
+      // read_bytes is how many bytes to be read in this round
+      // before {read} and the number of bytes read after.
+      read_bytes = l - sofar;
+
+      // if we need to read zero bytes in this round we'r done
+      // add the buffer to the queue.
+      if(read_bytes == 0) {
+        CHECK_POINT_E("Read data");
+        mei->incoming->put(buf);
+        break;
+      }
+
+      // read_bytes will never be more than {buf->ldata} as we would
+      // never ask for more. !! Invariant !!
+      rc = mei->oe->read(mei->fd, buf->data+sofar, &read_bytes);
       if (rc == RC_OK) {
 
+        // if we are shutting down better quit now !
         if (mei->die) goto out; // are we shutting down, then leave
 
-        if (buf->ldata > 0) { // somethign read?
-          mei->incoming->put(buf); // something was read, report that !
-          break;
-        } else {
-          buf->ldata = l; // nothing read yet, lets reset buffer and try again
-          zeromem(buf->data,l);
-          continue;
+        // okay was anything read?
+        if (read_bytes > 0) { // yes okay update sofar !
+          sofar += read_bytes;
+          //    printf("read %u bytes sofar %u :)\n",read_bytes,sofar);
         }
+
       } else { // rc != RC_OK failure connection probably lost
         mei->oe->syslog(OSAL_LOGLEVEL_FATAL, 
                         "MpcPeer peer_rec_function failure to read."	\
                         " Peer will not receive anymore data.");
         return 0;
       }
-    }
+    } // while(1)
   }
   
   
@@ -270,8 +311,29 @@ static void * peer_snd_function(void * a) {
     if (item) {
       i2b(item->ldata,len);
       int written = 0;
-      written = mei->oe->write(mei->fd, len, sizeof(len));
-      written = mei->oe->write(mei->fd, item->data, item->ldata);
+      int sofar = 0;
+
+      //      printf("[snd] Sending length %u",item->ldata);
+      while(sofar < sizeof(len) && written >= 0) {
+        written = mei->oe->write(mei->fd, len+sofar, sizeof(len)-sofar);
+        sofar += written;
+        //        printf("[snd] sofar %u\n",sofar);
+      }
+      //      printf("done\n");
+
+      if (written < 0) {
+        mei->oe->p("Send function for peer failed");
+        return 0;
+      }
+
+      //      printf("[snd] Sending %u bytes ... ",item->ldata);
+      written = 0;sofar = 0;
+      while(sofar < item->ldata && written >= 0) {
+        written = mei->oe->write(mei->fd, item->data, item->ldata);
+        sofar += written;
+        //        printf("[snd] sofar %u,%u \n",sofar,written);
+      }
+      //      printf(" done \n");
       Data_destroy( mei->oe, &item);
       if (written < 0) {
         mei->oe->p("Error writting to file descriptor." \
@@ -438,8 +500,6 @@ static void * carena_listener_thread(void * a) {
 COO_DCL(CArena, CAR,listen, uint port)
 COO_DEF_RET_ARGS(CArena, CAR, listen, uint port;, port) {
 
-  
-
   char addr[64] = {0};
 
   CAR c = {{0}};
@@ -487,7 +547,6 @@ COO_DEF_RET_NOARGS(CArena, uint, get_no_peers) {
   arena_i->oe->lock(arena_i->lock);
   res = arena_i->peers->size();
   arena_i->oe->unlock(arena_i->lock);
-
   return res;
   
 }}
@@ -495,6 +554,7 @@ COO_DEF_RET_NOARGS(CArena, uint, get_no_peers) {
 void CArena_destroy( CArena * arena) {
   CArenaImpl arena_i = 0;
   OE oe = 0;
+
   if (!arena) return;
   if (!*arena) return;
 
@@ -512,22 +572,33 @@ void CArena_destroy( CArena * arena) {
     oe->close(arena_i->server_fd);
   }
 
-
   if (arena_i->peers) {
     uint i = 0;
     for(i = 0;i<arena_i->peers->size();++i) {
       MpcPeer peer = (MpcPeer)arena_i->peers->get_element(i);
       if (peer) {
-	MpcPeerImpl_destroy( &peer );
+        MpcPeerImpl_destroy( &peer );
       }
     }
-    SingleLinkedList_destroy( & arena_i->peers );
+    SingleLinkedList_destroy( &arena_i->peers );
   }
 
+  if (arena_i->conn_obs) {
+    SingleLinkedList_destroy( &arena_i->conn_obs );
+  }
+  
   if (arena_i->lock) {
     oe->destroymutex(&arena_i->lock);
   }
 
+  if (arena_i->listen_ready) {
+    oe->destroymutex(&arena_i->listen_ready);
+  }
+
+  
+  
+  oe->putmem(arena_i);
+  oe->putmem(*arena);
 }
 
 #include "config.h"

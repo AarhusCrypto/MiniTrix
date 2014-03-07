@@ -14,12 +14,15 @@ typedef struct _measurement_ {
   void * impl;
 } * Measurement;
 
-#ifdef STATS_ON
 void Measurements_print(OE oe);
 Measurement Measurement_New(char * name);
 void init_stats(OE oe);
 Measurement Measurements_start(char * name);
 Measurement Measurements_chk(char * name);
+Measurement Measurements_get(char * name);
+
+// ############################################################
+#ifdef STATS_ON
 #define InitStats(OE) init_stats((OE));
 #define MEASURE_FN(CALL) {                                \
     Measurement _m_ = Measurements_start(__FILE__ #CALL);  \
@@ -30,30 +33,31 @@ Measurement Measurements_chk(char * name);
 #define CHECK_POINT(N) {                                            \
     Measurement _m_ = 0;                                            \
     char _str_[128] = {0};                                          \
-    Measurements_chk((N));}
+    Measurements_chk((char*)(N));}
 
 #define CHECK_POINT_S(N) {                                          \
     Measurement _m_ = 0;                                            \
-    _m_ = Measurements_get(N); }                                    \
-    if (_m_) _m_->set_start(); 
+    _m_ = Measurements_get((char*)(N));                             \
+    if (_m_) _m_->set_start();  }
 
 #define CHECK_POINT_E(N) {                      \
   Measurement _m_ = 0;                          \
-  _m_ = Measurements_get(N);                    \
-  if (_m_) _m_->measure();
+  _m_ = Measurements_get((char*)(N));           \
+  if (_m_) _m_->measure(); }
 
 #define PrintMeasurements(OE) {                 \
     Measurements_print(OE);}
+
+// ############################################################
 #else
 
 #define MEASURE_FN(CALL) CALL;
-
 #define PrintMeasurements(OE) {\
     (OE)->p("Measurements disabled");}
-
 #define InitStats(OE) OE->p("Measurements are disabled");
-
-#define CHECK_POINT(N) 
+#define CHECK_POINT(N)
+#define CHECK_POINT_S(N) 
+#define CHECK_POINT_E(N)
 
 #endif
 

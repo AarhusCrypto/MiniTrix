@@ -49,5 +49,6 @@
 BUILDDIR=$(top_srcdir)/build
 DEPS_INCLUDE=-I$(top_srcdir)/deps/headers -I$(top_srcdir)/headers 
 CARENA_LIB=-L$(top_srcdir)/build/src -lcarena -L$(top_srcdir)/deps -losal -lds -lencoding -lpthread 
-AM_CFLAGS=$(DEPS_INCLUDE) -Werror -Wall 
+AM_CFLAGS=$(DEPS_INCLUDE) 
+#-Werror -Wall 
 

@@ -41,5 +41,5 @@
 include $(top_srcdir)/ds.am
 
 lib_LIBRARIES = libds.a
-libds_a_SOURCES = hashmap.c blockingqueue.c map.c
+libds_a_SOURCES = hashmap.c blockingqueue.c map.c stats.c
 

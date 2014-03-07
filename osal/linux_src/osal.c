@@ -98,6 +98,7 @@ COO_DEF_RET_ARGS(OE, RC, read, uint fd;byte *buf;uint * lbuf;, fd, buf, lbuf ) {
         return RC_FAIL; // unexpected error or end of file
       }
     } else {
+       printf("%d got it from read\n",r);
       *lbuf = r;
       break; // successful read
     }
@@ -117,10 +118,8 @@ COO_DEF_RET_ARGS(OE, RC, write, uint fd; byte*buf;uint lbuf;,fd,buf,lbuf) {
 
   while(writesofar < lbuf && lastwrite >= 0) {
     lastwrite = write(os_fd, buf+writesofar, lbuf-writesofar);
-    fsync(os_fd);
     if ( lastwrite == -1) {
       if (errno == EAGAIN) {
-	usleep(0);
 	lastwrite = 0;
 	continue;
       } 
@@ -496,6 +495,7 @@ void OperatingEnvironment_LinuxDestroy( OE * oe) {
     Memory m = soe->mm;
     SingleLinkedList_destroy( &soe->threads );
     SingleLinkedList_destroy( &soe->filedescriptors );
+    Mutex_destroy( soe->lock );
     m->free((*oe)->impl);
     m->free(*oe);
 

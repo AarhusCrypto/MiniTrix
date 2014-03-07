@@ -1,6 +1,9 @@
 include $(top_srcdir)/carena.am
 
-bin_PROGRAMS = test tests gracefulshutdown testsend
+bin_PROGRAMS = test tests gracefulshutdown testsend simpl	
+
+simpl_SOURCES = simple.c
+simpl_LDADD = $(CARENA_LIB) -lrt	
 
 testsend_SOURCES = testsend.c
 testsend_LDADD = $(CARENA_LIB) -lrt

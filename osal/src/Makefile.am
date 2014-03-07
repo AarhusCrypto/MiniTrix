@@ -38,5 +38,5 @@
 include $(top_srcdir)/osal.am
 
 lib_LIBRARIES = libosal.a
-libosal_a_SOURCES = singlelinkedlist.c semaphore.c utf8string.c common.c stats.c
+libosal_a_SOURCES = singlelinkedlist.c semaphore.c utf8string.c common.c
 

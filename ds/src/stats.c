@@ -3,8 +3,6 @@
 #include <singlelinkedlist.h>
 #include <hashmap.h>
 
-#ifdef STATS_ON
-
 static uint str_hash(void * s) {
   char *ss = (char*)s;
   uint lss = 1;
@@ -67,10 +65,13 @@ static OE _oe_;
 
 static Measurement top;
 
+static MUTEX lock;
+
 void init_stats(OE oe) {
   if (!_oe_) {
     MeasurementImpl topi = 0;
     _oe_ = oe;
+    lock = oe->newmutex();
     top = Measurement_New("CMiniMacs Statistics");
     topi=(MeasurementImpl)top->impl;
     topi->sub = (Map)HashMap_new(_oe_, str_hash, str_compare, 128);
@@ -95,12 +96,9 @@ COO_DCL(Measurement, void, measure);
 COO_DEF_NORET_NOARGS(Measurement, measure) {
   MeasurementImpl impl = (MeasurementImpl)this->impl;
   MeasurementImpl topi = (MeasurementImpl)top->impl;
-  MeasurementImpl m = 0;
   ull duration = 0;
 
-  if (topi->sub->contains(this->get_name())) {
-    m = topi->sub->get(this->get_name());
-  } else {
+  if (!topi->sub->contains(this->get_name())) {
     topi->sub->put(this->get_name(), this);
   }
   
@@ -116,8 +114,6 @@ COO_DEF_NORET_NOARGS(Measurement, measure) {
 Measurement Measurements_get(char * name) {
   MeasurementImpl topi = 0 ;
   Measurement m = 0;
-  MeasurementImpl mi = 0;
-  ull start = _nano_time();
 
   if (_oe_ && top) {
     topi = (MeasurementImpl)top->impl;
@@ -199,8 +195,12 @@ void Measurements_print(OE oe) {
       if (cur) {
         MeasurementImpl curi = (MeasurementImpl)cur->impl;
         char mmm[512] = {0};
-        osal_sprintf(mmm, "%s\t%u\t%u\t%u\t%u", 
-                     curi->name, curi->min, curi->max, curi->avg, curi->count);
+        osal_sprintf(mmm, "%s\t%u.%u\t%u.%u\t%u.%u\t%u", 
+                     curi->name, 
+                     curi->min/1000000,curi->min % 1000000, 
+                     curi->max/1000000,curi->max % 1000000, 
+                     curi->avg/1000000,curi->avg % 1000000, 
+                     curi->count);
         _oe_->p(mmm);
       }
     }
@@ -248,7 +248,3 @@ Measurement Measurement_New(char * name) {
   _oe_->p("TODO(rwl): Need to clean up :(");
   return 0;
 }
-#else
-
-
-#endif

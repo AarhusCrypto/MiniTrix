@@ -204,6 +204,7 @@ COO_DEF_RET_ARGS(MiniMacs,MR, mul, uint dst; uint l; uint r;,dst,l,r) {
     MR_RET_OK;
   }
   */
+  oe->p("mul");
   CHECK_POINT("Mul");
   star_pair = gmm->next_pair();
   if (!star_pair) MUL_FAIL(oe,"No more pairs (%d taken).",gmm->idx_pair);
