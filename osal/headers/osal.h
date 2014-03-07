@@ -158,7 +158,7 @@ typedef struct _operating_environment_ {
    * join with the thread given id {tid}.
    * 
    */
-  void (*jointhread)(ThreadID tid);
+  void* (*jointhread)(ThreadID tid);
 
   // ------------------------------------------------------------
   // Locking

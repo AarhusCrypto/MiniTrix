@@ -84,23 +84,25 @@ COO_DEF_RET_ARGS(OE, RC, read, uint fd;byte *buf;uint * lbuf;, fd, buf, lbuf ) {
   // get exclusive access to file descriptors
   this->lock(soe->lock);
   os_fd = (int)(unsigned long long)soe->filedescriptors->get_element(fd-1);
-  this->unlock(soe->lock);
-
+  
+  
   while(1) {
     r = read(os_fd,buf, *lbuf); 
     if (r <= 0) {
       if (errno == EAGAIN) {
-	*lbuf = 0;
-	return RC_OK;
+        *lbuf = 0;
+        this->unlock(soe->lock);
+        return RC_OK;
       } else {
-	return RC_FAIL; // unexpected error or end of file
+        this->unlock(soe->lock);
+        return RC_FAIL; // unexpected error or end of file
       }
     } else {
       *lbuf = r;
       break; // successful read
     }
   }
-
+  this->unlock(soe->lock);
   return RC_OK;
 }}
 
@@ -291,11 +293,11 @@ COO_DEF_RET_ARGS(OE, int, accept, uint fd;,fd) {
     os_client_fd = accept(os_fd,0,0);
     if (os_client_fd < 0) { 
       if (errno == EAGAIN) {
-	usleep(0);
-	this->yieldthread();
-	continue;
+        usleep(0);
+        this->yieldthread();
+        continue;
       } else {
-	return 0; // report failure
+        return 0; // report failure
       } 
     } else {
       set_non_blocking(os_client_fd);
@@ -352,23 +354,24 @@ COO_DEF_NORET_NOARGS(OE, yieldthread) {
   //  this->syslog(OSAL_LOGLEVEL_FATAL,"Yield thread is *NOT* implemented");
 }}
 
-COO_DCL(OE, void, jointhread, ThreadID tid)
-COO_DEF_NORET_ARGS(OE, jointhread, ThreadID tid;,tid) {
+COO_DCL(OE, void *, jointhread, ThreadID tid)
+COO_DEF_RET_ARGS(OE, void *, jointhread, ThreadID tid;,tid) {
   
   SimpleOE soe = (SimpleOE)this->impl;
   pthread_t * t = (pthread_t *)soe->threads->get_element(tid-1);
+  void * p = 0;
   if (tid > soe->threads->size()+1) { 
     this->syslog(OSAL_LOGLEVEL_FATAL, "Failed to join thread"
 		 ", thread id is greater than any active thread id.");
     return;
   }
   if (t) {
-    pthread_join(*t,0);
+    pthread_join(*t,&p);
   } else {
     this->p("Auch ! Thread not found");
   }
   
-  return;
+  return p;
 }}
 
 COO_DCL(OE, MUTEX, newmutex )
