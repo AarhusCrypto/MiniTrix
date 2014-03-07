@@ -23,7 +23,7 @@ depshapedir=$(BUILDDIR)/$(PART_NAME)
 DEPS_VERSION=parvusfortis_r3988
 DEPS=deps/
 REPO="svn://sun.bitlab.dk/Rasmus/phd/mpccode/tags"
-
+LOCAL_REPO="../../tags/"$(DEPS_VERSION)
 
 # This "all" target builds the whole project every time. To re-compile
 # the project without rebuilding the whole thing do "cd build && make
@@ -62,6 +62,7 @@ $(depshapedir):
 # released mpclib (assuming mpclib is placed in the parent folder
 # along side with this part).
 $(DEPS)/libosal.a: 
+	-@[ -d deps ] || ( [ -d $(LOCAL_REPO) ] && cp -r $(LOCAL_REPO) ./deps && echo "LOCAL COPY" )
 	[ -d deps ] || svn export $(REPO)/$(DEPS_VERSION) ./deps
 
 

@@ -23,6 +23,7 @@ depshapedir=$(BUILDDIR)/$(PART_NAME)
 DEPS_VERSION=parvusfortis_r3988
 DEPS=deps/
 REPO="svn://sun.bitlab.dk/Rasmus/phd/mpccode/tags"
+LOCAL_REPO="../../tags/"$(DEPS_VERSION)
 
 DEV_OSAL="../osal/build/osal"
 
@@ -66,6 +67,7 @@ $(depshapedir):
 #	mkdir -p $(DEPS_mpclib)
 #	cp -r $(top_srcdir)../mpclib/build/mpclib/* $(DEPS_mpclib)
 $(DEPS)/libosal.a: 
+	-@[ -d deps ] || ( [ -d $(LOCAL_REPO) ] && cp -r $(LOCAL_REPO) ./deps && echo "LOCAL COPY" )
 	[ -d deps ] || svn export $(REPO)/$(DEPS_VERSION) ./deps
 	-@ ( [ -d $(DEV_OSAL) ] && cp -r $(DEV_OSAL)/* ./deps ) || echo "NO LOCAL OSAL"
 

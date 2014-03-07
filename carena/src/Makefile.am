@@ -38,7 +38,7 @@
 # Example creating one binary executable from main.c
 
 include $(top_srcdir)/carena.am
-lib_LIBRARIES= libcarena.a
+lib_LIBRARIES= libcarena.a 
 libcarena_a_SOURCES = carena.c
-libcarena_a_LIBADD = $(DEPS_OSAL_A)
+libcarena_a_LIBADD = $(DEPS_OSAL_A) 
 

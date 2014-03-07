@@ -23,6 +23,7 @@ depshapedir=$(BUILDDIR)/$(PART_NAME)
 DEPS_VERSION=parvusfortis_r3988
 DEPS=deps/
 REPO="svn://sun.bitlab.dk/Rasmus/phd/mpccode/tags"
+LOCAL_REPO="../../tags/"$(DEPS_VERSION)
 
 DEV_OSAL="../osal/build/osal"
 DEV_ENCODING="../encoding/build/encoding"
@@ -68,7 +69,8 @@ $(depshapedir):
 # this target copies the libmpc.a and the headers directory from the
 # released mpclib (assuming mpclib is placed in the parent folder
 # along side with this part).
-$(DEPS)libosal.a: 
+$(DEPS)libosal.a:
+	-@[ -d deps ] || ( [ -d $(LOCAL_REPO) ] && cp -r $(LOCAL_REPO) ./deps && echo "LOCAL COPY" )
 	[ -d deps ] || svn export $(REPO)/$(DEPS_VERSION) ./deps
 	-@ ([ -d $(DEV_OSAL) ] && cp -r $(DEV_OSAL)/* ./deps) || echo "OSAL NO LOC"
 	-@ ([ -d $(DEV_ENCODING) ] && cp -r $(DEV_ENCODING)/* ./deps) || echo "ENC NO LOC"

@@ -4,6 +4,7 @@
 #include <map.h>
 #include <hashmap.h>
 #include <unistd.h>
+#include <stats.h>
 
 static uint str_hash(void * s) {
   char *ss = (char*)s;
@@ -104,8 +105,9 @@ COO_DCL(Visitor, void, v_Mul, AstNode node);
 COO_DEF_NORET_ARGS(Visitor, v_Mul, AstNode node;,node) {
   Mul m = (Mul)node->impl;
   InterpImpl ii = (InterpImpl)this->impl;
-  MR res = ii->mm->mul(m->dst+ii->cp,m->op1+ii->cp,m->op2+ii->cp);
+  MR res = 0;
   char mmm[32] = {0};
+  MEASURE_FN(res = ii->mm->mul(m->dst+ii->cp,m->op1+ii->cp,m->op2+ii->cp));
   osal_sprintf(mmm,"%u: mul(%u,%u,%u)\n",node->line,m->dst,m->op1,m->op2);
   ii->oe->p(mmm);
   if (res != 0) {

@@ -68,8 +68,7 @@ int main(int c, char **a) {
       byte pltxt[128] = {0};
       mpc_aes(comp,pltxt,key);
     }
-
-    //    PrintMeasurements(oe);
+    PrintMeasurements(oe);
 
   } else {
     printf("Usage %s <preprocessed material>\n",a[0]);

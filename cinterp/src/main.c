@@ -72,6 +72,7 @@ int main(int c, char **a) {
     Visitor interp = 0;
 
     // parse
+    oe->p("Parsing circuit...");
     yyparse();
     if (error) {   printf("\n");return -1; }
 
@@ -83,6 +84,7 @@ int main(int c, char **a) {
       mm->connect(a[3],2020);
     }
 
+    oe->p("Interpreting circuit...");
     // create interpreter
     interp = mpc_circuit_interpreter( oe,  root, mm);
     if (root) 

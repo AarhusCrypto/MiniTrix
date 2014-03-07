@@ -3,20 +3,29 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <coo.h>
+#include <sched.h>
 
 MUTEX m = 0;
 void * t_connect(void * a) {
   OE oe = (OE)a;
-  uint fd = 0;
+  CArena arena = CArena_new(oe);
+  MpcPeer peer = 0;
 
-  fd = oe->open("ip 127.0.0.1 2021");
-  if (!fd) {
-    oe->p("t_connect failed to call home");
-    return 0;
+  oe->p("Connecting with CArena");
+  arena->connect("127.0.0.1", 2021);
+  
+  oe->p("Getting peer");
+  peer = arena->get_peer(0);
+
+  if (peer) {
+    oe->p("Got peer");
+    peer->send(Data_shallow((byte*)"Rasmus",7));
+  } else {
+    oe->p("No peer");
   }
-  oe->write(fd, (byte*)"Rasmus", 7);
-  oe->close(fd);
-  oe->p("thread leaving");
+
+  oe->p("Leaving and destroying CArena");
+
   return 0;
 }
 
@@ -69,7 +78,9 @@ int main(int c, char **a) {
   m = oe->newmutex();
   arena->add_conn_listener(cl);
   arena->listen(2021);
-
+  oe->p("After listen 2021");
+  sched_yield();
+  sleep(1);
   tid = oe->newthread(t_connect, oe);
 
   in = Data_new(oe,7);
