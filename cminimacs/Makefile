@@ -23,6 +23,7 @@ depshapedir=$(BUILDDIR)/$(PART_NAME)
 DEPS_VERSION=parvusfortis_r3988
 DEPS=deps/
 REPO="svn://sun.bitlab.dk/Rasmus/phd/mpccode/tags"
+LOCAL_REPO="../../tags/"$(DEPS_VERSION)
 
 DEV_OSAL="../osal/build/osal"
 DEV_DS="../ds/build/ds"
@@ -65,6 +66,7 @@ $(depshapedir):
 # released mpclib (assuming mpclib is placed in the parent folder
 # along side with this part).
 $(DEPS)libosal.a: 
+	-@[ -d deps ] || ( [ -d $(LOCAL_REPO) ] && cp -r $(LOCAL_REPO) ./deps && echo "LOCAL COPY" )
 	[ -d deps ] || (svn export $(REPO)/$(DEPS_VERSION) ./deps && echo $! )
 	-@ ( [ -d $(DEV_OSAL) ]&&( cp -r $(DEV_OSAL)/* ./deps )) || echo "NO LOCAL OSAL"
 	-@ ( [ -d $(DEV_DS) ] && ( cp -r $(DEV_DS)/* ./deps )) || echo "NO LOCAL DS"

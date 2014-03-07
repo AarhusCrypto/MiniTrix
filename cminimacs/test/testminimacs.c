@@ -39,7 +39,7 @@ static MiniMacs setup_generic_minimacs(OE oe, const char * raw_material_file) {
 
 #define C( CALL ) {				\
   mr = (CALL);					\
-  if (mr.rc != 0) {printf("Error: %s",mr.msg);return mr.rc;}}
+  if (mr != 0) {printf("Error:");return mr;}}
 
 int main(int c, char **a) {
   OE oe = OperatingEnvironment_LinuxNew();
@@ -47,6 +47,7 @@ int main(int c, char **a) {
   init_polynomial();
   if (oe) {
     MR mr = 0;
+    int i = 0;
     MiniMacs mm = setup_generic_minimacs(oe, a[1]);
     if (mm == 0) {
       printf("Uable to create MiniMacs Instance, leaving\n");
@@ -56,17 +57,18 @@ int main(int c, char **a) {
     mm->invite(1,2020);
     mm->init_heap(6);
     
-    /*
+
     C(mm->secret_input(0,0,Data_shallow("Rasmus",7)));
     
     C(mm->open(0));
 
     C(mm->secret_input(0,1,Data_shallow("\001",1)));
     C(mm->secret_input(0,2,Data_shallow("\001",1)));
-    C(mm->mul(3,2,1));
+    for(i = 0; i < 256;++i) 
+      C(mm->mul(3,2,1));
     C(mm->add(3,3,3));
     C(mm->open(3));
-    */
+
     GenericMiniMacs_destroy( & mm );
   }
 

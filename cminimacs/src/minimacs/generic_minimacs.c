@@ -204,7 +204,7 @@ COO_DEF_RET_ARGS(MiniMacs,MR, mul, uint dst; uint l; uint r;,dst,l,r) {
     MR_RET_OK;
   }
   */
-
+  CHECK_POINT("Mul");
   star_pair = gmm->next_pair();
   if (!star_pair) MUL_FAIL(oe,"No more pairs (%d taken).",gmm->idx_pair);
 
@@ -458,7 +458,7 @@ COO_DEF_RET_ARGS(MiniMacs,MR, mul, uint dst; uint l; uint r;,dst,l,r) {
       printf("############################################################\n");
       
     }
-
+    CHECK_POINT("Mul");
     this->heap_set(dst, result);
     MR_RET_OK;
   } else {
@@ -479,6 +479,7 @@ COO_DEF_RET_ARGS(MiniMacs,MR, mul, uint dst; uint l; uint r;,dst,l,r) {
     if (!result) MRGF(oe,"Failed to compute result.");
     
     this->heap_set(dst ,result);
+    CHECK_POINT("Mul");
     MR_RET_OK;
   }
 
@@ -543,7 +544,7 @@ COO_DEF_RET_ARGS(MiniMacs,MR,secret_input, uint pid; hptr dst; Data plain_val;, 
     
     for(id = 0; id < gmm->peer_map->size()+1;++id) {
       if (gmm->myid == id) {
-	continue;
+        continue;
       }
 
       peer = gmm->peer_map->get( (void*)(ull)id);
@@ -562,14 +563,14 @@ COO_DEF_RET_ARGS(MiniMacs,MR,secret_input, uint pid; hptr dst; Data plain_val;, 
       }
 
       for(i = 0;i < clear_r->ldata;++i) {
-	clear_r->data[i] = add(clear_r->data[i],shares[id]->data[i]);
+        clear_r->data[i] = add(clear_r->data[i],shares[id]->data[i]);
       }
       Data_destroy(oe,&shares[id]);
     }
     for(i = 0;i < clear_r->ldata;++i) {
       clear_r->data[i] = add(clear_r->data[i], add(r->codeword[i], r->dx_codeword[i]));
     }
-
+    
     for(id=0;id<gmm->peer_map->size()+1;++id) {
       Data_destroy(oe, &shares[id]);
     }

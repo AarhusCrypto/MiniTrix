@@ -33,7 +33,7 @@ static MiniMacs setup_generic_minimacs(OE oe, const char * raw_material_file) {
 
 #define C( CALL ) {				\
   mr = (CALL);					\
-  if (mr.rc != 0) {printf("Error: %s",mr.msg);return mr.rc;}}
+  if (mr != 0) {printf("Error");return mr;}}
 
 
 
@@ -43,16 +43,11 @@ int main(int c, char **a) {
   init_polynomial();
   if (oe) {
     MR mr = 0;
-
+    int i = 0;
     MiniMacs mm = setup_generic_minimacs(oe, a[1]);
     if (!mm) return -42;
     mm->get_id();
     mr = mm->connect("127.0.0.1",2020);
-    /*
-    if (mr.rc != 0) {
-      printf("Error: %s\n",mr.msg);
-      return 0;
-    }
 
     mm->init_heap(6); 
 
@@ -62,13 +57,14 @@ int main(int c, char **a) {
 
     C(mm->secret_input(0,1,Data_shallow("\001\001",1)));
     C(mm->secret_input(0,2,Data_shallow("\002\002",1)));
-    C(mm->mul(3,2,1));
+    for(i = 0; i < 256;++i) 
+      C(mm->mul(3,2,1));
     C(mm->add(3,3,3));
     C(mm->open(3));
     
     oe->p(mm->heap_get(0)->codeword);
     _p("Mul res", mm->heap_get(3)->codeword,8);
-    */
+
   }
 
  failure:
