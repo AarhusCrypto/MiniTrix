@@ -7,4 +7,4 @@ statstest_SOURCES = statstest.c
 statstest_LDADD = $(LIB_DS) -lrt
 
 hashmaptest_SOURCES = hashmaptest.c
-hashmaptest_LDADD = $(LIB_DS)
+hashmaptest_LDADD = $(LIB_DS) -lrt

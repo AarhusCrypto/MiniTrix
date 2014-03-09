@@ -6,6 +6,18 @@
 #include <config.h>
 #include "stats.h"
 
+#include <netinet/tcp.h>
+static
+unsigned long long _nano_time() {
+  struct timespec tspec = {0};
+  if (clock_gettime(CLOCK_REALTIME,&tspec) == 0) {
+    return 1000000000L*tspec.tv_sec + tspec.tv_nsec;
+  } else {
+    return 0;
+  }
+}
+
+
 COO_DCL(MiniMacs, uint, get_id);
 COO_DEF_RET_NOARGS(MiniMacs, uint, get_id) {
   GenericMiniMacs gmm = (GenericMiniMacs)this->impl;
@@ -120,6 +132,16 @@ COO_DEF_RET_ARGS(GenericMiniMacs, MR, __add__,MiniMacsRep * res_out; MiniMacsRep
   MR_RET_OK;
 }}
 
+static
+void force_os_to_send(int fd, int cork) {
+  int cork_val = cork;
+  int lcork_val = sizeof(cork_val);
+  if (setsockopt(fd, SOL_SOCKET, TCP_CORK, &cork_val, lcork_val) < 0) {
+    printf("Error: Failed to set cork %u\n",cork);
+  }
+}
+
+
 
 
 COO_DCL(MiniMacs,MR,mul,uint dst, uint l, uint r) 
@@ -205,7 +227,7 @@ COO_DEF_RET_ARGS(MiniMacs,MR, mul, uint dst; uint l; uint r;,dst,l,r) {
   }
   */
   oe->p("mul");
-  CHECK_POINT("Mul");
+
   star_pair = gmm->next_pair();
   if (!star_pair) MUL_FAIL(oe,"No more pairs (%d taken).",gmm->idx_pair);
 
@@ -231,6 +253,8 @@ COO_DEF_RET_ARGS(MiniMacs,MR, mul, uint dst; uint l; uint r;,dst,l,r) {
 
   
   if (!right_const && !left_const) {
+    ull both = _nano_time();
+    CHECK_POINT_S("  BOTH  ");
     triple = gmm->next_triple();
     if (!triple) MUL_FAIL(oe,"No more triples (%d taken).", gmm->idx_triple);
     
@@ -315,7 +339,6 @@ COO_DEF_RET_ARGS(MiniMacs,MR, mul, uint dst; uint l; uint r;,dst,l,r) {
         MRGF(oe,"Peer %u is cheating, mac didn't check out on epsilon.",id);
       }
     }
-    
     Data_destroy(oe,&deltamac);
     Data_destroy(oe,&epsilonmac);
     
@@ -384,8 +407,8 @@ COO_DEF_RET_ARGS(MiniMacs,MR, mul, uint dst; uint l; uint r;,dst,l,r) {
     
     sigma_star = minimacs_rep_xor(res_star, star_pair[1]);
     if (!sigma_star) MRGF(oe,"Failed to compute sigma*.");
-    
     // TODO(rwl): This is kind of strange:
+    CHECK_POINT_E("  BOTH  ");
   }
     res_star->lval = star_pair[1]->lval;
 
@@ -399,9 +422,10 @@ COO_DEF_RET_ARGS(MiniMacs,MR, mul, uint dst; uint l; uint r;,dst,l,r) {
   // every peer forms the representation of left*right.
   //
   if (gmm->myid == 0) {
-    Data * sigma_star_in = oe->getmem(sizeof(*sigma_star_in)*(gmm->peer_map->size()+1));
+    Data * sigma_star_in = oe->getmem(sizeof(*sigma_star_in)*(gmm->peer_map->size()+1));    
     Data sigmamac = Data_new(oe, sigma_star->lcodeword);
     uint lsigme_star_in = gmm->peer_map->size()+1;
+    CHECK_POINT_S(" Peer0] all alone");
     for(id = 0; id < gmm->peer_map->size()+1;++id) {
       sigma_star_in[id] = Data_new(oe, sigma_star->lcodeword);
     }
@@ -429,12 +453,12 @@ COO_DEF_RET_ARGS(MiniMacs,MR, mul, uint dst; uint l; uint r;,dst,l,r) {
     
     for(id = 0;id < gmm->peer_map->size()+1;++id) {
       for(i = 0; i < sigma_star->lval;++i) {
-	sigma_star_plain->data[i] = add(sigma_star_plain->data[i],sigma_star_in[id]->data[i]);
+        sigma_star_plain->data[i] = add(sigma_star_plain->data[i],sigma_star_in[id]->data[i]);
       }
     }
     for(i = 0;i<sigma_star->lval;++i) {
       sigma_star_plain->data[i] = 
-	add(sigma_star_plain->data[i],add(sigma_star->dx_codeword[i],sigma_star->codeword[i]));
+        add(sigma_star_plain->data[i],add(sigma_star->dx_codeword[i],sigma_star->codeword[i]));
     }
 
     MEASURE_FN(sigma = gmm->encoder->encode(sigma_star_plain->data, star_pair[0]->lval));
@@ -447,9 +471,11 @@ COO_DEF_RET_ARGS(MiniMacs,MR, mul, uint dst; uint l; uint r;,dst,l,r) {
       peer = (MpcPeer)gmm->peer_map->get( (void*)(ull)id);
       if (!peer) MRGF(oe,"Peer %u disconnected.");
 
+      printf("Send sigma time: %llu\n",_nano_time());
       peer->send(Data_shallow(sigma,sigma_star->lcodeword));
+      force_os_to_send(peer->ffd,0);
     }
-
+    CHECK_POINT_E(" Peer0] all alone");
     result = minimacs_rep_add_const_fast(gmm->encoder,star_pair[0],sigma,left->lval);
     if (!result) MRGF(oe,"Computing result failed");
     
@@ -459,20 +485,27 @@ COO_DEF_RET_ARGS(MiniMacs,MR, mul, uint dst; uint l; uint r;,dst,l,r) {
       printf("############################################################\n");
       
     }
-    CHECK_POINT("Mul");
+
     this->heap_set(dst, result);
     MR_RET_OK;
   } else {
     Data sigma_plain = 0;
+    ull start = 0;
+    CHECK_POINT_S(" Peer1] alone ");
+    start = _nano_time();
     peer = gmm->peer_map->get(0);
     if (!peer) MRGF(oe,"Party one disconnected.");
     
     peer->send(Data_shallow(sigma_star->codeword, sigma_star->lcodeword));
     peer->send(Data_shallow(sigma_star->mac[0]->mac, sigma_star->mac[0]->lmac));
-    
-    sigma_plain = Data_new(oe, sigma_star->lcodeword);
-    peer->receive(sigma_plain);
 
+    sigma_plain = Data_new(oe, sigma_star->lcodeword);
+    
+    peer->receive(sigma_plain);
+    printf("Received sigma time %llu\n",_nano_time());
+
+    CHECK_POINT_E(" Peer1] alone ");
+    
     if (!gmm->encoder->validate(sigma_plain->data, left->lval)) 
       MRGF(oe,"Invalid sigma player one is cheating.");
     
@@ -480,7 +513,8 @@ COO_DEF_RET_ARGS(MiniMacs,MR, mul, uint dst; uint l; uint r;,dst,l,r) {
     if (!result) MRGF(oe,"Failed to compute result.");
     
     this->heap_set(dst ,result);
-    CHECK_POINT("Mul");
+    
+
     MR_RET_OK;
   }
 
@@ -489,6 +523,8 @@ COO_DEF_RET_ARGS(MiniMacs,MR, mul, uint dst; uint l; uint r;,dst,l,r) {
  failure:
   return mr;
 }}
+
+
 
 COO_DCL(MiniMacs,MR,secret_input, uint pid, hptr dst, Data plain_val)
 COO_DEF_RET_ARGS(MiniMacs,MR,secret_input, uint pid; hptr dst; Data plain_val;, pid,dst,plain_val) {

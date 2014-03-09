@@ -20,7 +20,7 @@ depshapedir=$(BUILDDIR)/$(PART_NAME)
 # it later. (This is by convention, not enforced or necessary)
 # e.g. for creating a dependency on mpclib:
 #
-DEPS_VERSION=parvusfortis_r3988
+DEPS_VERSION=parvusfortis_r4036
 DEPS=deps/
 REPO="svn://sun.bitlab.dk/Rasmus/phd/mpccode/tags"
 LOCAL_REPO="../../tags/"$(DEPS_VERSION)
@@ -28,6 +28,7 @@ LOCAL_REPO="../../tags/"$(DEPS_VERSION)
 DEV_OSAL="../osal/build/osal"
 DEV_DS="../ds/build/ds"
 DEV_ENCODING="../encoding/build/encoding"
+DEV_CARENA="../carena/build/carena"
 
 # This "all" target builds the whole project every time. To re-compile
 # the project without rebuilding the whole thing do "cd build && make
@@ -71,6 +72,7 @@ $(DEPS)libosal.a:
 	-@ ( [ -d $(DEV_OSAL) ]&&( cp -r $(DEV_OSAL)/* ./deps )) || echo "NO LOCAL OSAL"
 	-@ ( [ -d $(DEV_DS) ] && ( cp -r $(DEV_DS)/* ./deps )) || echo "NO LOCAL DS"
 	-@ ( [ -d $(DEV_ENCODING) ] && (cp -r $(DEV_ENCODING)/* ./deps ) ) || echo "NO ENC"
+	-@ ( [ -d $(DEV_CARENA) ] && (cp -r $(DEV_CARENA)/* ./deps ) ) || echo "NO ARENA"
 
 
 # Go Nuke it all. The wipe.sh script deletes Makefile.in and m4 stuff

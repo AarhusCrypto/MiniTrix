@@ -8,6 +8,7 @@ build:
 	cd caes && make depshape CFLAGS="-O0"
 	cd cinterp && make depshape
 
+depshape: all
 all: clean build
 
 clean:
@@ -36,4 +37,4 @@ release: clean up build
 	cp -r caes/build/caes/* ./$(REV_DIR)
 	cp -r cinterp/build/cinterp/* ./$(REV_DIR)
 
-.PHONY=build all clean release
+.PHONY=build all clean release depshape

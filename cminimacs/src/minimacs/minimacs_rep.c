@@ -11,6 +11,7 @@
 void minimacs_rep_clean_up( MiniMacsRep * rep );
 
 
+
 MiniMacsRep minimacs_rep_from_additive_share(byte * public_codeword, 
 					     byte * private_codeword,
 					     uint lcodeword,
@@ -235,20 +236,24 @@ bool minimacs_check_othershare_fast(MiniMacsEnc enc,
 
   bool mac_chk_ok = 0;
   bool code_chk_ok = 0;
-  bool check_rep_ok = 0;
+  bool check_rep_ok = 0;  
 
   struct __bedoza_mac__ m = {0};
 
-  if (!rep) return 0;
+  //  CHECK_POINT_S("CheckOtherShareFast");
 
-  if (!codeword) return 0;
+  if (!rep) {
+    goto failure;
+  }
 
-  if (!mac) return 0;
+  if (!codeword) goto failure;;
 
-  check_rep_ok =  minimacs_check_representation_fast( enc,rep );
-  if (!check_rep_ok) return 0;
+  if (!mac) goto failure;
+
+  //  check_rep_ok =  minimacs_check_representation_fast( enc,rep );
+  // if (!check_rep_ok) return 0;
   
-  if (other_party_id > rep->lmac_keys_to_others) return 0;
+  if (other_party_id > rep->lmac_keys_to_others) goto failure;
 
   mkey = rep->mac_keys_to_others[other_party_id];
 
@@ -266,8 +271,11 @@ bool minimacs_check_othershare_fast(MiniMacsEnc enc,
 
   code_chk_ok = enc->validate(codeword, rep->lval);
 
+  //  CHECK_POINT_E("CheckOtherShareFast");
   return mac_chk_ok && code_chk_ok;
-
+ failure:
+  //  CHECK_POINT_E("CheckOtherShareFast");
+  return 0;
 }
 
 
@@ -297,6 +305,8 @@ MiniMacsRep minimacs_rep_xor(MiniMacsRep left, MiniMacsRep right) {
   res = (MiniMacsRep)malloc(sizeof(*res));
   if (!res) return 0;
   memset(res,0,sizeof(*res));
+
+  //  CHECK_POINT_S("RepXor");
 
   res->lval = left->lval;
 
@@ -342,6 +352,7 @@ MiniMacsRep minimacs_rep_xor(MiniMacsRep left, MiniMacsRep right) {
     if (!res->mac_keys_to_others[i]) goto failure;
   }
   
+  //  CHECK_POINT_E("RepXor");
   return res;
  failure:
   minimacs_rep_clean_up( &res );
@@ -356,6 +367,9 @@ MiniMacsRep minimacs_create_rep_public_plaintext_fast(
 						      ) {
 
   MiniMacsRep res = (MiniMacsRep)malloc(sizeof(*res));
+
+  //  CHECK_POINT_S("CreatePublicPlainFast");
+  
   if (!res) goto failure;
   memset(res,0,sizeof(*res));
 
@@ -364,9 +378,11 @@ MiniMacsRep minimacs_create_rep_public_plaintext_fast(
   if (!res->codeword) goto failure;
   res->lcodeword = codelength;
   
+  //  CHECK_POINT_E("CreatePublicPlainFast");
   return res;
  failure:
   if (res) minimacs_rep_clean_up( & res );
+  //  CHECK_POINT_E("CreatePublicPlainFast");
   return 0;
 
 }
@@ -394,6 +410,8 @@ MiniMacsRep * minimacs_rep_mul_fast(MiniMacsEnc enc,
   // allocate result
   MiniMacsRep * res = 0;//(MiniMacsRep*)malloc(sizeof(*res)*nplayers);
 
+  //  CHECK_POINT_S("RepMulFast");
+
   if (!left) goto failure;
 
   if (!right) goto failure;
@@ -411,7 +429,7 @@ MiniMacsRep * minimacs_rep_mul_fast(MiniMacsEnc enc,
     if (left[p]->lmac != right[p]->lmac) goto failure;
     
     if (left[p]->lmac_keys_to_others != right[p]->lmac_keys_to_others) goto failure;
-  
+    
     if (!enc->validate(left[p]->dx_codeword, left[p]->lval ) ) {
       printf("Oh crap left !\n");
     }
@@ -452,8 +470,10 @@ MiniMacsRep * minimacs_rep_mul_fast(MiniMacsEnc enc,
 						nplayers, left[0]->lcodeword,
 						left);
   if (clear_txt) {free(clear_txt);clear_txt = 0;}
+  //  CHECK_POINT_E("RepMulFast");
   return res;
  failure:
+  //  CHECK_POINT_E("RepMulFast");
   if (clear_txt) {free(clear_txt);clear_txt = 0;}
   return 0 ;
 
@@ -601,6 +621,7 @@ MiniMacsRep minimacs_rep_add_const_fast(MiniMacsEnc encoder, MiniMacsRep rep, by
     goto failure;
   }
 
+  //  CHECK_POINT_S("AddConstFast");
 
   // extend c to length of rep->lval
   tmp = (byte*)malloc(rep->lval);
@@ -711,7 +732,7 @@ MiniMacsRep minimacs_rep_add_const_fast(MiniMacsEnc encoder, MiniMacsRep rep, by
     }
   }
   
-  
+  //  CHECK_POINT_E("AddConstFast");  
   return r;
  failure:
   minimacs_rep_clean_up( &r );
@@ -739,6 +760,8 @@ MiniMacsRep minimacs_rep_mul_const_fast(MiniMacsEnc encoder, MiniMacsRep rep, by
   MiniMacsRep r = 0;
   byte * encoded_c = 0;
   byte * tmp = 0;
+
+  //  CHECK_POINT_S("MulConstFast");
 
   if (!rep) {
     goto failure;
@@ -832,7 +855,7 @@ MiniMacsRep minimacs_rep_mul_const_fast(MiniMacsEnc encoder, MiniMacsRep rep, by
       }
     }
   }
-  
+  //  CHECK_POINT_E("MulConstFast");  
   return r;
  failure:
   minimacs_rep_clean_up(&r);
@@ -840,6 +863,7 @@ MiniMacsRep minimacs_rep_mul_const_fast(MiniMacsEnc encoder, MiniMacsRep rep, by
     encoded_c = (byte*)0;
     free(encoded_c);
   }
+  //  CHECK_POINT_E("MulConstFast");
   return 0;
   
 }

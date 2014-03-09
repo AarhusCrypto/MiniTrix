@@ -29,6 +29,7 @@ typedef struct _carena_result_ {
  */
 typedef struct _mpc_peer_ {
 
+  int ffd;
   /*!
    * Returns true if {read} can be invoked with out blocking.
    */

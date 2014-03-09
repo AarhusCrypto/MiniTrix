@@ -1,10 +1,11 @@
-#include "minimacs/generic_minimacs.h"
+#include "minimacs/symmetric_minimacs.h"
 #include <coo.h>
 #include <common.h>
 #include <math/matrix.h>
 #include <blockingqueue.h>
 #include <config.h>
 #include "stats.h"
+#include <encoding/hex.h>
 
 COO_DCL(MiniMacs, uint, get_id);
 COO_DEF_RET_NOARGS(MiniMacs, uint, get_id) {
@@ -156,6 +157,8 @@ COO_DEF_RET_ARGS(MiniMacs,MR, mul, uint dst; uint l; uint r;,dst,l,r) {
   MiniMacsRep sigma_star = 0;
   Data sigma_star_plain=0;
   byte * sigma = 0;
+
+  oe->p("mul");
 
   if (!left) MUL_FAIL(oe,"Left operand (%d) is not set.", l);
 
@@ -397,92 +400,69 @@ COO_DEF_RET_ARGS(MiniMacs,MR, mul, uint dst; uint l; uint r;,dst,l,r) {
   //
   // every peer forms the representation of left*right.
   //
-  if (gmm->myid == 0) {
-    Data * sigma_star_in = oe->getmem(sizeof(*sigma_star_in)*(gmm->peer_map->size()+1));
-    Data sigmamac = Data_new(oe, sigma_star->lcodeword);
-    uint lsigme_star_in = gmm->peer_map->size()+1;
-    for(id = 0; id < gmm->peer_map->size()+1;++id) {
-      sigma_star_in[id] = Data_new(oe, sigma_star->lcodeword);
-    }
-    for(id = 0; id < gmm->peer_map->size()+1;++id) {
-      if (id == gmm->myid) continue;
+
+    // send sigma star 
+    for(id = 0;id<gmm->peer_map->size()+1;++id) {
+      MpcPeer peer = 0;
+      if (id == gmm->myid) 
+        continue;
 
       peer = gmm->peer_map->get( (void*)(ull)id );
-      if (!peer) MRGF(oe,"Peer %u is not defined, did it disconnect?");
       
-      peer->receive(sigma_star_in[id]);
-      peer->receive(sigmamac);
+      peer->send(Data_shallow(sigma_star->codeword,sigma_star->lcodeword));
+      peer->send(Data_shallow(sigma_star->mac[id]->mac, sigma_star->mac[id]->lmac));
+    }
 
-      if (!minimacs_check_othershare_fast(gmm->encoder,
-					  sigma_star,
-					  id,
-					  sigma_star_in[id]->data,
-					  sigmamac->data,
-					  sigma_star_in[id]->ldata) ) {
-        MRGF(oe,"Peer %u is cheating");
+    // receive sigma star
+    {
+
+      Data sigma_star_plain = Data_new(oe,sigma_star->lcodeword);
+      Data sigma_star_share = Data_new(oe,sigma_star->lcodeword);
+      Data sigma_star_mac = Data_new(oe, sigma_star->lcodeword);
+      byte * sigma = 0;
+      // receive sigma_star
+      for(id = 0;id < gmm->peer_map->size()+1;++id) {
+        MpcPeer peer = 0;
+        if (id == gmm->myid) 
+          continue;
+        peer = gmm->peer_map->get((void*)(ull)id);
+
+        peer->receive(sigma_star_share);
+        peer->receive(sigma_star_mac);
+        
+        if (!minimacs_check_othershare_fast(gmm->encoder,sigma_star,
+                                            id, 
+                                            sigma_star_share->data,
+                                            sigma_star_mac->data,
+                                            sigma_star->lcodeword)) {
+          Data_destroy(oe, &sigma_star_plain);
+          Data_destroy(oe, &sigma_star_mac);
+          Data_destroy(oe, &sigma_star_share);
+          minimacs_rep_clean_up( &sigma_star );
+          MRGF(oe,"Peer %u is cheating, mac didn't check out on epsilon.",id);
+        }
+        
+        for(i = 0;i < sigma_star->lcodeword;++i) {
+          sigma_star_plain->data[i] = add(sigma_star_plain->data[i],
+                                          sigma_star_share->data[i]);
+        }
       }
-    }
 
-    sigma_star_plain = Data_new(oe,sigma_star->lval);
-    if (!sigma_star_plain) MRGF(oe,"Ran out of memory while opening sigma star");
-    
-    for(id = 0;id < gmm->peer_map->size()+1;++id) {
-      for(i = 0; i < sigma_star->lval;++i) {
-	sigma_star_plain->data[i] = add(sigma_star_plain->data[i],sigma_star_in[id]->data[i]);
+      for(i = 0;i < sigma_star->lcodeword;++i) {
+        sigma_star_plain->data[i] = add(sigma_star_plain->data[i],
+                                        add(sigma_star->codeword[i],
+                                            sigma_star->dx_codeword[i]));
       }
+
+      Data_destroy(oe, &sigma_star_mac);
+      Data_destroy(oe, &sigma_star_share);
+      sigma = gmm->encoder->encode(sigma_star_plain->data, star_pair[0]->lval);
+      result = minimacs_rep_add_const_fast(gmm->encoder, star_pair[0], sigma, star_pair[0]->lval);
+      if (result == 0) {
+        MRGF(oe, "Could add sigma constant to s");
+      }
+      this->heap_set(dst,result);
     }
-    for(i = 0;i<sigma_star->lval;++i) {
-      sigma_star_plain->data[i] = 
-	add(sigma_star_plain->data[i],add(sigma_star->dx_codeword[i],sigma_star->codeword[i]));
-    }
-
-    MEASURE_FN(sigma = gmm->encoder->encode(sigma_star_plain->data, star_pair[0]->lval));
-
-    if (!sigma) MRGF(oe,"Failed to create sigma representation.");
-
-    for(id = 0;id<gmm->peer_map->size()+1;++id) {
-      if (id == gmm->myid) continue;
-
-      peer = (MpcPeer)gmm->peer_map->get( (void*)(ull)id);
-      if (!peer) MRGF(oe,"Peer %u disconnected.");
-
-      peer->send(Data_shallow(sigma,sigma_star->lcodeword));
-    }
-
-    result = minimacs_rep_add_const_fast(gmm->encoder,star_pair[0],sigma,left->lval);
-    if (!result) MRGF(oe,"Computing result failed");
-    
-    if (result->ldx_codeword == 0) {
-
-      printf("############################################################\n");
-      printf("############################################################\n");
-      
-    }
-
-    this->heap_set(dst, result);
-    MR_RET_OK;
-  } else {
-    Data sigma_plain = 0;
-    peer = gmm->peer_map->get(0);
-    if (!peer) MRGF(oe,"Party one disconnected.");
-    
-    peer->send(Data_shallow(sigma_star->codeword, sigma_star->lcodeword));
-    peer->send(Data_shallow(sigma_star->mac[0]->mac, sigma_star->mac[0]->lmac));
-    
-    sigma_plain = Data_new(oe, sigma_star->lcodeword);
-    peer->receive(sigma_plain);
-
-    if (!gmm->encoder->validate(sigma_plain->data, left->lval)) 
-      MRGF(oe,"Invalid sigma player one is cheating.");
-    
-    result = minimacs_rep_add_const_fast(gmm->encoder, star_pair[0], sigma_plain->data, left->lval);
-    if (!result) MRGF(oe,"Failed to compute result.");
-    
-    this->heap_set(dst ,result);
-    MR_RET_OK;
-  }
-
-
   MR_RET_OK;
  failure:
   return mr;

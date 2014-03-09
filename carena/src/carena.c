@@ -46,7 +46,7 @@
 #include <stats.h>
 #include <unistd.h>
 #include <time.h>
-/*
+
 static
 unsigned long long _nano_time() {
   struct timespec tspec = {0};
@@ -56,7 +56,8 @@ unsigned long long _nano_time() {
     return 0;
   }
 }
-*/
+
+int _c_;
 
 typedef struct _carena_impl_ {
 
@@ -83,7 +84,7 @@ typedef struct _mpcpeer_impl_ {
   /* Operating environment available to this peer.
    *
    */
-  OE oe;
+ OE oe;
 
   char ip[16];
 
@@ -128,12 +129,12 @@ COO_DCL(MpcPeer, CAR, send, Data data)
 COO_DEF_RET_ARGS(MpcPeer, CAR, send, Data data;, data) {
   CAR c = {{0}};
   MpcPeerImpl peer_i = (MpcPeerImpl)this->impl;
+  //  printf("SEND %llu ns",_nano_time());
   CHECK_POINT_S(__FUNCTION__);
   peer_i->outgoing->put(Data_copy(peer_i->oe,data));
   CHECK_POINT_E(__FUNCTION__);
   return c;
 }}
-
 
 
 COO_DCL(MpcPeer, CAR, receive, Data data)
@@ -142,29 +143,27 @@ COO_DEF_RET_ARGS(MpcPeer, CAR, receive, Data data;, data) {
   CAR c = {{0}};
   // ldata is the number of bytes successfully read so far
   uint ldata = 0;
+  Data d = 0;
 
   CHECK_POINT_S(__FUNCTION__);
   if (!data) { 
     osal_sprintf(c.msg,"CArena receive, bad input data is null");
     return c;
   }
-
+  
   while(ldata < data->ldata) {
-
     Data chunk = 0;
     if (peer_i->drem != 0) {
       //      printf("DREM in use\n");
       chunk = peer_i->drem;
       peer_i->drem = 0;
     } else {
-      //      printf("get\n");
-      CHECK_POINT_S("BIBI's idea Take");
       chunk = peer_i->incoming->get();
-      //      printf("get done\n");
-      CHECK_POINT_E("BIBI's idea Take");
     }
+
     if (chunk) {
       // data->ldata-ldata >= chunk->ldata
+      // we have enough to fill {data}
       if (data->ldata-ldata >= chunk->ldata) {
         mcpy(data->data + ldata, chunk->data, chunk->ldata);
         ldata += chunk->ldata;
@@ -185,11 +184,12 @@ COO_DEF_RET_ARGS(MpcPeer, CAR, receive, Data data;, data) {
         peer_i->drem = residue;
       }
       
-      
+    
     } else {
       RETERR("Shutting down or out of memory", NO_MEM);
     }
   }
+
   CHECK_POINT_E(__FUNCTION__);
   return c;
 }}
@@ -212,6 +212,7 @@ static void * peer_rec_function(void * a) {
   Data buf = 0; 
   OE oe = 0;
   int l = 0;
+
   if (!me) goto out;
 
   mei = (MpcPeerImpl)me->impl;
@@ -222,11 +223,15 @@ static void * peer_rec_function(void * a) {
     uint lenlen = 4;
     RC rc = 0 ; 
     char _o[64] = {0};
+    ull start = 0;
+    ull waste = 0;
 
-
+    //    if (_c_) waste = _nano_time();
     rc = mei->oe->read(mei->fd,len,&lenlen);
-    
-    if (lenlen <= 3) continue;
+    //    if (_c_) printf("Time returning read %llu\n",_nano_time()-waste);
+    if (lenlen <= 3) { 
+      continue;
+    }
 
     if (rc != RC_OK) {
       oe->p("Failed to read leaving");
@@ -254,8 +259,10 @@ static void * peer_rec_function(void * a) {
 
     sofar = 0;
     CHECK_POINT_S("Read data");
+    waste = 0;
     while(1) {
       uint read_bytes = 0;
+      ull tmp = 0;
 
       // read_bytes is how many bytes to be read in this round
       // before {read} and the number of bytes read after.
@@ -271,7 +278,10 @@ static void * peer_rec_function(void * a) {
 
       // read_bytes will never be more than {buf->ldata} as we would
       // never ask for more. !! Invariant !!
+      start = _nano_time();
       rc = mei->oe->read(mei->fd, buf->data+sofar, &read_bytes);
+      tmp = (_nano_time()-start);
+      if (read_bytes == 0) waste += tmp;
       if (rc == RC_OK) {
 
         // if we are shutting down better quit now !
@@ -298,6 +308,8 @@ static void * peer_rec_function(void * a) {
   return 0;
 }
 
+
+
 static void * peer_snd_function(void * a) {
   MpcPeer me = (MpcPeer)a;
 
@@ -312,29 +324,29 @@ static void * peer_snd_function(void * a) {
       i2b(item->ldata,len);
       int written = 0;
       int sofar = 0;
+      ull start = _nano_time();
+      uint lbuf = item->ldata+4;
+      byte * buf = mei->oe->getmem(lbuf);
 
-      //      printf("[snd] Sending length %u",item->ldata);
-      while(sofar < sizeof(len) && written >= 0) {
-        written = mei->oe->write(mei->fd, len+sofar, sizeof(len)-sofar);
-        sofar += written;
-        //        printf("[snd] sofar %u\n",sofar);
-      }
-      //      printf("done\n");
+      
+      mcpy(buf, len, 4);
+      mcpy(buf+4,item->data,item->ldata);
+      Data_destroy( mei->oe, &item);
 
-      if (written < 0) {
-        mei->oe->p("Send function for peer failed");
-        return 0;
-      }
-
-      //      printf("[snd] Sending %u bytes ... ",item->ldata);
+      //      if (_c_) printf("[snd] Sending %u bytes ... ",lbuf);
       written = 0;sofar = 0;
-      while(sofar < item->ldata && written >= 0) {
-        written = mei->oe->write(mei->fd, item->data, item->ldata);
+      while(sofar < lbuf && written >= 0) {
+        written = mei->oe->write(mei->fd, buf, lbuf);
         sofar += written;
-        //        printf("[snd] sofar %u,%u \n",sofar,written);
+        //if (_c_) printf("[snd] sofar %u,%u \n",sofar,written);
+      }
+
+      {
+        //        ull now = _nano_time();
+        //        printf("Done Sending took %llu at time %llu \n",(_nano_time()-start),now);
       }
       //      printf(" done \n");
-      Data_destroy( mei->oe, &item);
+
       if (written < 0) {
         mei->oe->p("Error writting to file descriptor." \
                    "This peer cannot send anymore.");
@@ -405,6 +417,7 @@ static MpcPeer MpcPeerImpl_new(OE oe, uint fd, char * ip, uint port) {
   peer_i = peer->impl = (MpcPeerImpl)oe->getmem(sizeof(*peer_i));
   if (!peer->impl) goto failure;
 
+  peer->ffd = fd;
 
   peer_i->oe = oe;
   peer_i->port = port;

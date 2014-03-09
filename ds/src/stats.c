@@ -49,6 +49,7 @@ typedef struct _measurement_impl_ {
   ull start;
   ull min, max, avg, count;
   Map sub;
+  MUTEX l;
 } * MeasurementImpl;
 
 static
@@ -82,7 +83,9 @@ void init_stats(OE oe) {
 COO_DCL(Measurement, void, set_start);
 COO_DEF_NORET_NOARGS(Measurement, set_start) {
   MeasurementImpl impl = (MeasurementImpl)this->impl;
+  _oe_->lock(impl->l);
   impl->start = _nano_time();
+  _oe_->unlock(impl->l);
 }}
 
 COO_DCL(Measurement, char *, get_name)
@@ -95,12 +98,8 @@ COO_DEF_RET_NOARGS(Measurement, char *, get_name) {
 COO_DCL(Measurement, void, measure);
 COO_DEF_NORET_NOARGS(Measurement, measure) {
   MeasurementImpl impl = (MeasurementImpl)this->impl;
-  MeasurementImpl topi = (MeasurementImpl)top->impl;
   ull duration = 0;
-
-  if (!topi->sub->contains(this->get_name())) {
-    topi->sub->put(this->get_name(), this);
-  }
+  _oe_->lock(impl->l);
   
   duration = _nano_time() - impl->start;
   if (impl->min == 0) impl->min = duration;
@@ -108,14 +107,15 @@ COO_DEF_NORET_NOARGS(Measurement, measure) {
   if (impl->max < duration) impl->max = duration;
   impl->avg = ((impl->avg * impl->count) + duration)/(impl->count+1);
   impl->count += 1;
-
+  _oe_->unlock(impl->l);
 }}
 
 Measurement Measurements_get(char * name) {
   MeasurementImpl topi = 0 ;
   Measurement m = 0;
-
+  
   if (_oe_ && top) {
+    _oe_->lock(lock);
     topi = (MeasurementImpl)top->impl;
     if (topi->sub->contains(name)) {
       m = topi->sub->get(name);
@@ -123,8 +123,10 @@ Measurement Measurements_get(char * name) {
       m = Measurement_New(name);
       topi->sub->put(name, m);
     }
+    _oe_->unlock(lock);
     return m;
   }
+  _oe_->unlock(lock);
   return 0;
 }
 
@@ -133,37 +135,35 @@ Measurement Measurements_get(char * name) {
 Measurement Measurements_chk(char * name) {
   MeasurementImpl topi = 0 ;
   Measurement m = 0;
-  MeasurementImpl mi = 0;
-  ull start = _nano_time();
 
   if (_oe_ && top) {
+    _oe_->lock(lock);
     topi = (MeasurementImpl)top->impl;
     if (topi->sub->contains(name)) {
       m = topi->sub->get(name);
       if (m) {
-        mi = (MeasurementImpl)m->impl;
         m->measure();
-        mi->start = _nano_time();
+        m->set_start();
       }
     } else {
       _oe_->p("Adding new measurement to the map");
       m = Measurement_New(name);
-      mi = (MeasurementImpl)m->impl;
       topi->sub->put(name, m);
-      mi->start = start;
+      m->set_start();
     }
+    _oe_->unlock(lock);
     return m;
   }
+  _oe_->unlock(lock);
   return 0;
 }
 
 Measurement Measurements_start(char * name) {
   MeasurementImpl topi = 0 ;
   Measurement m = 0;
-  MeasurementImpl mi = 0;
-  ull start = _nano_time();
 
   if (_oe_ && top) {
+    _oe_->lock(lock);
     topi = (MeasurementImpl)top->impl;
     if (topi->sub->contains(name)) {
       m = topi->sub->get(name);
@@ -172,42 +172,56 @@ Measurement Measurements_start(char * name) {
       m = Measurement_New(name);
       topi->sub->put(name, m);
     }
-    mi = (MeasurementImpl)m->impl;
-    mi->start = start;
+    m->set_start();
+    _oe_->unlock(lock);
     return m;
   } else {
   }
+  _oe_->unlock(lock);
   return 0;
 }
 
 void Measurements_print(OE oe) {
 
   if (_oe_ && top) {
+    _oe_->lock(lock);
     uint i = 0;
     MeasurementImpl topi = (MeasurementImpl)top->impl;
     List keys = topi->sub->get_keys();
     oe->p("Measurements Statistics");
     oe->p("-----------------------");
-    oe->p("           NAME          \t  MIN  \t  MAX  \t  AVG  \t  COUNT");
+    oe->p("NAME                           MIN  \t\t  MAX  \t\t  AVG  \t\t  COUNT");
     
     for(i = 0; i < keys->size();++i) {
       Measurement cur = (Measurement)topi->sub->get(keys->get_element(i));
       if (cur) {
+        uint lname = 0;
         MeasurementImpl curi = (MeasurementImpl)cur->impl;
         char mmm[512] = {0};
-        osal_sprintf(mmm, "%s\t%u.%u\t%u.%u\t%u.%u\t%u", 
-                     curi->name, 
+        char nam[32] = {0};
+        
+        for(lname = 0;lname < 30;++lname) nam[lname] = ' ';
+        lname = 0;
+        while(curi->name[lname]) ++lname;
+        
+        lname = (lname > 30) ? 30 : lname;
+        mcpy(nam,curi->name,lname);
+
+        osal_sprintf(mmm, "%s %u.%06u\t%u.%06u\t%u.%06u\t%u", 
+                     nam, 
                      curi->min/1000000,curi->min % 1000000, 
                      curi->max/1000000,curi->max % 1000000, 
                      curi->avg/1000000,curi->avg % 1000000, 
                      curi->count);
+      
         _oe_->p(mmm);
       }
     }
+    _oe_->unlock(lock);
   } else {
     if (oe) oe->p("Measurements not initialized, invoke init_stats(oe);");
   }
-
+  
 }
 
 
@@ -236,6 +250,7 @@ Measurement Measurement_New(char * name) {
   }
 
   impl->start = impl->min = impl->max = impl->avg = impl->count = 0;
+  impl->l = _oe_->newmutex();
 
   COO_ATTACH(Measurement, res, get_name);
   COO_ATTACH(Measurement, res, measure);

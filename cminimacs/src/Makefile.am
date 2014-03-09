@@ -42,6 +42,7 @@ SUBDIRS=minimacs
 include $(top_srcdir)/cminimacs.am
 lib_LIBRARIES= libcminimacs.a
 libcminimacs_a_SOURCES = minimacs/generic_minimacs.c\
+	minimacs/symmetric_minimacs.c\
 	minimacs/minimacs_pre.c\
 	minimacs/minimacs.c\
 	minimacs/minimacs_rep.c\

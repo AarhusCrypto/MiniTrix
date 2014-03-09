@@ -1,6 +1,15 @@
 include $(top_srcdir)/cminimacs.am
 
-bin_PROGRAMS = test testminimacs client testencoder testfft clientfft
+bin_PROGRAMS = test testminimacs client testencoder testfft clientfft perf testsymminimacs symclient
+
+symclient_SOURCES = symclient.c
+symclient_LDADD = $(CMINIMACS_LIB) -lrt
+
+testsymminimacs_SOURCES = testsymminimacs.c
+testsymminimacs_LDADD = $(CMINIMACS_LIB) -lrt
+
+perf_SOURCES = perf.c
+perf_LDADD = $(CMINIMACS_LIB) -lrt 
 
 clientfft_SOURCES = clientfft.c
 clientfft_LDADD = $(CMINIMACS_LIB)

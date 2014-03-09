@@ -1,7 +1,6 @@
-
 #include <stdio.h>
 #include <minimacs/minimacs_rep.h>
-#include <minimacs/generic_minimacs.h>
+#include <minimacs/symmetric_minimacs.h>
 #include <osal.h>
 #include <carena.h>
 #include <stats.h>
@@ -43,7 +42,7 @@ int main(int c, char **a) {
 		&singles, &lsingles,
 		&pairs, &lpairs );
 
-    comp = GenericMiniMacs_DefaultNew(oe,arena, 
+    comp = SymmetricMiniMacs_DefaultNew(oe,arena, 
                                singles, lsingles, 
                                pairs, lpairs, 
                                triples, ltriples );

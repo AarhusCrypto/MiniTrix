@@ -1,3 +1,12 @@
+/*!
+ * Linux Operating System Abstraction Layer
+ * 
+ * Author: Rasmus Winther Lauritsen
+ * 
+ * 
+ */
+
+
 #include "osal.h"
 #include "coo.h"
 #include "list.h"
@@ -18,11 +27,27 @@
 #include <syscall.h>
 #include <errno.h>
 #include "config.h"
-
+#include <time.h>
+#include <netinet/tcp.h>
 Cmaphore Cmaphore_new(OE oe, uint count);
 void Cmaphore_up(Cmaphore c);
 void Cmaphore_down(Cmaphore c);
 void Cmaphore_destroy(Cmaphore * c);
+
+
+static 
+void set_non_blocking(int fd);
+
+static
+unsigned long long _nano_time() {
+  struct timespec tspec = {0};
+  if (clock_gettime(CLOCK_REALTIME,&tspec) == 0) {
+    return 1000000000L*tspec.tv_sec + tspec.tv_nsec;
+  } else {
+    return 0;
+  }
+}
+
 
 typedef struct _simple_oe_ {
   /*!
@@ -72,40 +97,67 @@ COO_DEF_RET_ARGS(OE, RC, read, uint fd;byte *buf;uint * lbuf;, fd, buf, lbuf ) {
   int r = 0;
   SimpleOE soe = (SimpleOE)this->impl;
   int os_fd = 0;
-
+  ull start = 0;
   if (!lbuf) return RC_FAIL;
 
   if (fd < 1) return RC_FAIL;
 
+  this->lock(soe->lock);
   if (soe->filedescriptors->size()+1 <= fd) {
+    this->unlock(soe->lock);
     return RC_FAIL;
   }
-  
+
   // get exclusive access to file descriptors
-  this->lock(soe->lock);
+
   os_fd = (int)(unsigned long long)soe->filedescriptors->get_element(fd-1);
-  
-  
-  while(1) {
-    r = read(os_fd,buf, *lbuf); 
-    if (r <= 0) {
-      if (errno == EAGAIN) {
-        *lbuf = 0;
-        this->unlock(soe->lock);
-        return RC_OK;
-      } else {
-        this->unlock(soe->lock);
-        return RC_FAIL; // unexpected error or end of file
-      }
+  this->unlock(soe->lock);
+
+  {
+    fd_set read_set = {0};
+    struct timeval timeout = {0};
+    FD_ZERO(&read_set);
+    timeout.tv_sec = 0;
+    timeout.tv_usec = 1000;
+    FD_SET(os_fd, &read_set);
+    if (select(os_fd+1, &read_set, 0,0,&timeout) <= 0) { 
+      *lbuf = 0;
+      return RC_OK;
     } else {
-       printf("%d got it from read\n",r);
-      *lbuf = r;
-      break; // successful read
+
     }
   }
-  this->unlock(soe->lock);
+
+  start = _nano_time();
+  r = recv(os_fd,buf, *lbuf, MSG_DONTWAIT); 
+  if (r == 0) {
+    this->p("Peer disconnected");
+    return RC_FAIL;
+  }
+
+  if (r < 0) {
+    if (errno == EAGAIN) {
+      *lbuf = 0;
+      return RC_OK;
+    } else {
+      return RC_FAIL; // unexpected error or end of file
+    }
+  } else {
+    //    printf("Result return in %llu ns\n",_nano_time()-start);
+    *lbuf = r;
+  }
+
   return RC_OK;
 }}
+
+static
+void force_os_to_send(int fd, int cork) {
+  int cork_val = cork;
+  int lcork_val = sizeof(cork_val);
+  if (setsockopt(fd, SOL_SOCKET, TCP_CORK, &cork_val, lcork_val) < 0) {
+    printf("Error: Failed to set cork %u\n",cork);
+  }
+}
 
 COO_DCL(OE, RC, write, uint fd, byte * buf, uint lbuf)
 COO_DEF_RET_ARGS(OE, RC, write, uint fd; byte*buf;uint lbuf;,fd,buf,lbuf) {
@@ -113,28 +165,28 @@ COO_DEF_RET_ARGS(OE, RC, write, uint fd; byte*buf;uint lbuf;,fd,buf,lbuf) {
   int writesofar = 0;
   int lastwrite = 0;
   int os_fd = (int)(long long)soe->filedescriptors->get_element(fd-1);
+  ull start = _nano_time();
 
   if (fd >= soe->filedescriptors->size()+1) return RC_FAIL;
 
   while(writesofar < lbuf && lastwrite >= 0) {
-    lastwrite = write(os_fd, buf+writesofar, lbuf-writesofar);
+    lastwrite = send(os_fd, buf+writesofar, lbuf-writesofar,0);
     if ( lastwrite == -1) {
       if (errno == EAGAIN) {
-	lastwrite = 0;
-	continue;
+        lastwrite = 0;
+        continue;
       } 
-	
+      
       return RC_FAIL;
     }
     writesofar += lastwrite;
   }
-  
+  //  printf("Send time: %llu\n",_nano_time()-start);
   
   if (lastwrite < 0) {
     this->p("ERROR Failed to write");
     return RC_OK;
   }
-
   return writesofar;
 
 }}
@@ -200,7 +252,7 @@ COO_DEF_RET_ARGS(OE, int, open , const char * name;, name) {
 
     {
       uint flags = fcntl(server_fd, F_GETFL, 0);
-      fcntl(server_fd, F_SETFL, flags | O_NONBLOCK );
+      fcntl(server_fd, F_SETFL, flags | O_NONBLOCK  );
     }
 
     if (listen(server_fd, 20) != 0) {
@@ -232,26 +284,7 @@ COO_DEF_RET_ARGS(OE, int, open , const char * name;, name) {
       return 0;
     }
 
-    // set keep alive such that we detect failures and lost
-    // connections faster.
-    {
-      int keep_alive_option = 1;
-      int lkeep_alive_option = sizeof(keep_alive_option);
-      if(setsockopt(socket_fd, 
-		    SOL_SOCKET, 
-		    SO_KEEPALIVE, 
-		    &keep_alive_option, lkeep_alive_option) < 0) {
-	close(socket_fd);
-	return 0;
-      }
-    }
-
-    // set non-blocking
-    {
-      int flags = fcntl( socket_fd, F_GETFL, &flags, sizeof(flags) );
-      
-      fcntl(socket_fd, F_SETFL, flags | O_NONBLOCK);
-    }
+    set_non_blocking(socket_fd);
 
     this->lock(soe->lock);
     soe->filedescriptors->add_element( (void*)(long long)socket_fd);
@@ -274,10 +307,29 @@ COO_DEF_RET_ARGS(OE, int, open , const char * name;, name) {
   return 0;
 }}
 
-static void set_non_blocking(int fd) {
+
+
+static 
+void set_non_blocking(int fd) {
+  int keep_alice_opt = 1;
+  int tcp_nodelay_opt = 1;
+  int lopt = sizeof(int);
   int flags = fcntl(fd, F_GETFL, &flags, sizeof(flags));
   fcntl(fd, F_SETFL, flags | O_NONBLOCK);
+
+  if (setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, &keep_alice_opt, lopt ) < 0) {
+    printf("No keep alive \n");
+    // error but who cares if the socket works, this just might degrade performance 
+  }
+
+  if (setsockopt(fd, SOL_SOCKET, TCP_NODELAY, &tcp_nodelay_opt, lopt) < 0) {
+    printf("TCP Nodelay failed ... \n");
+    // May degrade performance but ...
+  }
+
 }
+
+
 
 COO_DCL(OE, int, accept, uint fd)
 COO_DEF_RET_ARGS(OE, int, accept, uint fd;,fd) {
@@ -434,6 +486,14 @@ COO_DEF_NORET_ARGS(OE, destroysemaphore, Cmaphore * s;,s) {
 }}
 
 
+COO_DCL(OE, char *, get_version)
+COO_DEF_RET_NOARGS(OE, char *, get_version) {
+  static char version_str[256] = {0};
+  osal_sprintf(version_str,"%s %s %s",PACKAGE_STRING, CODENAME, BUILD_TIME);
+  return version_str;
+}}
+
+
 OE OperatingEnvironment_LinuxNew() {
   SimpleOE simpleOE = 0;
   OE oe = 0;
@@ -447,6 +507,7 @@ OE OperatingEnvironment_LinuxNew() {
   if (!oe) return 0;
   zeromem(oe,sizeof(*oe));
   
+  COO_ATTACH(OE, oe, get_version);
   COO_ATTACH(OE, oe, destroysemaphore);
   COO_ATTACH(OE, oe, yieldthread);
   COO_ATTACH(OE, oe, accept);

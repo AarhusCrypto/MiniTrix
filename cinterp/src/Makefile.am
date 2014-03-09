@@ -42,7 +42,7 @@ include $(top_srcdir)/cinterp.am
 bin_PROGRAMS = cinterp
 
 cinterp_SOURCES = main.c grammar.tab.c ast.c interp.c lex.yy.c
-cinterp_LDADD = $(DEPS_LIB) -lfl
+cinterp_LDADD = $(DEPS_LIB) -lfl -lrt
 
 lex.yy.c:
 	flex $(top_srcdir)/src/grammar.lex
