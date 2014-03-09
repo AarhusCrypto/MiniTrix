@@ -26,4 +26,5 @@ echo "  build  - build the current directory with make"
 echo "  <dirname>up - update <dirname>'s depshape"
 echo ""
 echo "  Home is ${PVF_HOME}"
+export PATH=${PATH}:.
 export PS1="\[\033[31m\][minimacs]\[\033[00m\] \w \[\033[31m\]\$\[\033[00m\] "
