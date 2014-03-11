@@ -15,14 +15,22 @@
      SEND           REC 
  */
 
+/*
+
+
+
+ */
+
+// 256 bytes
+
 MUTEX m = 0;
-#define COUNT 16
-#define SIZE 2048
+#define COUNT 128
+#define SIZE 256
 
 
 
-#define S_SCENARIO srv_scenario_1
-#define C_SCENARIO cli_scenario_1
+#define S_SCENARIO srv_scenario_7
+#define C_SCENARIO cli_scenario_7
 
 
 
@@ -111,6 +119,20 @@ cli_scenario_6(OE oe, MpcPeer peer, Data s, Data r) {
 static 
 srv_scenario_6(OE oe, MpcPeer peer, Data s, Data r) {
   peer->send(s);
+}
+
+// ------------------------------------------------------------
+static
+cli_scenario_7(OE oe, MpcPeer peer, Data s, Data r) {
+  peer->send(s);
+  peer->receive(r);
+  peer->send(s);
+}
+
+static srv_scenario_7(OE oe, MpcPeer peer, Data s, Data r) {
+  peer->receive(r);
+  peer->send(s);
+  peer->receive(r);
 }
 
 static 
