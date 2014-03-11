@@ -170,6 +170,11 @@ COO_DEF_RET_ARGS(OE, RC, write, uint fd; byte*buf;uint lbuf;,fd,buf,lbuf) {
   if (fd >= soe->filedescriptors->size()+1) return RC_FAIL;
 
   while(writesofar < lbuf && lastwrite >= 0) {
+    struct timeval t = {0};
+    fd_set wfds = {0};
+    FD_SET(os_fd, &wfds);
+    t.tv_usec = 1000;
+    while(select(os_fd+1, 0, &wfds, 0, &t) == 0);
     lastwrite = send(os_fd, buf+writesofar, lbuf-writesofar,0);
     if ( lastwrite == -1) {
       if (errno == EAGAIN) {

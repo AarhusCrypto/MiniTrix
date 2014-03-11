@@ -31,6 +31,10 @@ int main(int c, char **a) {
       ipaddr = "127.0.0.1";
     }
 
+    if (c == 1) {
+      printf("caes <raw_material> [<client>] \n");
+      return 0;
+    }
 
     oe = OperatingEnvironment_LinuxNew();
     arena = CArena_new(oe);

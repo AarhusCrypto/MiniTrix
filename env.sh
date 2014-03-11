@@ -8,6 +8,18 @@
 # source env.sh or . ./env.sh for short.
 #
 #
+function print_help() {
+    echo "ParvusFortis Development Shell"
+    echo ""
+    echo "The following commands are available:"
+    echo -e "\tst    - svn status"
+    echo -e "\tdi    - svn diff"
+    echo -e "\tci    - svn commit"
+    echo -e "\tup    - svn update"
+    echo -e "\tbuild - build current directory"
+    echo "--------------------"
+}
+
 export PVF_HOME=$(dirname ${0})
 pushd ${PVF_HOME} >/dev/null
 export PVF_HOME=${PWD}
@@ -21,6 +33,11 @@ alias cminimacsup="pushd ${PVF_HOME}/cminimacs && ${DEFAULT_MAKE} && popd && ${D
 alias encodingup="pushd ${PVF_HOME}/encoding && ${DEFAULT_MAKE} && popd && ${DEFAULT_MAKE} && popd"
 alias mathup="pushd ${PVF_HOME}/math && ${DEFAULT_MAKE} && popd && ${DEFAULT_MAKE} && popd"
 alias caesup="pushd ${PVF_HOME}/caes && ${DEFAULT_MAKE} && popd && ${DEFAULT_MAKE} && popd"
+alias ci="svn diff --diff-cmd=meld && svn ci --editor-cmd=emacs"
+alias up="svn up"
+alias di="svn diff --diff-cmd=meld"
+alias st="svn st"
+alias help=print_help
 echo "Parvisfortis Development Environment"
 echo "  build  - build the current directory with make"
 echo "  <dirname>up - update <dirname>'s depshape"

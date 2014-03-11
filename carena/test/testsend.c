@@ -32,6 +32,15 @@ MUTEX m = 0;
 #define S_SCENARIO srv_scenario_7
 #define C_SCENARIO cli_scenario_7
 
+static
+unsigned long long _nano_time() {
+  struct timespec tspec = {0};
+  if (clock_gettime(CLOCK_REALTIME,&tspec) == 0) {
+    return 1000000000L*tspec.tv_sec + tspec.tv_nsec;
+  } else {
+    return 0;
+  }
+}
 
 
 // ------------------------------------------------------------
@@ -135,6 +144,23 @@ static srv_scenario_7(OE oe, MpcPeer peer, Data s, Data r) {
   peer->receive(r);
 }
 
+struct scenario {
+  int (*cli)(OE, MpcPeer, Data, Data);
+  int (*srv)(OE, MpcPeer, Data, Data);
+};
+
+struct scenario scenarios[] = { 
+  {cli_scenario_1, srv_scenario_1},
+  {cli_scenario_2, srv_scenario_2},
+  {cli_scenario_3, srv_scenario_3},
+  {cli_scenario_4, srv_scenario_4},
+  {cli_scenario_5, srv_scenario_5},
+  {cli_scenario_6, srv_scenario_6},
+  {cli_scenario_7, srv_scenario_7},
+};
+  
+int scenario = 0;
+
 static 
 void * client (void * a) {
   OE oe = (OE)a;
@@ -154,7 +180,7 @@ void * client (void * a) {
   for(i = 0;i < COUNT;++i){
     CHECK_POINT_S("Client");
     // ------------------------------------------------------------
-    C_SCENARIO(oe,peer,s,r);
+    scenarios[scenario].cli(oe,peer,s,r);
     // ------------------------------------------------------------
     CHECK_POINT_E("Client");
   }    
@@ -199,10 +225,16 @@ int main(int c, char **a) {
   MpcPeer peer = 0;
   Data s = Data_new(oe,SIZE);
   Data r = Data_new(oe,SIZE);
-
+  ull start = 0;
 
   InitStats(oe);
 
+  if (c == 2) {
+    int val = atoi(a[1]);
+    if (val > 0 && val < 8) {
+      scenario = val - 1;
+    }
+  }
 
   for(i = 0; i < COUNT; ++i ) {
     CHECK_POINT_S("Sanity");
@@ -228,13 +260,19 @@ int main(int c, char **a) {
 
   printf("-------------------- SCENARIO --------------------\n");
   { 
+    ull ms = 0;
+    start = _nano_time();
     for(i = 0; i < COUNT;++i) {
       CHECK_POINT_S("Server");
       // ------------------------------------------------------------
-      S_SCENARIO(oe,peer,s,r);
+      scenarios[scenario].srv(oe,peer,s,r);
       // ------------------------------------------------------------
       CHECK_POINT_E("Server");
     }
+    ms = (_nano_time() - start)/1000000L;
+ 
+    printf("Communication Complexity: %u bytes in total, %u ms %u bytes/ms\n", COUNT*SIZE, ms, (ms > 0 ? (COUNT*SIZE)/ms : 0));
+ 
   }
 
   
@@ -244,8 +282,8 @@ int main(int c, char **a) {
 
   PrintMeasurements(oe);
 
-  sleep(0);
   printf(oe->get_version());printf("\n");
+
 
   return 0;
 }

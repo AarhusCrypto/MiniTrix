@@ -126,7 +126,7 @@ Measurement Measurements_get(char * name) {
     _oe_->unlock(lock);
     return m;
   }
-  _oe_->unlock(lock);
+
   return 0;
 }
 
