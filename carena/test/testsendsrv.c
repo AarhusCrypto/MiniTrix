@@ -8,7 +8,7 @@
 #include <time.h>
 #include <stats.h>
 
-#define SIZE 2048*2048
+#define SIZE 2048
 #define COUNT 1024
 
 
