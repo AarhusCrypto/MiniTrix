@@ -7,8 +7,9 @@
 #include <time.h>
 #include <stats.h>
 
-#define SIZE 256
-#define COUNT 1024*2048
+
+#define SIZE 2048*2048
+#define COUNT 1024
 
 
 static 
@@ -201,9 +202,9 @@ int main(int c, char **a) {
     peer = arena->get_peer(0);
     
     for(i = 0;i < COUNT; ++i) {
-      printf("%4u",i);fflush(stdout);
+      printf("%8u",i);fflush(stdout);
       scenarios[scenario].cli(oe, peer, s, r);
-      printf("\b\b\b\b");
+      printf("\b\b\b\b\b\b\b\b");
     }
   } else {
     printf("Connection failed\n");
