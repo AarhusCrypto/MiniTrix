@@ -8,7 +8,7 @@
 #include <stats.h>
 
 #define SIZE 1024
-#define COUNT 16
+#define COUNT 1024
 
 int main(int c, char **a) {
   uint i = 0;
