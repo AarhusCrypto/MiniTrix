@@ -47,4 +47,4 @@ echo "  <dirname>up - update <dirname>'s depshape"
 echo ""
 echo "  Home is ${PVF_HOME}"
 export PATH=${PATH}:.
-export PS1="\[\033[31m\][ minimacs $(svnversion) ]\[\033[00m\]\w \[\033[32m\]\$\[\033[00m\] "
+export PS1="\[\033[31m\][ minimacs '$(svnversion)' ]\[\033[00m\]\w \[\033[32m\]\$\[\033[00m\] "
