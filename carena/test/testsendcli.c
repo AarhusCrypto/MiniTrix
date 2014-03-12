@@ -182,7 +182,7 @@ int main(int c, char **a) {
     ip = a[1];
   }
 
-  if (c == 3) {
+  if (c >= 3) {
     ip = a[1];
     port = atoi(a[2]);
   }
@@ -197,17 +197,22 @@ int main(int c, char **a) {
   arena = CArena_new(oe);
  
   if (arena->connect(ip,port).rc == 0) {
-
+    
     peer = arena->get_peer(0);
     
     for(i = 0;i < COUNT; ++i) {
+      printf("%4u",i);fflush(stdout);
       scenarios[scenario].cli(oe, peer, s, r);
+      printf("\b\b\b\b");
     }
   } else {
     printf("Connection failed\n");
   }
   PrintMeasurements(oe);
 
+
+  printf("Press any key to terminate\n");
+  getch();
   return 0;
 
 }

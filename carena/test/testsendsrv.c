@@ -203,5 +203,8 @@ int main(int c, char **a) {
     
     PrintMeasurements(oe);
   }
+  printf("Press any key to terminate\n");
+  getch();
+
   return 0 ;
 }
