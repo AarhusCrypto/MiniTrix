@@ -35,12 +35,14 @@ alias mathup="pushd ${PVF_HOME}/math && ${DEFAULT_MAKE} && popd && ${DEFAULT_MAK
 alias caesup="pushd ${PVF_HOME}/caes && ${DEFAULT_MAKE} && popd && ${DEFAULT_MAKE} && popd"
 alias aessrv="pushd ${PVF_HOME}/caes/build && src/caes ../minimacs_120_256_2_0_mxt.rep && popd"
 alias aescli="pushd ${PVF_HOME}/caes/build && src/caes ../minimacs_120_256_2_1_mxt.rep && popd"
-alias ci="svn diff --diff-cmd=meld && svn ci --editor-cmd=emacs"
+alias chk="svn st | grep \"\\.[ch]$\""
+alias ci="chk && svn diff --diff-cmd=meld && svn ci --editor-cmd=emacs"
 alias up="svn up"
 alias di="svn diff --diff-cmd=meld"
 alias st="svn st"
 alias help=print_help
 alias home="cd ${PVF_HOME}"
+
 echo "Parvisfortis Development Environment"
 echo "  build  - build the current directory with make"
 echo "  <dirname>up - update <dirname>'s depshape"
