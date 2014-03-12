@@ -212,7 +212,7 @@ int main(int c, char **a) {
 
 
   printf("Press any key to terminate\n");
-  getch();
+  getchar();
   return 0;
 
 }
