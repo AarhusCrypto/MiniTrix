@@ -292,7 +292,7 @@ COO_DEF_RET_ARGS(OE, int, open , const char * name;, name) {
       return 0;
     }
 
-    //    set_non_blocking(socket_fd);
+    set_non_blocking(socket_fd);
 
     this->lock(soe->lock);
     soe->filedescriptors->add_element( (void*)(long long)socket_fd);
@@ -359,7 +359,7 @@ COO_DEF_RET_ARGS(OE, int, accept, uint fd;,fd) {
         return 0; // report failure
       } 
     } else {
-      //      set_non_blocking(os_client_fd);
+      set_non_blocking(os_client_fd);
       break; // we have a client
     }
   }
