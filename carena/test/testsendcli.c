@@ -8,7 +8,7 @@
 #include <stats.h>
 
 #define SIZE 256
-#define COUNT 1024
+#define COUNT 1024*2048
 
 
 static 
