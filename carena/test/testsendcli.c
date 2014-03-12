@@ -152,7 +152,7 @@ struct scenario scenarios[] = {
   {cli_scenario_7, srv_scenario_7},
 };
   
-int scenario = 7;
+int scenario = 6;
 
 
 int main(int c, char **a) {
@@ -188,8 +188,13 @@ int main(int c, char **a) {
   }
 
   if (c == 4) {
+    
     scenario = atoi(a[3]);
+  } else { 
+    scenario = 0;
   }
+
+
 
   arena = CArena_new(oe);
  
