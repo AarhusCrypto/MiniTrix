@@ -184,7 +184,7 @@ int main(int c, char **a) {
   port = atoi(a[1]);
 
   if (c == 3) {
-    scenario = atoi(a[3]);
+    scenario = atoi(a[2]);
     if (scenario < 0 || scenario > 6) scenario = 0;
   } 
 
