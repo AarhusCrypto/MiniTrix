@@ -183,10 +183,13 @@ int main(int c, char **a) {
 
   port = atoi(a[1]);
 
-
   if (c == 3) {
-    scenario = atoi(a[2]);
-  }
+    scenario = atoi(a[3]);
+    if (scenario < 0 || scenario > 6) scenario = 0;
+  } 
+
+  printf("Running scenario %u\n", scenario);
+
   arena = CArena_new(oe);
 
   printf("Accepting client on port: %u\n",port);

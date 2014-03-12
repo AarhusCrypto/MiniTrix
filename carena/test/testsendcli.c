@@ -188,13 +188,11 @@ int main(int c, char **a) {
   }
 
   if (c == 4) {
-    
     scenario = atoi(a[3]);
-  } else { 
-    scenario = 0;
-  }
+    if (scenario < 0 || scenario > 6) scenario = 0;
+  } 
 
-
+  printf("Running scenario %u\n", scenario);
 
   arena = CArena_new(oe);
  
