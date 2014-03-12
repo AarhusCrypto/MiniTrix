@@ -45,7 +45,7 @@ int main(int c, char **a) {
     for(i = 0;i < COUNT; ++i) {
       peer->send(s);
       peer->receive(r);
-    peer->send(s);
+      peer->send(s);
     }
   } else {
     printf("Connection failed\n");

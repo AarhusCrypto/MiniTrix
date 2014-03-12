@@ -24,7 +24,7 @@ int main(int c, char **a) {
   InitStats(oe);
 
   if (c == 1) {
-    printf("testsendsrv <port\n");
+    printf("testsendsrv <port>\n");
     return -1;
   }
 
@@ -33,10 +33,17 @@ int main(int c, char **a) {
   arena = CArena_new(oe);
 
   printf("Accepting client on port: %u\n",port);
-  if (arena->listen(port).rc == 0) {
+  if (arena->listen_wait(1,port).rc == 0) {
     
-    printf("Client accepted\n");
+    MpcPeer peer = arena->get_peer(0);
 
+    for(i = 0; i < COUNT; ++i) {
+      peer->receive(r);
+      peer->send(s);
+      peer->receive(r);
+    }
+    
+    PrintMeasurements(oe);
   }
-
+  return 0 ;
 }

@@ -447,7 +447,7 @@ COO_DEF_RET_NOARGS(MpcPeer, bool, has_data) {
   return mei->incoming->size() > 0 || mei->drem;
 }} 
 
-COO_DCL(CArena, void, add_conn_listener, ConnectionListener l)
+COO_DCL(CArena, void, add_conn_listener, ConnectionListener l);
 COO_DEF_NORET_ARGS(CArena, add_conn_listener, ConnectionListener l;,l) {
   CArenaImpl arena_i = (CArenaImpl)this->impl;
   OE oe = arena_i->oe;
@@ -457,6 +457,28 @@ COO_DEF_NORET_ARGS(CArena, add_conn_listener, ConnectionListener l;,l) {
     oe->unlock(arena_i->lock);
   }
   return;
+}}
+
+
+COO_DCL(CArena, void, rem_conn_listener, ConnectionListener l);
+COO_DEF_NORET_ARGS(CArena, rem_conn_listener, ConnectionListener l;,l) {
+  CArenaImpl arena_i = (CArenaImpl)this->impl;
+  OE oe = arena_i->oe;
+  uint i = 0;
+  if (l){
+    int dead_index = -1;
+    oe->lock(arena_i->lock);
+    for(i = 0; i < arena_i->conn_obs->size();++i) {
+      if (l == arena_i->conn_obs->get_element(i)) { 
+        dead_index = i;
+      };
+    }
+    if (dead_index >= 0) 
+      arena_i->conn_obs->rem_element(dead_index);
+    oe->unlock(arena_i->lock);
+  }
+  return;
+  
 }}
 
 static MpcPeer MpcPeerImpl_new(OE oe, uint fd, char * ip, uint port) {
@@ -576,7 +598,7 @@ COO_DEF_NORET_ARGS(ConnectionListener, client_connected, MpcPeer peer;,peer) {
   uint c = 0;
   
   oe->lock(dcl->lock);
-  c = dcl->count = dcl->count - 1;
+  c = (dcl->count = dcl->count - 1);
   oe->unlock(dcl->lock);
   
   if (c <= 0) oe->unlock(dcl->hold);
@@ -602,6 +624,7 @@ ConnectionListener DefaultConnectionListener_new(OE oe, uint count) {
   DefaultConnectionListener dcl = oe->getmem(sizeof(*dcl));
   
   l->oe = oe;
+  l->impl = dcl;
   COO_ATTACH(ConnectionListener,l,client_connected);
   COO_ATTACH(ConnectionListener,l,client_disconnected);
   COO_ATTACH(DefaultConnectionListener, dcl, wait);
@@ -609,6 +632,7 @@ ConnectionListener DefaultConnectionListener_new(OE oe, uint count) {
   dcl->count = count;
   dcl->lock = oe->newmutex();
   dcl->hold = oe->newmutex();
+  dcl->oe->lock(dcl->hold);
   return l;
 }
 
@@ -645,12 +669,17 @@ COO_DEF_RET_ARGS(CArena, CAR, listen_wait, uint no; uint port;, no, port) {
   ConnectionListener cl = DefaultConnectionListener_new(oe,no);
   DefaultConnectionListener dcl = (DefaultConnectionListener)cl->impl;
 
+  this->add_conn_listener(cl);
+
   this->listen(port);
 
   dcl->wait();
 
+  this->rem_conn_listener(cl);
+
   DefaultConnectionListener_destroy(&cl);
   
+  return c;
 }}
 
 COO_DCL(CArena, CAR,listen, uint port)
@@ -784,9 +813,11 @@ CArena CArena_new(OE oe) {
 
   COO_ATTACH(CArena, arena, connect);
   COO_ATTACH(CArena, arena, listen);
+  COO_ATTACH(CArena, arena, listen_wait);
   COO_ATTACH(CArena, arena, get_peer);
   COO_ATTACH(CArena, arena, get_no_peers);
   COO_ATTACH(CArena, arena, add_conn_listener);
+  COO_ATTACH(CArena, arena, rem_conn_listener);
   return arena;
  failure:
   return 0;

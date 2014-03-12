@@ -130,6 +130,11 @@ typedef struct _carena_ {
    */
   void (*add_conn_listener)(ConnectionListener lst);
 
+  /*!
+   * Remove the connection lister {lst}
+   */
+  void (*rem_conn_listener)(ConnectionListener lst);
+
   void * impl;
 } * CArena;
 
