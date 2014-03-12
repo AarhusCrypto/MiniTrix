@@ -22,6 +22,13 @@ int main(int c, char **a) {
   char * ip = "127.0.0.1";
   MpcPeer peer = 0;
 
+
+  if (s) {
+    for(i = 0; i < SIZE;++i) {
+      s->data[i] = 0x42;
+    }
+  }
+
   InitStats(oe);
 
   printf("testsendsrv [<ip>] [<port>] default is localhost:2020\n");

@@ -21,6 +21,12 @@ int main(int c, char **a) {
   ull start = 0;
   uint port = 0;
 
+  if (s) {
+    for(i = 0; i < SIZE;++i) {
+      s->data[i] = 0x42;
+    }
+  }
+
   InitStats(oe);
 
   if (c == 1) {
