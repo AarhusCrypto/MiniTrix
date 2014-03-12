@@ -32,6 +32,19 @@ MUTEX m = 0;
 #define S_SCENARIO srv_scenario_7
 #define C_SCENARIO cli_scenario_7
 
+static 
+bool check_rcv(Data r) {
+  bool res = True;
+  uint i = 0;
+  if (!r) return False;
+  if (r->ldata < SIZE) return False;
+  for(i = 0;i < SIZE;++i) {
+    if (r->data[i] != 0x42) return False;
+  }
+  return True;
+}
+
+
 static
 unsigned long long _nano_time() {
   struct timespec tspec = {0};
@@ -50,6 +63,7 @@ unsigned long long _nano_time() {
 static
 cli_scenario_1(OE oe, MpcPeer peer, Data s, Data r) {
   peer->receive(r);
+  if (check_rcv(r) != True) { printf("Crap wrong data\n"); }
   peer->send(s);
 }
 
@@ -57,6 +71,7 @@ static
 srv_scenario_1(OE oe, MpcPeer peer, Data s, Data r) {
   peer->send(s);
   peer->receive(r);
+  if (check_rcv(r) != True) { printf("Crap wrong data\n"); }
 }
 
 
@@ -67,7 +82,9 @@ srv_scenario_1(OE oe, MpcPeer peer, Data s, Data r) {
 static 
 cli_scenario_2(OE oe, MpcPeer peer, Data s, Data r) {
   peer->receive(r);
+  if (check_rcv(r) != True) { printf("Crap wrong data\n"); }
   peer->receive(r);
+  if (check_rcv(r) != True) { printf("Crap wrong data\n"); }
 }
 
 static 
@@ -89,7 +106,9 @@ cli_scenario_3(OE oe, MpcPeer peer, Data s, Data r) {
 static 
 srv_scenario_3(OE oe, MpcPeer peer, Data s, Data r) {
   peer->receive(r);
+  if (check_rcv(r) != True) { printf("Crap wrong data\n"); }
   peer->receive(r);
+  if (check_rcv(r) != True) { printf("Crap wrong data\n"); }
 }
 
 // ------------------------------------------------------------
@@ -100,11 +119,13 @@ static
 cli_scenario_4(OE oe, MpcPeer peer, Data s, Data r) {
   peer->send(s);
   peer->receive(r);
+  if (check_rcv(r) != True) { printf("Crap wrong data\n"); }
 }
 
 static 
 srv_scenario_4(OE oe, MpcPeer peer, Data s, Data r) {
   peer->receive(r);
+  if (check_rcv(r) != True) { printf("Crap wrong data\n"); }
   peer->send(s);
 }
 
@@ -117,12 +138,14 @@ cli_scenario_5(OE oe, MpcPeer peer, Data s, Data r) {
 static 
 srv_scenario_5(OE oe, MpcPeer peer, Data s, Data r) {
   peer->receive(r);
+  if (check_rcv(r) != True) { printf("Crap wrong data\n"); }
 }
 
 // ------------------------------------------------------------
 static 
 cli_scenario_6(OE oe, MpcPeer peer, Data s, Data r) {
   peer->receive(r);
+  if (check_rcv(r) != True) { printf("Crap wrong data\n"); }
 }
 
 static 
@@ -135,13 +158,16 @@ static
 cli_scenario_7(OE oe, MpcPeer peer, Data s, Data r) {
   peer->send(s);
   peer->receive(r);
+  if (check_rcv(r) != True) { printf("Crap wrong data\n"); }
   peer->send(s);
 }
 
 static srv_scenario_7(OE oe, MpcPeer peer, Data s, Data r) {
   peer->receive(r);
+  if (check_rcv(r) != True) { printf("Crap wrong data\n"); }
   peer->send(s);
   peer->receive(r);
+  if (check_rcv(r) != True) { printf("Crap wrong data\n"); }
 }
 
 struct scenario {
@@ -160,6 +186,7 @@ struct scenario scenarios[] = {
 };
   
 int scenario = 0;
+
 
 static 
 void * client (void * a) {
@@ -255,7 +282,7 @@ int main(int c, char **a) {
   peer = arena->get_peer(0);
 
   for(i = 0;i < s->ldata;++i) {
-    s->data[i] = 0x61;
+    s->data[i] = 0x42;
   }
 
   printf("-------------------- SCENARIO --------------------\n");

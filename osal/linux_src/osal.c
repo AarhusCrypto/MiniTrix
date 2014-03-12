@@ -81,6 +81,7 @@ COO_DCL( OE, void *, getmem, uint size)
 COO_DEF_RET_ARGS(OE, void *, getmem, uint i;,i) {
   uint j = 0;
   byte * res = (byte*) malloc(i);
+  if (!res) return 0;
   for(j=0;j<i;++j) res[j] = 0;
   return res;
 }}
@@ -118,7 +119,7 @@ COO_DEF_RET_ARGS(OE, RC, read, uint fd;byte *buf;uint * lbuf;, fd, buf, lbuf ) {
     struct timeval timeout = {0};
     FD_ZERO(&read_set);
     timeout.tv_sec = 0;
-    timeout.tv_usec = 1000;
+    timeout.tv_usec = 10000;
     FD_SET(os_fd, &read_set);
     if (select(os_fd+1, &read_set, 0,0,&timeout) <= 0) { 
       *lbuf = 0;
@@ -173,7 +174,7 @@ COO_DEF_RET_ARGS(OE, RC, write, uint fd; byte*buf;uint lbuf;,fd,buf,lbuf) {
     struct timeval t = {0};
     fd_set wfds = {0};
     FD_SET(os_fd, &wfds);
-    t.tv_usec = 1000;
+    t.tv_usec = 10000;
     while(select(os_fd+1, 0, &wfds, 0, &t) == 0);
     lastwrite = send(os_fd, buf+writesofar, lbuf-writesofar,0);
     if ( lastwrite == -1) {
@@ -256,8 +257,10 @@ COO_DEF_RET_ARGS(OE, int, open , const char * name;, name) {
     }}
 
     {
+      /*
       uint flags = fcntl(server_fd, F_GETFL, 0);
       fcntl(server_fd, F_SETFL, flags | O_NONBLOCK  );
+      */
     }
 
     if (listen(server_fd, 20) != 0) {
@@ -289,7 +292,7 @@ COO_DEF_RET_ARGS(OE, int, open , const char * name;, name) {
       return 0;
     }
 
-    set_non_blocking(socket_fd);
+    //    set_non_blocking(socket_fd);
 
     this->lock(soe->lock);
     soe->filedescriptors->add_element( (void*)(long long)socket_fd);
@@ -356,7 +359,7 @@ COO_DEF_RET_ARGS(OE, int, accept, uint fd;,fd) {
         return 0; // report failure
       } 
     } else {
-      set_non_blocking(os_client_fd);
+      //      set_non_blocking(os_client_fd);
       break; // we have a client
     }
   }

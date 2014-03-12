@@ -110,6 +110,12 @@ typedef struct _carena_ {
   CAR (*listen)(uint port);
 
   /*!
+   * Start listening for incoming peers on {port} until {no} peers has
+   * connected. Then stop listening and return.
+   */
+  CAR (*listen_wait)(uint no, uint port);
+
+  /*!
    * Get peer with id {pid}.
    */
   MpcPeer (*get_peer)(uint pid);
