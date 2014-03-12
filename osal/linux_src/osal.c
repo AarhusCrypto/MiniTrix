@@ -324,17 +324,17 @@ void set_non_blocking(int fd) {
   int lopt = sizeof(int);
   int flags = fcntl(fd, F_GETFL, &flags, sizeof(flags));
   fcntl(fd, F_SETFL, flags | O_NONBLOCK);
-
+  /*
   if (setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, &keep_alice_opt, lopt ) < 0) {
     printf("No keep alive \n");
     // error but who cares if the socket works, this just might degrade performance 
   }
-
+  
   if (setsockopt(fd, SOL_SOCKET, TCP_NODELAY, &tcp_nodelay_opt, lopt) < 0) {
     printf("TCP Nodelay failed ... \n");
     // May degrade performance but ...
   }
-
+  */
 }
 
 
@@ -363,7 +363,7 @@ COO_DEF_RET_ARGS(OE, int, accept, uint fd;,fd) {
       break; // we have a client
     }
   }
-
+  // RX ERR 4060083
 
 
   this->lock(soe->lock);
