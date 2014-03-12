@@ -8,7 +8,7 @@
 #include <time.h>
 #include <stats.h>
 
-#define SIZE 1024
+#define SIZE 256
 #define COUNT 1024
 
 int main(int c, char **a) {
