@@ -57,6 +57,11 @@ typedef struct _mpc_peer_ {
    */
   uint (*get_port)(void);
 
+  /*!
+   * Get the id of this peer.
+   */
+  uint (*get_id)(void);
+
   void * impl;
 
 } * MpcPeer;

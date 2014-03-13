@@ -178,7 +178,6 @@ Measurement Measurements_start(char * name) {
     return m;
   } else {
   }
-  _oe_->unlock(lock);
   return 0;
 }
 

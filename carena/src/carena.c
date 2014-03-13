@@ -46,7 +46,7 @@
 #include <stats.h>
 #include <unistd.h>
 #include <time.h>
-
+#include <encoding/int.h>
 static
 unsigned long long _nano_time() {
   struct timespec tspec = {0};
@@ -59,6 +59,8 @@ unsigned long long _nano_time() {
 
 int _c_;
 
+
+
 typedef struct _carena_impl_ {
 
   uint server_fd;
@@ -66,6 +68,8 @@ typedef struct _carena_impl_ {
   OE oe;
 
   List peers;
+
+  uint peer_ids;
 
   ThreadID worker;
 
@@ -139,7 +143,7 @@ COO_DEF_RET_ARGS(MpcPeer, CAR, send2, Data data;, data) {
   CAR c = {{0}};
   MpcPeerImpl peer_i = (MpcPeerImpl)this->impl;
   byte len[4] = {0};
-  peer_i->oe->write(peer_i->fd, data->data, data->ldata);
+  peer_i->oe->write(peer_i->fd_out, data->data, data->ldata);
   return c;
 }}
 
@@ -181,7 +185,7 @@ COO_DEF_RET_ARGS(MpcPeer, CAR, receive2, Data data;, data) {
     OE oe = peer_i->oe;
     byte len[4] = {0};
     uint to_read = 0;
-    local_read(oe,peer_i->fd, data->data, data->ldata);
+    local_read(oe,peer_i->fd_in, data->data, data->ldata);
 }}
 
 COO_DCL(MpcPeer, CAR, receive, Data data)
@@ -277,7 +281,7 @@ static void * peer_rec_function(void * a) {
     ull waste = 0;
 
     //    if (_c_) waste = _nano_time();
-    rc = mei->oe->read(mei->fd,len,&lenlen);
+    rc = mei->oe->read(mei->fd_in,len,&lenlen);
     //    if (_c_) printf("Time returning read %llu\n",_nano_time()-waste);
     if (lenlen <= 3) { 
       continue;
@@ -329,7 +333,7 @@ static void * peer_rec_function(void * a) {
       // read_bytes will never be more than {buf->ldata} as we would
       // never ask for more. !! Invariant !!
       start = _nano_time();
-      rc = mei->oe->read(mei->fd, buf->data+sofar, &read_bytes);
+      rc = mei->oe->read(mei->fd_in, buf->data+sofar, &read_bytes);
       tmp = (_nano_time()-start);
       if (read_bytes == 0) waste += tmp;
       if (rc == RC_OK) {
@@ -386,7 +390,7 @@ static void * peer_snd_function(void * a) {
       //      if (_c_) printf("[snd] Sending %u bytes ... ",lbuf);
       written = 0;sofar = 0;
       while(sofar < lbuf && written >= 0) {
-        written = mei->oe->write(mei->fd, buf, lbuf);
+        written = mei->oe->write(mei->fd_out, buf, lbuf);
         sofar += written;
         //if (_c_) printf("[snd] sofar %u,%u \n",sofar,written);
       }
@@ -423,12 +427,20 @@ static void MpcPeerImpl_destroy( MpcPeer * peer ) {
   
   oe = peer_i->oe;
 
-  if (peer_i->fd) {
+  if (peer_i->fd_in) {
     char m[32] = {0};
-    osal_sprintf(m,"Closing fd=%d", peer_i->fd);
+    osal_sprintf(m,"Closing fd_in=%d", peer_i->fd_in);
     oe->p(m);
-    oe->close(peer_i->fd);
+    oe->close(peer_i->fd_in);
   }
+
+  if (peer_i->fd_out) {
+    char m[32] = {0};
+    osal_sprintf(m,"Closing fd=%d", peer_i->fd_out);
+    oe->p(m);
+    oe->close(peer_i->fd_out);
+  }
+  
 
   BlkQueue_destroy( & (peer_i->outgoing) );
   BlkQueue_destroy( & (peer_i->incoming) );
@@ -481,7 +493,7 @@ COO_DEF_NORET_ARGS(CArena, rem_conn_listener, ConnectionListener l;,l) {
   
 }}
 
-static MpcPeer MpcPeerImpl_new(OE oe, uint fd, char * ip, uint port) {
+static MpcPeer MpcPeerImpl_new(OE oe, uint fd_in, char * ip, uint port) {
   MpcPeer peer = (MpcPeer)oe->getmem(sizeof(*peer));
   MpcPeerImpl peer_i = 0;
   if (!peer) return 0;
@@ -489,11 +501,9 @@ static MpcPeer MpcPeerImpl_new(OE oe, uint fd, char * ip, uint port) {
   peer_i = peer->impl = (MpcPeerImpl)oe->getmem(sizeof(*peer_i));
   if (!peer->impl) goto failure;
 
-  peer->ffd = fd;
-
   peer_i->oe = oe;
   peer_i->port = port;
-  peer_i->fd = fd;
+  peer_i->fd_in = fd_in;
   peer_i->running = 1;
   peer_i->die = 0;
   peer_i->incoming = BlkQueue_new(oe,256);
@@ -501,19 +511,32 @@ static MpcPeer MpcPeerImpl_new(OE oe, uint fd, char * ip, uint port) {
   peer_i->receiver = oe->newthread( peer_rec_function, peer );
   peer_i->sender = oe->newthread( peer_snd_function, peer );
 
-  if (!peer_i->fd) goto failure;
-
   COO_ATTACH(MpcPeer, peer, send);
   COO_ATTACH(MpcPeer, peer, receive);
   COO_ATTACH(MpcPeer, peer, get_ip);
   COO_ATTACH(MpcPeer, peer, get_port);
   COO_ATTACH(MpcPeer, peer, has_data);
 
-  
-
   return peer;
  failure:
   return 0;
+}
+
+
+
+static 
+void send_int(OE oe, uint fd, int i) {
+  byte d[4] = {0};
+  i2b(i,d);
+  oe->write(fd,d,4);
+}
+
+static 
+int read_int(OE oe, uint fd) {
+  byte d[4] = {0};
+  uint read = 4;
+  oe->read(fd, d, &read);
+  return b2i(d);
 }
 
 
@@ -522,22 +545,40 @@ COO_DEF_RET_ARGS(CArena, CAR, connect,  char * hostname; uint port;, hostname, p
   CAR c = {{0}};
   CArenaImpl arena_i = (CArenaImpl)this->impl;
   MpcPeer peer = 0;
-  uint fd = 0;
+  uint fd_out = 0;
+  uint fd_in = 0;
   char addr[128] = {0};
   uint i = 0;
+  uint myid = 0;
+  MpcPeerImpl peer_i = 0;
+  OE oe = arena_i->oe;
   
   osal_sprintf(addr, "ip %s %d", hostname, port);
 
-  fd = arena_i->oe->open(addr);
-  if (!fd) {
-    arena_i->oe->p("Could not connect");
+  fd_out = arena_i->oe->open(addr);
+  if (!fd_out) {
+    arena_i->oe->p("Could not connect in");
     RETERR("Could not connect.", NO_CONN);
   }
+  send_int(oe,fd_out,1024);
+  myid = read_int(oe,fd_out);
 
-  peer = MpcPeerImpl_new( arena_i->oe, fd, hostname, port );
+  fd_in = arena_i->oe->open(addr);
+  if (!fd_in) {
+    arena_i->oe->p("Could not connect out");
+    RETERR("Could not connect.", NO_CONN);
+  }
+  send_int(oe,fd_in,myid);
+
+  peer = MpcPeerImpl_new( arena_i->oe, fd_in, hostname, port );
   if (!peer) RETERR("Unable to connect to peer", NO_CONN);
 
+  peer_i = (MpcPeerImpl)peer->impl;
+  peer_i->fd_out = fd_out;
+
+  oe->lock(arena_i->lock);
   arena_i->peers->add_element(peer);
+  oe->unlock(arena_i->lock);
   for(i = 0;i < arena_i->conn_obs->size();++i) {
     ConnectionListener cl = (ConnectionListener)arena_i->conn_obs->get_element(i);
     if (cl) {
@@ -548,13 +589,15 @@ COO_DEF_RET_ARGS(CArena, CAR, connect,  char * hostname; uint port;, hostname, p
   return c;
 }}
 
+
 static void * carena_listener_thread(void * a) {
   uint i = 0;
   CArena arena = (CArena)a;
   CArenaImpl arena_i = (CArenaImpl)arena->impl;
-
+  OE oe = arena_i->oe;
   while(arena_i->running) {
-    
+    char mm[128] = {0};
+    uint peer_id = 0;
     MpcPeer peer = 0;
     arena_i->oe->unlock(arena_i->listen_ready);
     uint client_fd = arena_i->oe->accept(arena_i->server_fd);
@@ -563,19 +606,44 @@ static void * carena_listener_thread(void * a) {
       arena_i->running = 0;
       return 0;
     }
+    printf("CLIENT %u\n",client_fd);
+    peer_id = read_int(oe, client_fd);
+    if (peer_id == 1024) {
+      arena_i->oe->p("Client joining");
+      peer = MpcPeerImpl_new(arena_i->oe,client_fd,0,0);
 
-    arena_i->oe->p("Client joining");
-    peer = MpcPeerImpl_new(arena_i->oe,client_fd,0,0);
-    arena_i->oe->lock(arena_i->lock);
-    arena_i->peers->add_element(peer);
-    arena_i->oe->unlock(arena_i->lock);
-    for(i = 0;i < arena_i->conn_obs->size();++i) {
-      ConnectionListener cur = (ConnectionListener)
-        arena_i->conn_obs->get_element(i);
-      if (cur) {
-        cur->client_connected(peer);
-      }
+      arena_i->oe->lock(arena_i->lock);
+      peer_id = arena_i->peers->size();
+      arena_i->peers->add_element(peer);
+      arena_i->oe->unlock(arena_i->lock);
+      osal_sprintf(mm,"added client with id %u",peer_id);
+      oe->p(mm);
+      send_int(oe,client_fd,peer_id);
+      continue;
     }
+
+    if (peer_id < 1024) {
+      MpcPeerImpl peer_i = 0;
+      osal_sprintf(mm,"incoming id was %u",peer_id);
+      oe->p(mm);
+      peer = arena_i->peers->get_element(peer_id);
+      if (peer == 0) {
+        oe->p("Out Stream from client not registered...");
+        close(client_fd);
+        continue;
+      }
+      peer_i = (MpcPeerImpl)peer->impl;
+      peer_i->fd_out = client_fd;
+      
+      for(i = 0;i < arena_i->conn_obs->size();++i) {
+        ConnectionListener cur = (ConnectionListener)
+          arena_i->conn_obs->get_element(i);
+        if (cur) {
+          cur->client_connected(peer);
+        }
+      }
+    } 
+    
     arena_i->oe->yieldthread();
   }
   return 0;
@@ -785,6 +853,20 @@ void CArena_destroy( CArena * arena) {
   oe->putmem(*arena);
 }
 
+static
+uint uint_hfn(void *a) {
+  uint ai = (uint)(ull)a;
+  uint hash = 65536*ai+4294967297;
+  return hash;
+}
+
+static
+int uint_cmp(void * a, void * b) {
+  uint ai = (uint)(ull)a;
+  uint bi = (uint)(ull)b;
+  return ( ai > bi ? 1 : ( ai == bi ? 0 : -1));
+}
+
 #include "config.h"
 CArena CArena_new(OE oe) {
   CArena arena = 0;
@@ -809,6 +891,7 @@ CArena CArena_new(OE oe) {
   arena_i->peers = SingleLinkedList_new(oe);
   arena_i->conn_obs = SingleLinkedList_new(oe);
   arena_i->listen_ready = oe->newmutex();
+  arena_i->peer_ids = 1024;
 
   COO_ATTACH(CArena, arena, connect);
   COO_ATTACH(CArena, arena, listen);
