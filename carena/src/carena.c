@@ -84,14 +84,14 @@ typedef struct _mpcpeer_impl_ {
   /* Operating environment available to this peer.
    *
    */
- OE oe;
+  OE oe;
 
   char ip[16];
 
   uint port;
 
   // file descriptor
-  uint fd;
+  uint fd_in, fd_out;
 
   // Thread id of the receiver
   ThreadID receiver;
@@ -563,7 +563,6 @@ static void * carena_listener_thread(void * a) {
       arena_i->running = 0;
       return 0;
     }
-
 
     arena_i->oe->p("Client joining");
     peer = MpcPeerImpl_new(arena_i->oe,client_fd,0,0);

@@ -883,7 +883,6 @@ COO_DEF_NORET_ARGS(ConnectionListener, client_connected, MpcPeer peer;,peer) {
     osal_sprintf(m,"Added peer %u to mapping.", other_id);
     oe->p(m);
   }
-  usleep(500);
   wcl->q->put(0);
   oe->p("New peer registered.");
 }}
