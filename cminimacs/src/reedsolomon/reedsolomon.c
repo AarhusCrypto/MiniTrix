@@ -372,22 +372,37 @@ polynomial * minimacs_encode(polynomial * msg, uint lmsg, uint lcode) {
 
   COO_DCL(MiniMacsEnc, byte *, encode, byte * msg, uint lmsg);
   COO_DEF_RET_ARGS(MiniMacsEnc, byte *, encode, byte * msg; uint lmsg;, msg, lmsg) {
+    byte * r = 0;
     MatrixMiniMacsEnc mmme = (MatrixMiniMacsEnc)this->impl;
     if (lmsg == matrix_getwidth(mmme->encoder)) {
-      return minimacs_encode_fast(mmme->encoder,msg,lmsg);
+
+      CHECK_POINT_S("[RSCODE] Encoding Matrix");
+      r = minimacs_encode_fast(mmme->encoder,msg,lmsg);
+      CHECK_POINT_E("[RSCODE] Encoding Matrix");
+
+      return r;
+
     } else {
-      return minimacs_encode_fast(mmme->big_encoder,msg,lmsg);
+      CHECK_POINT_S("[RSCODE] Encoding Matrix Schur Transform");
+      r = minimacs_encode_fast(mmme->big_encoder,msg,lmsg);
+      CHECK_POINT_E("[RSCODE] Encoding Matrix Schur Transform");
+      return r;
     }
   }}
 
   COO_DCL(MiniMacsEnc, bool, validate, byte * code, uint lmsg)
   COO_DEF_RET_ARGS(MiniMacsEnc, bool, validate, byte * code; uint lmsg;, code, lmsg) {
     MatrixMiniMacsEnc mmme = (MatrixMiniMacsEnc)this->impl;
-
+    bool r = 0;
     if (lmsg ==  matrix_getwidth(mmme->encoder)) {
-      return minimacs_validate_fast(mmme->encoder,code,matrix_getheight(mmme->encoder),  lmsg );
+      CHECK_POINT_S("[RSCODE] Validation Matrix");
+      r = minimacs_validate_fast(mmme->encoder,code,matrix_getheight(mmme->encoder),  lmsg );
+      CHECK_POINT_E("[RSCODE] Validation Matrix");
+      return r;
     } else {
-      return minimacs_validate_fast(mmme->big_encoder,code,matrix_getheight(mmme->big_encoder),  lmsg );
+      CHECK_POINT_S("[RSCODE] Validation Matrix Schur Transform");
+      r =  minimacs_validate_fast(mmme->big_encoder,code,matrix_getheight(mmme->big_encoder),  lmsg );
+      CHECK_POINT_E("[RSCODE] Validation Matrix Schur Transform");
     }
   }}
 

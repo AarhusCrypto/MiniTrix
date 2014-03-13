@@ -163,11 +163,41 @@ cli_scenario_7(OE oe, MpcPeer peer, Data s, Data r) {
 }
 
 static srv_scenario_7(OE oe, MpcPeer peer, Data s, Data r) {
+
+  peer->receive(r);
+  if (check_rcv(r) != True) { printf("Crap wrong data\n"); }
+
+  peer->send(s);
+
+  peer->receive(r);
+  if (check_rcv(r) != True) { printf("Crap wrong data\n"); }
+
+}
+
+
+
+static
+cli_scenario_8(OE oe, MpcPeer peer, Data s, Data r) {
+  peer->send(s);
   peer->receive(r);
   if (check_rcv(r) != True) { printf("Crap wrong data\n"); }
   peer->send(s);
   peer->receive(r);
   if (check_rcv(r) != True) { printf("Crap wrong data\n"); }
+}
+
+static srv_scenario_8(OE oe, MpcPeer peer, Data s, Data r) {
+
+  peer->receive(r);
+  if (check_rcv(r) != True) { printf("Crap wrong data\n"); }
+
+  peer->send(s);
+
+  peer->receive(r);
+  if (check_rcv(r) != True) { printf("Crap wrong data\n"); }
+
+  peer->send(s);
+
 }
 
 struct scenario {
@@ -183,6 +213,7 @@ struct scenario scenarios[] = {
   {cli_scenario_5, srv_scenario_5},
   {cli_scenario_6, srv_scenario_6},
   {cli_scenario_7, srv_scenario_7},
+  {cli_scenario_8, srv_scenario_8}
 };
   
 int scenario = 0;
@@ -258,8 +289,9 @@ int main(int c, char **a) {
 
   if (c == 2) {
     int val = atoi(a[1]);
-    if (val > 0 && val < 8) {
+    if (val > 0 && val < sizeof(scenarios)/sizeof(struct scenario)+1) {
       scenario = val - 1;
+      printf("Scenario set to %u\n", scenario);
     }
   }
 

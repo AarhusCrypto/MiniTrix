@@ -107,6 +107,7 @@ COO_DEF_NORET_NOARGS(Measurement, measure) {
   if (impl->max < duration) impl->max = duration;
   impl->avg = ((impl->avg * impl->count) + duration)/(impl->count+1);
   impl->count += 1;
+  impl->start = 0;
   _oe_->unlock(impl->l);
 }}
 

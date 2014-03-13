@@ -1,5 +1,5 @@
 #include <minimacs/minimacs.h>
-#include <minimacs/generic_minimacs.h>
+#include <minimacs/symmetric_minimacs.h>
 #include <osal.h>
 #include <stats.h>
 
@@ -9,13 +9,13 @@ typedef struct _cli_arg_ {
   OE oe;
 } * CliArg;
 
-#define COUNT 32
+#define COUNT 16
 
 static
 void * client(void * a) {
   CliArg arg = (CliArg)a;
   OE oe = arg->oe;
-  MiniMacs mm = GenericMiniMacs_DefaultLoadNew(oe,arg->file);
+  MiniMacs mm = SymmetricMiniMacs_DefaultLoadNew(oe,arg->file);
   uint count = 0;
   
   if (!mm) {
@@ -28,7 +28,9 @@ void * client(void * a) {
   mm->secret_input(0,0,0);
 
   for(count = 0;count < COUNT;++count) {
+    CHECK_POINT_S("\033[01mMul Client\033[00m");
     mm->mul(1,0,0);
+    CHECK_POINT_E("\033[01mMul Client\033[00m");
   }
 }
 
@@ -39,7 +41,7 @@ int main(int c, char **a) {
   uint count=0,i=0;
   init_polynomial();
 
-  mm = GenericMiniMacs_DefaultLoadNew(oe,a[1]);
+  mm = SymmetricMiniMacs_DefaultLoadNew(oe,a[1]);
 
   InitStats(oe);
 
@@ -68,7 +70,9 @@ int main(int c, char **a) {
   mm->secret_input(0,0,input);
 
   for(count = 0;count < COUNT;++count) {
+    CHECK_POINT_S("Mul server");
     mm->mul(1,0,0);
+    CHECK_POINT_E("Mul server");
   }
 
   usleep(5);

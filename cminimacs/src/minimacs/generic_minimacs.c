@@ -6,16 +6,6 @@
 #include <config.h>
 #include "stats.h"
 
-#include <netinet/tcp.h>
-static
-unsigned long long _nano_time() {
-  struct timespec tspec = {0};
-  if (clock_gettime(CLOCK_REALTIME,&tspec) == 0) {
-    return 1000000000L*tspec.tv_sec + tspec.tv_nsec;
-  } else {
-    return 0;
-  }
-}
 
 
 COO_DCL(MiniMacs, uint, get_id);
@@ -132,14 +122,6 @@ COO_DEF_RET_ARGS(GenericMiniMacs, MR, __add__,MiniMacsRep * res_out; MiniMacsRep
   MR_RET_OK;
 }}
 
-static
-void force_os_to_send(int fd, int cork) {
-  int cork_val = cork;
-  int lcork_val = sizeof(cork_val);
-  if (setsockopt(fd, SOL_SOCKET, TCP_CORK, &cork_val, lcork_val) < 0) {
-    printf("Error: Failed to set cork %u\n",cork);
-  }
-}
 
 
 
@@ -253,7 +235,6 @@ COO_DEF_RET_ARGS(MiniMacs,MR, mul, uint dst; uint l; uint r;,dst,l,r) {
 
   
   if (!right_const && !left_const) {
-    ull both = _nano_time();
     CHECK_POINT_S("  BOTH  ");
     triple = gmm->next_triple();
     if (!triple) MUL_FAIL(oe,"No more triples (%d taken).", gmm->idx_triple);
@@ -407,7 +388,7 @@ COO_DEF_RET_ARGS(MiniMacs,MR, mul, uint dst; uint l; uint r;,dst,l,r) {
     
     sigma_star = minimacs_rep_xor(res_star, star_pair[1]);
     if (!sigma_star) MRGF(oe,"Failed to compute sigma*.");
-    // TODO(rwl): This is kind of strange:
+
     CHECK_POINT_E("  BOTH  ");
   }
     res_star->lval = star_pair[1]->lval;
@@ -444,7 +425,7 @@ COO_DEF_RET_ARGS(MiniMacs,MR, mul, uint dst; uint l; uint r;,dst,l,r) {
 					  sigma_star_in[id]->data,
 					  sigmamac->data,
 					  sigma_star_in[id]->ldata) ) {
-        MRGF(oe,"Peer %u is cheating");
+        MRGF(oe,"Peer %u is cheating",id);
       }
     }
 
@@ -471,28 +452,26 @@ COO_DEF_RET_ARGS(MiniMacs,MR, mul, uint dst; uint l; uint r;,dst,l,r) {
       peer = (MpcPeer)gmm->peer_map->get( (void*)(ull)id);
       if (!peer) MRGF(oe,"Peer %u disconnected.");
 
-      printf("Send sigma time: %llu\n",_nano_time());
       peer->send(Data_shallow(sigma,sigma_star->lcodeword));
-      force_os_to_send(peer->ffd,0);
     }
+
+    {
+      Data d = Data_new(oe, 256);
+      peer->send(d);
+    }
+    
+
     CHECK_POINT_E(" Peer0] all alone");
     result = minimacs_rep_add_const_fast(gmm->encoder,star_pair[0],sigma,left->lval);
     if (!result) MRGF(oe,"Computing result failed");
     
-    if (result->ldx_codeword == 0) {
-
-      printf("############################################################\n");
-      printf("############################################################\n");
-      
-    }
-
-    this->heap_set(dst, result);
+    
+      this->heap_set(dst, result);
     MR_RET_OK;
   } else {
     Data sigma_plain = 0;
     ull start = 0;
     CHECK_POINT_S(" Peer1] alone ");
-    start = _nano_time();
     peer = gmm->peer_map->get(0);
     if (!peer) MRGF(oe,"Party one disconnected.");
     
@@ -502,19 +481,22 @@ COO_DEF_RET_ARGS(MiniMacs,MR, mul, uint dst; uint l; uint r;,dst,l,r) {
     sigma_plain = Data_new(oe, sigma_star->lcodeword);
     
     peer->receive(sigma_plain);
-    printf("Received sigma time %llu\n",_nano_time());
 
     CHECK_POINT_E(" Peer1] alone ");
     
     if (!gmm->encoder->validate(sigma_plain->data, left->lval)) 
       MRGF(oe,"Invalid sigma player one is cheating.");
     
+    {
+      Data d = Data_new(oe,256);
+      peer->receive(d);
+    }
+
     result = minimacs_rep_add_const_fast(gmm->encoder, star_pair[0], sigma_plain->data, left->lval);
     if (!result) MRGF(oe,"Failed to compute result.");
     
     this->heap_set(dst ,result);
     
-
     MR_RET_OK;
   }
 

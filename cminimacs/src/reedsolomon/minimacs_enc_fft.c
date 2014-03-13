@@ -2,7 +2,7 @@
 #include <reedsolomon/minimacs_enc_fft.h>
 #include <math/fft.h>
 #include <coo.h>
-
+#include <stats.h>
 static void ex(byte * s, byte * o, uint l) {
   uint i = 0;
   for(i = 0;i < l;++i) {
@@ -170,6 +170,8 @@ COO_DEF_RET_ARGS(MiniMacsEnc, byte *, encode, byte * msg; uint lmsg;, msg, lmsg)
   byte f[512] = {0};
   byte temp[512] = {0};
 
+
+
   if (lmsg > N) { 
     oe->p("Error in FFTMiniMacsEnc encode, lmsg is too long for the transform.");
     return 0;
@@ -192,6 +194,7 @@ COO_DEF_RET_ARGS(MiniMacsEnc, byte *, encode, byte * msg; uint lmsg;, msg, lmsg)
     MATRIX * vec = load(msg,lmsg);
     byte a[255] = {0};
     byte tmp[512] = {0};
+    CHECK_POINT_S("[RSCODE] Encoding FFT Schur Transform");
     oe->p("Encoding in the Schur transform, inefficiently");
     res = matrix_multiplication(fftmme->big_enc, vec);
     k = matrix_to_flatmem(res);
@@ -202,9 +205,12 @@ COO_DEF_RET_ARGS(MiniMacsEnc, byte *, encode, byte * msg; uint lmsg;, msg, lmsg)
     free(k);
     destroy_matrix(res);
     destroy_matrix(vec);
+    CHECK_POINT_E("[RSCODE] Encoding FFT Schur Transform");
     return r;
   }
 
+
+  CHECK_POINT_S("[RSCODE] Encoding FFT");
   mcpy(f,msg,n);
   //  pr("f",f,n);
 
@@ -222,7 +228,7 @@ COO_DEF_RET_ARGS(MiniMacsEnc, byte *, encode, byte * msg; uint lmsg;, msg, lmsg)
   rearrange_to_front_form(r);
 
   //  pr("r after arrange: ", r, 255);
-
+  CHECK_POINT_E("[RSCODE] Encoding FFT");
   return r;
  failure:
   oe->putmem(r);
@@ -278,6 +284,7 @@ COO_DEF_RET_ARGS(MiniMacsEnc, bool, validate, byte * code; uint lmsg;, code, lms
   f = oe->getmem(512);
   if (!f) return False;
 
+  CHECK_POINT_S("[RSCODE] Validation FFT");
   mcpy(tmp, code, 255);
 
   rearrange_to_fft_form( tmp );
@@ -295,7 +302,7 @@ COO_DEF_RET_ARGS(MiniMacsEnc, bool, validate, byte * code; uint lmsg;, code, lms
       }
     }
   }
-
+  CHECK_POINT_E("[RSCODE] Validation FFT");
   return 1;
  failure:
   oe->putmem(f);
