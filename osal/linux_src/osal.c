@@ -426,11 +426,24 @@ COO_DEF_RET_ARGS(OE, void *, jointhread, ThreadID tid;,tid) {
   }
   if (t) {
     pthread_join(*t,&p);
+    this->lock(soe->lock);
+    soe->threads->rem_element(tid-1);
+    this->unlock(soe->lock);
   } else {
     this->p("Auch ! Thread not found");
   }
   
   return p;
+}}
+
+COO_DCL(OE, uint, number_of_threads);
+COO_DEF_RET_NOARGS(OE, uint, number_of_threads) {
+  SimpleOE soe = (SimpleOE)this->impl;
+  uint answer = 0;
+  this->lock(soe->lock);
+  answer = soe->threads->size()+1; // +1 is the main thread
+  this->unlock(soe->lock);
+  return answer;
 }}
 
 COO_DCL(OE, MUTEX, newmutex )
@@ -501,6 +514,22 @@ COO_DEF_RET_NOARGS(OE, char *, get_version) {
   return version_str;
 }}
 
+COO_DCL(OE, ThreadID, get_thread_id);
+COO_DEF_RET_NOARGS(OE,ThreadID,get_thread_id) {
+  SimpleOE simpleOE = (SimpleOE)this->impl;
+  pthread_t t = pthread_self();
+  uint i = 0;
+  for(i = 0;i < simpleOE->threads->size();++i) {
+    pthread_t * cur = simpleOE->threads->get_element(i);
+    if (cur) {
+      if (*cur == t) {
+        return i+1;
+      }
+    }
+  }
+  return 0; // the main thread
+}}
+
 
 OE OperatingEnvironment_LinuxNew() {
   SimpleOE simpleOE = 0;
@@ -536,6 +565,8 @@ OE OperatingEnvironment_LinuxNew() {
   COO_ATTACH(OE, oe, up);
   COO_ATTACH(OE, oe, syslog);
   COO_ATTACH(OE, oe, p);
+  COO_ATTACH(OE, oe, number_of_threads);
+  COO_ATTACH(OE, oe, get_thread_id);
 
   oe->impl = simpleOE;
   simpleOE->lock = oe->newmutex();

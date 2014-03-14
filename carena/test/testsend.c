@@ -313,6 +313,7 @@ int main(int c, char **a) {
 
   peer = arena->get_peer(0);
 
+  printf("Got client ... \n");
   for(i = 0;i < s->ldata;++i) {
     s->data[i] = 0x42;
   }
@@ -343,6 +344,7 @@ int main(int c, char **a) {
 
   printf(oe->get_version());printf("\n");
 
-
+  printf("Press any key to exit\n");
+  getchar();
   return 0;
 }

@@ -162,6 +162,16 @@ typedef struct _operating_environment_ {
    */
   void* (*jointhread)(ThreadID tid);
 
+  /*!
+   * Return the number of active threads.
+   */
+  uint (*number_of_threads)(void);
+
+  /*!
+   * Return id of the calling thread.
+   */
+  ThreadID (*get_thread_id)(void);
+
   // ------------------------------------------------------------
   // Locking
   // ------------------------------------------------------------

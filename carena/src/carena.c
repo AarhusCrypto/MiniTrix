@@ -198,12 +198,13 @@ COO_DEF_RET_ARGS(MpcPeer, CAR, receive, Data data;, data) {
   uint ldata = 0;
   Data d = 0;
 
-  CHECK_POINT_S(__FUNCTION__);
+
   if (!data) { 
     osal_sprintf(c.msg,"CArena receive, bad input data is null");
     return c;
   }
-  
+
+  CHECK_POINT_S(__FUNCTION__);  
   while(ldata < data->ldata) {
     Data chunk = 0;
     if (peer_i->drem != 0) {
@@ -242,7 +243,6 @@ COO_DEF_RET_ARGS(MpcPeer, CAR, receive, Data data;, data) {
       RETERR("Shutting down or out of memory", NO_MEM);
     }
   }
-
   CHECK_POINT_E(__FUNCTION__);
 
   return c;
@@ -599,19 +599,21 @@ static void * carena_listener_thread(void * a) {
     char mm[128] = {0};
     uint peer_id = 0;
     MpcPeer peer = 0;
+    uint client_fd = 0;
     arena_i->oe->unlock(arena_i->listen_ready);
-    uint client_fd = arena_i->oe->accept(arena_i->server_fd);
+    oe->yieldthread();
+
+    client_fd = arena_i->oe->accept(arena_i->server_fd);
     if (!client_fd) {
       arena_i->oe->p("Listening for clients failed");
       arena_i->running = 0;
       return 0;
     }
-    printf("CLIENT %u\n",client_fd);
+
     peer_id = read_int(oe, client_fd);
     if (peer_id == 1024) {
       arena_i->oe->p("Client joining");
       peer = MpcPeerImpl_new(arena_i->oe,client_fd,0,0);
-
       arena_i->oe->lock(arena_i->lock);
       peer_id = arena_i->peers->size();
       arena_i->peers->add_element(peer);
@@ -626,7 +628,9 @@ static void * carena_listener_thread(void * a) {
       MpcPeerImpl peer_i = 0;
       osal_sprintf(mm,"incoming id was %u",peer_id);
       oe->p(mm);
+      oe->lock(arena_i->lock);
       peer = arena_i->peers->get_element(peer_id);
+      oe->unlock(arena_i->lock);
       if (peer == 0) {
         oe->p("Out Stream from client not registered...");
         close(client_fd);
