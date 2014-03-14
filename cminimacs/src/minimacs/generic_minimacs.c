@@ -831,8 +831,8 @@ COO_DEF_RET_ARGS(MiniMacs, MR, invite, uint count; uint port;, count, port) {
     char m[64] = {0};
 
     i2b(gmm->myid, my_id_raw->data);
-    peer->send(my_id_raw);
     peer->receive(peer_id_d);
+    peer->send(my_id_raw);
     peer_id = b2i(peer_id_d->data);
     osal_sprintf(m,"registering peer with id %u.",peer_id);
     oe->p(m);
@@ -861,13 +861,15 @@ COO_DEF_NORET_ARGS(ConnectionListener, client_connected, MpcPeer peer;,peer) {
   Data raw_id = 0;
   Data my_id_raw = Data_new(oe,4);
   uint other_id = 0;
-  oe->p("Registering new peer");
+  oe->p("Registering new peer []");
   map = gmm->peer_map;
   raw_id = Data_new(oe, 4);
   if (!raw_id) return;
   i2b(gmm->myid, my_id_raw->data);
 
+  oe->p("Sending my id");
   peer->send(my_id_raw);
+  oe->p("Receiving my id");
   peer->receive(raw_id);
   
   other_id = b2i(raw_id->data);
@@ -876,7 +878,7 @@ COO_DEF_NORET_ARGS(ConnectionListener, client_connected, MpcPeer peer;,peer) {
     oe->p("Peer already registered :(.");
     return;
   }
-
+  oe->p("Registering peer");
   map->put( (void*)(ull)other_id, peer );
   {
     char m[64] = {0};
@@ -937,7 +939,6 @@ COO_DEF_RET_ARGS(MiniMacs, MR, connect,  char * ip; uint port;, ip, port) {
   arena->add_conn_listener(cl);
   car = arena->connect(ip,port);
   if (car.rc != 0) MR_RET_FAIL(oe,car.msg);
-  wcl->wait_for(1);
 
   MR_RET_OK;
 }}

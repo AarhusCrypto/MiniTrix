@@ -12,7 +12,7 @@ int main(int c, char **a) {
   printf("Aarhus University - Multiparty Computation AES\n");
   printf("All rights reserved (C)\n");
 
-  if (c == 2 || c == 3) {
+  if (c == 2 || c == 3 || c == 4) {
     MiniMacsRep * singles = 0;
     MiniMacsRep ** pairs = 0;
     MiniMacsTripleRep * triples;
@@ -23,13 +23,9 @@ int main(int c, char **a) {
     CArena arena = 0;
     OE oe = 0;
     uint myid = 0;
-    char * ipaddr = 0;
+    char * ipaddr = "any";
+    uint port = 2020;
 
-    if (c == 3) {
-      ipaddr = a[2];
-    } else {
-      ipaddr = "127.0.0.1";
-    }
 
     if (c == 1) {
       printf("caes <raw_material> [<client>] \n");
@@ -60,12 +56,28 @@ int main(int c, char **a) {
     myid = minimacs_rep_whoami(singles[0]);
     if(myid == 0) {
       uint no = minimacs_rep_no_players(singles[0]);
+
+      if (c >= 3) {
+        port = atoi(a[2]);
+      }
+
       if (no == 0) return -1;
       no--;
-      printf("Waiting for %u players to connect on %s:2020.\n",no,ipaddr);
-      comp->invite(no,2020);
+      printf("Waiting for %u players to connect on %s:%u.\n",no,ipaddr,port);
+      comp->invite(no,port);
     } else {
-      comp->connect(ipaddr,2020);
+
+    if (c >= 3) {
+      ipaddr = a[2];
+    } else {
+      ipaddr = "127.0.0.1";
+    }
+
+    if (c >= 4) {
+      port = atoi(a[3]);
+    }
+
+      comp->connect(ipaddr,port);
     }
     
     {
