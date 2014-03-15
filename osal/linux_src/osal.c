@@ -397,9 +397,10 @@ COO_DEF_RET_ARGS(OE, ThreadID, newthread, ThreadFunction tf; void * args;, tf, a
   ThreadID tid = 0;
 
   if (pthread_create(t, 0, tf, args) == 0) {
+    pthread_t tt = pthread_self();
     this->lock(soe->lock);
+    tid = soe->threads->size()+1;
     soe->threads->add_element(t);
-    tid = soe->threads->size();
     this->unlock(soe->lock);
     return tid;
   }
@@ -517,16 +518,21 @@ COO_DEF_RET_NOARGS(OE, char *, get_version) {
 COO_DCL(OE, ThreadID, get_thread_id);
 COO_DEF_RET_NOARGS(OE,ThreadID,get_thread_id) {
   SimpleOE simpleOE = (SimpleOE)this->impl;
-  pthread_t t = pthread_self();
   uint i = 0;
+  pthread_t __t = pthread_self();
+  this->lock(simpleOE->lock);
   for(i = 0;i < simpleOE->threads->size();++i) {
-    pthread_t * cur = simpleOE->threads->get_element(i);
+    pthread_t * cur = (pthread_t *)simpleOE->threads->get_element(i);
     if (cur) {
-      if (*cur == t) {
+      if (pthread_equal(*cur,t)) {
+        this->unlock(simpleOE->lock);
         return i+1;
       }
+    } else {
+      printf("NULL :(\n");
     }
   }
+  this->unlock(simpleOE->lock);
   return 0; // the main thread
 }}
 

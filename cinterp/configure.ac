@@ -1,9 +1,10 @@
 define([svnversion], esyscmd([sh -c "svnversion|tr -d '\n'"]))dnl
+define([buildtime], esyscmd([sh -c "date +\"build:%Y-%m-%d %H:%M:%S\"|tr -d '\n'"]))dnl
 AC_INIT([CInterp],[0.1])
 # Safety check that this configure is in the right position
 AC_DEFINE(SVN_REVISION, "svnversion", [SVN Revision])
-AC_DEFINE(CODENAME, "Heimdal", [CODE Name])
-AC_DEFINE(TIMEDATE, "timedate", [TIME of Build])
+AC_DEFINE(CODENAME, "Yggdrasil", [CODE Name])
+AC_DEFINE(TIMEDATE, "buildtime", [TIME of Build])
 AC_CONFIG_SRCDIR([src/main.c])
 AM_INIT_AUTOMAKE
 AC_PREREQ(2.12)

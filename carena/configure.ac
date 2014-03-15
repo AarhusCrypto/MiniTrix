@@ -2,7 +2,7 @@ define([svnversion], esyscmd([sh -c "svnversion|tr -d '\n'"]))dnl
 define([timedate], esyscmd([sh -c "date"]))dnl
 AC_INIT([Arena],[0.1.svnversion])
 AC_DEFINE(SVN_REVISION, "svnversion", [SVN Revision])
-AC_DEFINE(CODENAME, "Sepiolida", [CODE Name])
+AC_DEFINE(CODENAME, "Heimdal", [CODE Name])
 # Safety check that this configure is in the right position
 AC_CONFIG_SRCDIR([src/carena.c])
 AM_INIT_AUTOMAKE

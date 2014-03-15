@@ -114,8 +114,8 @@ COO_DEF_NORET_NOARGS(Measurement, measure) {
 Measurement Measurements_get(char * name) {
   MeasurementImpl topi = 0 ;
   Measurement m = 0;
-  char _name[120] = {0};
-  osal_sprintf(_name,"[%u] %s", pthread_self(), name);
+  //  char _name[120] = {0};
+  //osal_sprintf(_name,"[%u] %s", _oe_->get_thread_id(),name);
   if (_oe_ && top) {
     _oe_->lock(lock);
     topi = (MeasurementImpl)top->impl;

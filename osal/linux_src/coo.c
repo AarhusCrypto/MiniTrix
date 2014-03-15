@@ -134,11 +134,11 @@ static void special_free_impl(void * memory)
       m <= (unsigned long)(special_mem+idx)) // we own that pointer ...
     {
       if (m % STUB_SIZE == 0) // and it is aligned 
-	{
-	  byte r[4] = {0};
-	  i2b((unsigned long)freelist,memory);
-	  freelist =  memory;
-	}
+        {
+          byte r[4] = {0};
+          i2b((unsigned long)freelist,memory);
+          freelist =  memory;
+        }
     }
 }
 

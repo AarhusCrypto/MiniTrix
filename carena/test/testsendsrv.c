@@ -190,8 +190,6 @@ int main(int c, char **a) {
 
   printf("Running scenario %u\n", scenario);
 
-  arena = CArena_new(oe);
-
   printf("Accepting client on port: %u\n",port);
   if (arena->listen_wait(1,port).rc == 0) {
     
@@ -203,6 +201,7 @@ int main(int c, char **a) {
     
     PrintMeasurements(oe);
   }
+
   printf("Press any key to terminate\n");
   getchar();
 
