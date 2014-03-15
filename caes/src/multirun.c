@@ -32,7 +32,7 @@ int main(int c, char **a) {
   uint count = 0, i = 0;
 
   init_polynomial();
-  if (c < 2 || c > 3) {
+  if (c < 2 || c > 4) {
     printf("multirun <material> <count> [< server >]\n");
     return -1;
   }
