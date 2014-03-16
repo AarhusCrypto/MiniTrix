@@ -28,27 +28,18 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-# Created: 2013-07-25
+# Created: 2013-12-20
 
 # Author: Rasmus Winther Lauritsen, rwl@cs.au.dk
 
 # Changes: 
-# 2013-07-25 11:54: Initial version created
-#
-############################################################
+# 2013-12-20 06:41: Data structures module started
+# 2013-07-25 12:28: Initial version created
 
-# Global definitions that can be included with
-# include $(top_srcdir)/part_template.am
-#
-# Replace part_template.am with <your_part_name>.am if you like :)
-# Notice now we are in the world of AUTOMAKE and thus this file will
-# have to redefine variables that are also present in Makefile, the
-# hope is only a few variables needs to be redefined.
-#
-#
-BUILDDIR=$(top_srcdir)/build
-DEPS_INCLUDE=-I$(top_srcdir)/headers -I$(top_srcdir)/deps/headers 
-CARENA_LIB=$(top_srcdir)/build/src/libcarena.a -L$(top_srcdir)/deps -losal -lds -lencoding -lpthread
-AM_CFLAGS=$(DEPS_INCLUDE)  -fno-omit-frame-pointer  
-#-Werror -Wall 
+# Example creating one binary executable from main.c
+
+include $(top_srcdir)/tinyot.am
+
+lib_LIBRARIES = libtinyot.a
+libtinyot_a_SOURCES = tinyot.c
 

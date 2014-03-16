@@ -62,6 +62,6 @@ void Cmaphore_destroy(Cmaphore * c) {
   oe->destroymutex(&s->lock);
   zeromem(s, sizeof(*s));
   *c = 0;
-
+  oe->putmem(s);
 }
 

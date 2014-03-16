@@ -9,7 +9,7 @@
 
 
 #define SIZE 2048
-#define COUNT 1024
+#define COUNT 64
 
 
 static 
@@ -195,8 +195,6 @@ int main(int c, char **a) {
 
   printf("Running scenario %u\n", scenario);
 
-  arena = CArena_new(oe);
- 
   if (arena->connect(ip,port).rc == 0) {
     
     peer = arena->get_peer(0);

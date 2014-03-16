@@ -47,6 +47,10 @@
 #include <unistd.h>
 #include <time.h>
 #include <encoding/int.h>
+
+
+#include <errno.h>
+
 static
 unsigned long long _nano_time() {
   struct timespec tspec = {0};
@@ -124,6 +128,13 @@ typedef struct _mpcpeer_impl_ {
    * for.
    */
   Data drem;
+
+  /*
+   * Initially locked by the arena until the peer is completely
+   * initialised.
+   */
+  MUTEX receive_lock;
+  MUTEX send_lock;
 
 } * MpcPeerImpl;
 
@@ -271,6 +282,8 @@ static void * peer_rec_function(void * a) {
 
   mei = (MpcPeerImpl)me->impl;
   oe = mei->oe;
+
+  oe->lock(mei->receive_lock);
   while(mei->running) {
     uint sofar = 0;
     byte len[4] = {0};
@@ -282,6 +295,9 @@ static void * peer_rec_function(void * a) {
 
     //    if (_c_) waste = _nano_time();
     rc = mei->oe->read(mei->fd_in,len,&lenlen);
+    
+    if (mei->die) goto out;
+
     //    if (_c_) printf("Time returning read %llu\n",_nano_time()-waste);
     if (lenlen <= 3) { 
       continue;
@@ -289,6 +305,7 @@ static void * peer_rec_function(void * a) {
 
     if (rc != RC_OK) {
       oe->p("Failed to read leaving");
+      oe->unlock(mei->receive_lock);
       return 0;
     }
 
@@ -332,14 +349,14 @@ static void * peer_rec_function(void * a) {
 
       // read_bytes will never be more than {buf->ldata} as we would
       // never ask for more. !! Invariant !!
-      start = _nano_time();
+
       rc = mei->oe->read(mei->fd_in, buf->data+sofar, &read_bytes);
-      tmp = (_nano_time()-start);
-      if (read_bytes == 0) waste += tmp;
+      //      printf("Die 2\n");
+      if (mei->die) goto out; // are we shutting down, then leave      
+
       if (rc == RC_OK) {
 
         // if we are shutting down better quit now !
-        if (mei->die) goto out; // are we shutting down, then leave
 
         // okay was anything read?
         if (read_bytes > 0) { // yes okay update sofar !
@@ -351,6 +368,7 @@ static void * peer_rec_function(void * a) {
         mei->oe->syslog(OSAL_LOGLEVEL_FATAL, 
                         "MpcPeer peer_rec_function failure to read."	\
                         " Peer will not receive anymore data.");
+        oe->unlock(mei->receive_lock);
         return 0;
       }
     } // while(1)
@@ -358,7 +376,8 @@ static void * peer_rec_function(void * a) {
   
   
  out:
-  mei->oe->p("Mpc Peer leaving receiver thread.\n");
+  oe->unlock(mei->receive_lock);
+  printf("Mpc Peer leaving receiver thread. fd_in=%u\n",mei->fd_in);
   return 0;
 }
 
@@ -371,8 +390,13 @@ static void * peer_snd_function(void * a) {
   
   byte len[4] = {0};
 
+  //  printf("Waiting for SEND LOCK\n");
+  mei->oe->lock(mei->send_lock);
+  //  printf("Sender thread ready fd_out=%u\n",mei->fd_out);
   while(mei->running) {
+    //    printf("Hanging on queue outgoing\n");
     Data item = (Data)mei->outgoing->get();
+    //    printf("Got item from outgoing\n");
     if (mei->die) goto out;
     if (item) {
       i2b(item->ldata,len);
@@ -392,6 +416,7 @@ static void * peer_snd_function(void * a) {
       while(sofar < lbuf && written >= 0) {
         written = mei->oe->write(mei->fd_out, buf, lbuf);
         sofar += written;
+        if (mei->die) goto out;
         //if (_c_) printf("[snd] sofar %u,%u \n",sofar,written);
       }
 
@@ -409,6 +434,7 @@ static void * peer_snd_function(void * a) {
     }
   }
  out:
+  mei->oe->unlock(mei->send_lock);
   mei->oe->p("Leaving sender thread");
   return 0;
 }
@@ -427,6 +453,8 @@ static void MpcPeerImpl_destroy( MpcPeer * peer ) {
   
   oe = peer_i->oe;
 
+  //  printf("Destroying peer %p\n",*peer);
+
   if (peer_i->fd_in) {
     char m[32] = {0};
     osal_sprintf(m,"Closing fd_in=%d", peer_i->fd_in);
@@ -436,7 +464,7 @@ static void MpcPeerImpl_destroy( MpcPeer * peer ) {
 
   if (peer_i->fd_out) {
     char m[32] = {0};
-    osal_sprintf(m,"Closing fd=%d", peer_i->fd_out);
+    osal_sprintf(m,"Closing fd_out=%d", peer_i->fd_out);
     oe->p(m);
     oe->close(peer_i->fd_out);
   }
@@ -445,10 +473,19 @@ static void MpcPeerImpl_destroy( MpcPeer * peer ) {
   BlkQueue_destroy( & (peer_i->outgoing) );
   BlkQueue_destroy( & (peer_i->incoming) );
 
+  oe->destroymutex(&peer_i->send_lock);
+  oe->destroymutex(&peer_i->receive_lock);
+
   oe->jointhread(peer_i->receiver);
+  //  printf("Done joining receive thread\n");
 
+  //  printf("Joining sender thread\n");
   oe->jointhread(peer_i->sender);
+  //  printf("Done joining sender thread\n");
 
+
+  oe->putmem(peer_i);
+  oe->putmem(*peer);
 }
 
 COO_DCL(MpcPeer, bool, has_data)
@@ -506,10 +543,16 @@ static MpcPeer MpcPeerImpl_new(OE oe, uint fd_in, char * ip, uint port) {
   peer_i->fd_in = fd_in;
   peer_i->running = 1;
   peer_i->die = 0;
-  peer_i->incoming = BlkQueue_new(oe,256);
-  peer_i->outgoing = BlkQueue_new(oe,256);
+  peer_i->incoming = BlkQueue_new(oe,1024);
+  peer_i->outgoing = BlkQueue_new(oe,1024);
+  peer_i->send_lock = oe->newmutex();
+  peer_i->receive_lock = oe->newmutex();
+  oe->lock(peer_i->send_lock);
+  oe->lock(peer_i->receive_lock);
   peer_i->receiver = oe->newthread( peer_rec_function, peer );
   peer_i->sender = oe->newthread( peer_snd_function, peer );
+
+  
 
   COO_ATTACH(MpcPeer, peer, send);
   COO_ATTACH(MpcPeer, peer, receive);
@@ -527,15 +570,26 @@ static MpcPeer MpcPeerImpl_new(OE oe, uint fd_in, char * ip, uint port) {
 static 
 void send_int(OE oe, uint fd, int i) {
   byte d[4] = {0};
+  uint sofar = 0;
   i2b(i,d);
-  oe->write(fd,d,4);
+  if ( oe->write(fd,d,4) != RC_OK) {
+    oe->p("Write failed sending int");
+  }
 }
 
 static 
 int read_int(OE oe, uint fd) {
   byte d[4] = {0};
   uint read = 4;
-  oe->read(fd, d, &read);
+  uint sofar = 0;
+  while(sofar < 4) {
+    if (oe->read(fd, d, &read) != RC_OK) {
+      oe->p("Failure doing read int");
+      return 0;
+    }
+    sofar += read;
+    read = 4 - sofar;
+  }
   return b2i(d);
 }
 
@@ -579,6 +633,8 @@ COO_DEF_RET_ARGS(CArena, CAR, connect,  char * hostname; uint port;, hostname, p
   oe->lock(arena_i->lock);
   arena_i->peers->add_element(peer);
   oe->unlock(arena_i->lock);
+  oe->unlock(peer_i->send_lock);
+  oe->unlock(peer_i->receive_lock);
   for(i = 0;i < arena_i->conn_obs->size();++i) {
     ConnectionListener cl = (ConnectionListener)arena_i->conn_obs->get_element(i);
     if (cl) {
@@ -613,14 +669,14 @@ static void * carena_listener_thread(void * a) {
     peer_id = read_int(oe, client_fd);
     if (peer_id == 1024) {
       arena_i->oe->p("Client joining");
-      peer = MpcPeerImpl_new(arena_i->oe,client_fd,0,0);
       arena_i->oe->lock(arena_i->lock);
       peer_id = arena_i->peers->size();
+      send_int(oe,client_fd,peer_id);
+      peer = MpcPeerImpl_new(arena_i->oe,client_fd,0,0);
       arena_i->peers->add_element(peer);
       arena_i->oe->unlock(arena_i->lock);
       osal_sprintf(mm,"added client with id %u",peer_id);
       oe->p(mm);
-      send_int(oe,client_fd,peer_id);
       continue;
     }
 
@@ -639,6 +695,8 @@ static void * carena_listener_thread(void * a) {
       peer_i = (MpcPeerImpl)peer->impl;
       peer_i->fd_out = client_fd;
       
+      oe->unlock(peer_i->send_lock);
+      oe->unlock(peer_i->receive_lock);
       for(i = 0;i < arena_i->conn_obs->size();++i) {
         ConnectionListener cur = (ConnectionListener)
           arena_i->conn_obs->get_element(i);
@@ -721,7 +779,6 @@ void DefaultConnectionListener_destroy(ConnectionListener * cl) {
   COO_DETACH( (*cl),client_disconnected);
   oe->destroymutex(&dcl->lock);
   oe->destroymutex(&dcl->hold);
-
   oe->putmem(dcl);
   oe->putmem(*cl);
 }             
@@ -740,16 +797,19 @@ COO_DEF_RET_ARGS(CArena, CAR, listen_wait, uint no; uint port;, no, port) {
   ConnectionListener cl = DefaultConnectionListener_new(oe,no);
   DefaultConnectionListener dcl = (DefaultConnectionListener)cl->impl;
 
+  if (no == 0) goto failure;
+
   this->add_conn_listener(cl);
 
-  this->listen(port);
+  c = this->listen(port);
+  if (c.rc != 0) goto failure;
 
   dcl->wait();
 
   this->rem_conn_listener(cl);
 
+ failure:
   DefaultConnectionListener_destroy(&cl);
-  
   return c;
 }}
 
@@ -823,10 +883,7 @@ void CArena_destroy( CArena * arena) {
   if (arena_i->worker) {
     oe->jointhread(arena_i->worker);
   }
-
-  if (arena_i->server_fd) {
-    oe->close(arena_i->server_fd);
-  }
+  //  printf("Done joining with worker\n");
 
   if (arena_i->peers) {
     uint i = 0;
@@ -838,6 +895,7 @@ void CArena_destroy( CArena * arena) {
     }
     SingleLinkedList_destroy( &arena_i->peers );
   }
+  //  printf("Done destroying peers\n");
 
   if (arena_i->conn_obs) {
     SingleLinkedList_destroy( &arena_i->conn_obs );
@@ -851,7 +909,6 @@ void CArena_destroy( CArena * arena) {
     oe->destroymutex(&arena_i->listen_ready);
   }
 
-  
   
   oe->putmem(arena_i);
   oe->putmem(*arena);

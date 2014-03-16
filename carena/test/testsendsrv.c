@@ -9,7 +9,7 @@
 #include <stats.h>
 
 #define SIZE 2048
-#define COUNT 1024
+#define COUNT 64
 
 
 static 
@@ -166,7 +166,7 @@ int main(int c, char **a) {
   Data s = Data_new(oe,SIZE);
   Data r = Data_new(oe,SIZE);
   ull start = 0;
-  uint port = 0;
+  uint port = 2020;
 
   if (s) {
     for(i = 0; i < SIZE;++i) {
@@ -176,12 +176,6 @@ int main(int c, char **a) {
 
   InitStats(oe);
 
-  if (c == 1) {
-    printf("testsendsrv <port>\n");
-    return -1;
-  }
-
-  port = atoi(a[1]);
 
   if (c == 3) {
     scenario = atoi(a[2]);
@@ -196,7 +190,9 @@ int main(int c, char **a) {
     MpcPeer peer = arena->get_peer(0);
 
     for(i = 0; i < COUNT; ++i) {
+      printf("s%8u",i);fflush(stdout);
       scenarios[scenario].srv(oe,peer,s,r);
+      printf("\b\b\b\b\b\b\b\b\b");
     }
     
     PrintMeasurements(oe);

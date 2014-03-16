@@ -1,6 +1,10 @@
 include $(top_srcdir)/carena.am
 
-bin_PROGRAMS = test tests gracefulshutdown testsend simpl	testsendsrv testsendcli
+bin_PROGRAMS = test tests gracefulshutdown testsend simpl	testsendsrv testsendcli threeway
+
+
+threeway_SOURCES = threeway.c
+threeway_LDADD = $(CARENA_LIB) -lrt
 
 testsendsrv_SOURCES = testsendsrv.c
 testsendsrv_LDADD = $(CARENA_LIB) -lrt

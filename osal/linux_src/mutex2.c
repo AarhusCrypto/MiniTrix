@@ -35,6 +35,7 @@ void __attribute__((optimize("O0"))) Mutex_lock( MUTEX m )
         : "r" (m)/* input */
         : /* clobber */
         );
+    usleep(0);
   }while(v);
 }
 
@@ -47,6 +48,7 @@ void Mutex_destroy( MUTEX m )
 {
   if (m) {
     *m = 0;
+    usleep(0);
     free(m); // free mutex
   }
 }

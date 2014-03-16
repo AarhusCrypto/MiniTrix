@@ -174,17 +174,19 @@ COO_DEF_RET_ARGS(OE, RC, write, uint fd; byte*buf;uint lbuf;,fd,buf,lbuf) {
     struct timeval t = {0};
     fd_set wfds = {0};
     FD_SET(os_fd, &wfds);
-    t.tv_usec = 10000;
-    while(select(os_fd+1, 0, &wfds, 0, &t) == 0);
+    t.tv_usec = 1000;
+    select(os_fd+1, 0, &wfds, 0, &t);
+      
     lastwrite = send(os_fd, buf+writesofar, lbuf-writesofar,0);
     if ( lastwrite == -1) {
       if (errno == EAGAIN) {
         lastwrite = 0;
         continue;
       } 
-      
-      return RC_FAIL;
-    }
+
+      this->p("[OSAL] write failed");
+      return 0;
+    } 
     writesofar += lastwrite;
   }
   //  printf("Send time: %llu\n",_nano_time()-start);
@@ -257,10 +259,8 @@ COO_DEF_RET_ARGS(OE, int, open , const char * name;, name) {
     }}
 
     {
-      /*
       uint flags = fcntl(server_fd, F_GETFL, 0);
       fcntl(server_fd, F_SETFL, flags | O_NONBLOCK  );
-      */
     }
 
     if (listen(server_fd, 20) != 0) {
@@ -339,16 +339,24 @@ void set_non_blocking(int fd) {
 
 
 
+
 COO_DCL(OE, int, accept, uint fd)
 COO_DEF_RET_ARGS(OE, int, accept, uint fd;,fd) {
   SimpleOE soe = (SimpleOE)this->impl;
   int os_fd = 0;
   int os_client_fd = 0;
   uint res = 0;
+  fd_set rd = {0};
+  struct timeval timeout = {0};
   os_fd = (int)(long long) soe->filedescriptors->get_element( fd-1 );
   if (fd > soe->filedescriptors->size()+1) return 0;
 
+  FD_ZERO(&rd);
+  FD_SET(os_fd, &rd);
+  timeout.tv_usec=1000;
+  
   while(1) {
+    select(os_fd+1,&rd,0,0,&timeout);
     os_client_fd = accept(os_fd,0,0);
     if (os_client_fd < 0) { 
       if (errno == EAGAIN) {
@@ -428,7 +436,7 @@ COO_DEF_RET_ARGS(OE, void *, jointhread, ThreadID tid;,tid) {
   if (t) {
     pthread_join(*t,&p);
     this->lock(soe->lock);
-    soe->threads->rem_element(tid-1);
+    //    soe->threads->rem_element(tid-1);
     this->unlock(soe->lock);
   } else {
     this->p("Auch ! Thread not found");

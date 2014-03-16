@@ -85,6 +85,12 @@ typedef struct _minimacs_ {
   uint (*get_id)();
 
   /*!
+   * When given raw material the number of players is determined. 
+   * 
+   */
+  uint (*get_no_players)(void);
+
+  /*!
    * After loaded with preprocessing material we can determine the
    * length of plaintext, return by this function. If no single are
    * available zero is returned.

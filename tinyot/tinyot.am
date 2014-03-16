@@ -47,8 +47,7 @@
 #
 #
 BUILDDIR=$(top_srcdir)/build
-DEPS_INCLUDE=-I$(top_srcdir)/headers -I$(top_srcdir)/deps/headers 
-CARENA_LIB=$(top_srcdir)/build/src/libcarena.a -L$(top_srcdir)/deps -losal -lds -lencoding -lpthread
-AM_CFLAGS=$(DEPS_INCLUDE)  -fno-omit-frame-pointer  
-#-Werror -Wall 
+DEPS_INCLUDE=-I$(top_srcdir)/headers -I$(top_srcdir)/deps/headers
+LIB_DS=-L$(top_srcdir)/build/src -lds -L$(top_srcdir)/deps -losal -lpthread
+AM_CFLAGS=$(DEPS_INCLUDE) -I$(top_srcdir)/headers -Werror -Wall
 

@@ -208,8 +208,7 @@ COO_DEF_RET_ARGS(MiniMacs,MR, mul, uint dst; uint l; uint r;,dst,l,r) {
     MR_RET_OK;
   }
   */
-  oe->p("mul");
-
+  
   star_pair = gmm->next_pair();
   if (!star_pair) MUL_FAIL(oe,"No more pairs (%d taken).",gmm->idx_pair);
 
@@ -972,6 +971,18 @@ COO_DEF_RET_NOARGS(MiniMacs, uint, get_lcode) {
 }}
 
 
+
+COO_DCL(MiniMacs, uint, get_no_players)
+COO_DEF_RET_NOARGS(MiniMacs, uint, get_no_players) {
+  GenericMiniMacs gmm = (GenericMiniMacs)this->impl;
+  if (gmm->lsingles > 0) {
+    return gmm->singles[0]->lmac;
+  }
+  return 0;
+}}
+
+
+
 static uint uint_hfn(void * n) {
   uint un = (uint)(ull)n;
   return 101 * un + 1009;
@@ -1043,6 +1054,7 @@ MiniMacs GenericMiniMacs_New(OE oe, CArena arena, MiniMacsEnc encoder,
   COO_ATTACH(MiniMacs, res, get_id);
   COO_ATTACH(MiniMacs, res, get_ltext);
   COO_ATTACH(MiniMacs, res, get_lcode);
+  COO_ATTACH(MiniMacs, res, get_no_players);
 
   oe->p("------------------------------------------------------------");
   oe->p("   " PACKAGE_STRING " - " CODENAME);

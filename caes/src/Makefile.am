@@ -36,7 +36,10 @@
 # 2013-07-25 12:28: Initial version created
 
 include $(top_srcdir)/caes.am
-bin_PROGRAMS = caes caesfft caessym multirun
+bin_PROGRAMS = caes caesfft caessym multirun manyrun
+
+manyrun_SOURCES = manyrun.c caes.c
+manyrun_LDADD = $(DEPS_LIB) -lrt
 
 multirun_SOURCES = multirun.c caes.c
 multirun_LDADD = $(DEPS_LIB) -lrt	
