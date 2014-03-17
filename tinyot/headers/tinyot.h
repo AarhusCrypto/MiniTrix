@@ -36,6 +36,10 @@ typedef struct {
 
 typedef struct _tinyot_ {
   
+  void (*invite)(uint port);
+
+  void (*connect)(char * ip, uint port);
+
   void (*init_heap)(uint size);
 
   tinyotshare * (*heap_get)(hptr addr);
@@ -46,11 +50,11 @@ typedef struct _tinyot_ {
   
   void (*ONE)(hptr addr);
   
-  void (*XOR)(hptr res, hptr left, hptr right);
+  void (*XOR)(hptr res, hptr left, hptr right, uint _);
 
   void (*AND)(hptr res, hptr left, hptr right, uint pos, uint no);
 
-  void (*end_layer_and)(uint width);
+  void (*end_layer_AND)(uint width);
 
   //
   void (*begin_layer_public_common_store)(uint len);
@@ -65,15 +69,26 @@ typedef struct _tinyot_ {
   //
   void (*max_width_public_common_store)(uint len);
   //
-  void (*private_common_load)(tinotshare * in, uint res, uint _);
+  void (*private_common_load)(tinyotshare * in, uint res, uint _);
   // 
   void (*public_common_load)(byte val, uint res, uint _);
   //
-  void (*end_layer_AND)(uint width);
-
+  void (*end_layer_INV)(uint width);
+  void (*begin_layer_XOR)(uint _);
+  void (*end_layer_XOR)(uint _);
+  void (*begin_layer_INV)(uint width);
+  void (*begin_layer_AND)(uint width);
+  void (*max_width_XOR)(uint width);
+  void (*max_width_INV)(uint width);
+  void (*max_width_private_common_load)(uint w);
+  void (*max_width_public_common_load)(uint w);
+  void (*end_layer_private_common_load)(uint w);
+  void (*begin_layer_public_common_load)(uint w);
+  void (*begin_layer_private_common_load)(uint w);
+  void (*end_layer_public_common_load)(uint w);
   
 
-  void (*INV)(hptr res, hptr op);
+  void (*INV)(hptr res, hptr op, uint _);
 
   void * impl;
   

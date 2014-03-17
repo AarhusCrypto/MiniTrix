@@ -43,3 +43,10 @@ include $(top_srcdir)/tinyot.am
 lib_LIBRARIES = libtinyot.a
 libtinyot_a_SOURCES = tinyot.c
 
+bin_PROGRAMS = alice bob
+
+alice_SOURCES = alice.c aes.c
+alice_LDADD = $(LIB_TINYOT) -lrt 
+
+bob_SOURCES = bob.c aes.c
+bob_LDADD = $(LIB_TINYOT) -lrt 
