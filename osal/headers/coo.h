@@ -1,7 +1,8 @@
 #ifndef COO_H
 #define COO_H
 #include <memory.h>
-#define STUB_SIZE 360
+#define STUB_SIZE 512
+
 #include<stdio.h>
 /* COO ATTACH
  *
