@@ -37,8 +37,13 @@ int main(int c, char **args) {
   byte ciphertext[128] = {0};
   tinyotshare ** key = oe->getmem(sizeof(tinyotshare *)*128);
   int i = 0;
+  char * ip = "127.0.0.1";
 
-  bob->connect("127.0.0.1",2020);
+  if (c >= 2) {
+    ip=args[1];
+  }
+
+  bob->connect(ip,2020);
 
    
   for (i=0; i<128; i++) {

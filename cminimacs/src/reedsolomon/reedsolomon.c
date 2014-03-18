@@ -403,6 +403,7 @@ polynomial * minimacs_encode(polynomial * msg, uint lmsg, uint lcode) {
       CHECK_POINT_S("[RSCODE] Validation Matrix Schur Transform");
       r =  minimacs_validate_fast(mmme->big_encoder,code,matrix_getheight(mmme->big_encoder),  lmsg );
       CHECK_POINT_E("[RSCODE] Validation Matrix Schur Transform");
+      return r;
     }
   }}
 

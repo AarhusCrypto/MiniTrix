@@ -331,7 +331,7 @@ int main(int c, char **a) {
     }
     ms = (_nano_time() - start)/1000000L;
  
-    printf("Communication Complexity: %u bytes in total, %u ms %u bytes/ms\n", COUNT*SIZE, ms, (ms > 0 ? (COUNT*SIZE)/ms : 0));
+    printf("Communication Complexity: %u bytes in total, %u ms %u bits/s\n", COUNT*SIZE, ms, (ms > 0 ? (COUNT*SIZE*8000)/ms : 0));
  
   }
 

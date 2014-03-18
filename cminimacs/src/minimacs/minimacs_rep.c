@@ -613,28 +613,43 @@ MiniMacsRep minimacs_rep_add_const_fast(MiniMacsEnc encoder, MiniMacsRep rep, by
     goto failure;
   }
 
-  if (lc > rep->lval) {
-    goto failure;
-  }
-
   if (rep->ldx_codeword != rep->lcodeword) {
     goto failure;
   }
 
   //  CHECK_POINT_S("AddConstFast");
 
-  // extend c to length of rep->lval
-  tmp = (byte*)malloc(rep->lval);
-  if (!tmp) goto failure;
-  memset(tmp,0,rep->lval);
-
-  memcpy(tmp,c,lc);
+  if (lc > rep->lval && lc != rep->lcodeword) {
+    printf("ERROR: Invalid length to encode %u.\n",lc);
+    goto failure;
+  }
+  
+  if (lc <= rep->lval) {
+    // extend c to length of rep->lval
+    tmp = (byte*)malloc(rep->lval);
+    if (!tmp) goto failure;
+    memset(tmp,0,rep->lval);
+    
+    memcpy(tmp,c,lc);
+    
+    //    printf("CODEWORD add const lc=%u\n",lc);
 
   // compute C(u), the constant as a codeword 
-  MEASURE_FN(encoded_c = encoder->encode(tmp,rep->lval));
-  free(tmp);tmp=0;
-  if (!encoded_c) { 
-    goto failure;
+    printf(" -- encoding add -- (%u)\n",lc);
+    MEASURE_FN(encoded_c = encoder->encode(tmp,rep->lval));
+    free(tmp);tmp=0;
+    if (!encoded_c) { 
+      goto failure;
+    }
+  } else {
+    if (encoder->validate(c,rep->lval) != True) {
+      printf("ERROR: Add const given length of codeword but code is invalid. (lval=%u)\n", rep->lval);
+      goto failure;
+    }
+
+    encoded_c = malloc(rep->lcodeword);
+    memset(encoded_c, 0, rep->lcodeword);
+    memcpy(encoded_c, c, lc);
   }
   lencoded_c = rep->lcodeword;
 
@@ -771,30 +786,45 @@ MiniMacsRep minimacs_rep_mul_const_fast(MiniMacsEnc encoder, MiniMacsRep rep, by
     goto failure;
   }
 
+  /*
   if (rep->lval < lc) {
     goto failure;
   }
+  */
+
+  if (lc > rep->lval && lc != rep->lcodeword) {
+    printf("ERROR: Invalid length to encode %u.\n",lc);
+    goto failure;
+  }
+
 
   r = (MiniMacsRep)malloc(sizeof(*r));
   if (!r) { 
     goto failure;
   }
-  memset(r,1,sizeof(*r));
+  memset(r,0,sizeof(*r));
   
-  if (lc < rep->lval) {
+  if (lc <= rep->lval) {
     tmp =(byte*)malloc(rep->lval);
     if (!tmp) goto failure;
     memset(tmp,0,rep->lval);
     memcpy(tmp,c,lc);
+
+    // encoded c
+    printf(" -- encoding mul -- (%u)\n",lc);
+    MEASURE_FN(encoded_c = encoder->encode(tmp,rep->lval));
+    if (!encoded_c) {
+      goto failure;
+    }
   } else {
-    tmp = c;
-  }
+    if (encoder->validate(c, rep->lval) != True) {
+      printf("ERROR: Mul const given codeword length but invalid code. lval=%u\n",rep->lval);
+      goto failure;
+    }
 
-
-  // encoded c
-  MEASURE_FN(encoded_c = encoder->encode(tmp,rep->lval));
-  if (!encoded_c) {
-    goto failure;
+    encoded_c = malloc(rep->lcodeword);
+    memset(encoded_c,0,rep->lcodeword);
+    memcpy(encoded_c,c,lc);
   }
   
   // TODO(rwl): This might have been an early bug !

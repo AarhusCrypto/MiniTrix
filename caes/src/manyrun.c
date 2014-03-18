@@ -16,7 +16,7 @@ unsigned long long _nano_time() {
 
 
 static 
-int run(char * material, char * ip, uint count, OE oe, MiniMacs mm) {
+int run(char * material, char * ip, OE oe, MiniMacs mm) {
   uint no_players = mm->get_no_players();
   uint myid = mm->get_id();
   uint id = 0;
@@ -29,7 +29,7 @@ int run(char * material, char * ip, uint count, OE oe, MiniMacs mm) {
     mm->invite(no_players-(myid+1),2020+100*myid);
   }
 
-  for(id = 0;id < no_players;++id) {
+  for(id = 0;id < myid;++id) {
     printf("connecting to peer at %s:%u\n",ip,2020+100*id);
     mm->connect(ip,2020+100*id);
   }
@@ -48,25 +48,21 @@ int run(char * material, char * ip, uint count, OE oe, MiniMacs mm) {
 int main(int c, char **a) {
   char * material = 0;
   char * ip = "127.0.0.1";
-  uint count = 0, i = 0;
+  uint  i = 0;
   OE oe = OperatingEnvironment_LinuxNew();
   MiniMacs mm = 0;
 
   init_polynomial();
   if (c < 2 || c > 4) {
-    printf("multirun <material> <count> [< server >]\n");
+    printf("multirun <material> [< server >]\n");
     return -1;
   }
 
   if ( c >= 2 ) {
     material = a[1];
   }
-
+ 
   if (c >= 3) {
-    count = atoi(a[2]);
-  }
-  
-  if (c >= 4) {
     ip =a[3];
   }
 
@@ -74,13 +70,6 @@ int main(int c, char **a) {
   printf("Multirun CAES\n");
   printf("material taken from: %s\n",material);
   printf("ip: %s\n", ip);
-  printf("count: %u\n",count);
-
-  for( i = 0; i < count; ++i) {
-    uint pid;
-    pid = fork();
-    if (pid != 0) {
-      return run(material,ip,i,oe,mm);
-    }
-  }
+  
+  return run(material,ip,oe,mm);
 }
