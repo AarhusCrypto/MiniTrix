@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <coo.h>
+#include <time.h>
 
 MUTEX lock;
 Map clients;
@@ -66,21 +67,49 @@ int compare_key_fn(void * a, void * b) {
   return ka->pid > kb->pid ? 1 : (ka->pid < kb->pid ? -1 : 0);
 }
 
+static
+unsigned long long _nano_time() {
+  struct timespec tspec = {0};
+  if (clock_gettime(CLOCK_REALTIME,&tspec) == 0) {
+    return 1000000000L*tspec.tv_sec + tspec.tv_nsec;
+  } else {
+    return 0;
+  }
+}
+
 static 
 void * handle_client(void  * a) {
   CArg arg = (CArg)a;
   MpcPeer peer = arg->peer;
   OE oe = arg->oe;
-  Data in = Data_new(oe, 4);
+  Data in = Data_new(oe, 1024);
   uint pid = 0;
+  Key key = oe->getmem(sizeof(*key));
+  char m[128] = {0};
+  ull start = 0, end = 0;
 
   peer->receive(in);
   pid = b2i(in->data);
+  start = _nano_time();
 
+  osal_sprintf(m,"[%s %u] Started at %llu\n",peer->get_ip(),pid, start);
   oe->lock(lock);
-  //  clients->put(
+  oe->p(m);
+  oe->unlock(lock);
+
+  peer->receive(in);
+  pid = b2i(in->data);
+  end = _nano_time();
+
+  memset(m,0,sizeof(m));
+  osal_sprintf(m,"[%s %u] Ended at %llu duration %llu\n",
+               peer->get_ip(),pid,end,end-start);
+  oe->lock(lock);
+  oe->p(m);
+  oe->unlock(lock);
 
   oe->putmem(a);
+  return 0;
 }
 
 COO_DCL(ConnectionListener, void, client_connected, MpcPeer peer);
@@ -110,7 +139,11 @@ ConnectionListener CL_new(OE oe) {
 int main(int c, char **a) {
   OE oe = OperatingEnvironment_LinuxNew();
   CArena arena = CArena_new(oe);
+  ConnectionListener cl = CL_new(oe);
+  lock = oe->newmutex();
   clients = HashMap_new(oe, hashcode_key_fh, compare_key_fn, 8);
+
+  arena->add_conn_listener(cl);
 
   printf("MiniTrix Monitor version 0.1\n");
 
@@ -118,7 +151,7 @@ int main(int c, char **a) {
     printf("Monitor active\n"); 
   }
 
-  printf("Press any key to terminate.");
+  printf("Press any key to terminate.\n");
   getchar();
 
   CArena_destroy(&arena);

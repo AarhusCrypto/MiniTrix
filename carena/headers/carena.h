@@ -104,6 +104,8 @@ typedef struct _computation_listener_ {
  * The CArena.
  */
 typedef struct _carena_ {
+
+  void (*disconnect)(uint peerid);
   /*!
    * Connect to peer at {hostname} on port {port}.
    */

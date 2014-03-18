@@ -119,7 +119,7 @@ COO_DEF_RET_ARGS(OE, RC, read, uint fd;byte *buf;uint * lbuf;, fd, buf, lbuf ) {
     struct timeval timeout = {0};
     FD_ZERO(&read_set);
     timeout.tv_sec = 0;
-    timeout.tv_usec = 10000;
+    timeout.tv_usec = 100;
     FD_SET(os_fd, &read_set);
     if (select(os_fd+1, &read_set, 0,0,&timeout) <= 0) { 
       *lbuf = 0;

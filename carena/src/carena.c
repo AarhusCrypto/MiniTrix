@@ -573,7 +573,7 @@ void send_int(OE oe, uint fd, int i) {
   uint sofar = 0;
   i2b(i,d);
   if ( oe->write(fd,d,4) != RC_OK) {
-    oe->p("Write failed sending int");
+    //    oe->p("Write failed sending int");
   }
 }
 
@@ -668,7 +668,6 @@ static void * carena_listener_thread(void * a) {
 
     peer_id = read_int(oe, client_fd);
     if (peer_id == 1024) {
-      arena_i->oe->p("Client joining");
       arena_i->oe->lock(arena_i->lock);
       peer_id = arena_i->peers->size();
       send_int(oe,client_fd,peer_id);
@@ -676,14 +675,14 @@ static void * carena_listener_thread(void * a) {
       arena_i->peers->add_element(peer);
       arena_i->oe->unlock(arena_i->lock);
       osal_sprintf(mm,"added client with id %u",peer_id);
-      oe->p(mm);
+      //      oe->p(mm);
       continue;
     }
 
     if (peer_id < 1024) {
       MpcPeerImpl peer_i = 0;
-      osal_sprintf(mm,"incoming id was %u",peer_id);
-      oe->p(mm);
+      //      osal_sprintf(mm,"incoming id was %u",peer_id);
+      //      oe->p(mm);
       oe->lock(arena_i->lock);
       peer = arena_i->peers->get_element(peer_id);
       oe->unlock(arena_i->lock);
@@ -928,6 +927,21 @@ int uint_cmp(void * a, void * b) {
   return ( ai > bi ? 1 : ( ai == bi ? 0 : -1));
 }
 
+
+COO_DCL(CArena, void, disconnect, uint peerid);
+COO_DEF_NORET_ARGS(CArena, disconnect, uint peerid;, peerid) {
+  
+  MpcPeer peer = this->get_peer(peerid);
+
+  if (peer) {
+    MpcPeerImpl peer_i = (MpcPeerImpl)peer->impl;
+    peer_i->oe->close(peer_i->fd_in);
+    peer_i->oe->close(peer_i->fd_out);
+  }
+
+}}
+
+
 #include "config.h"
 CArena CArena_new(OE oe) {
   CArena arena = 0;
@@ -962,6 +976,7 @@ CArena CArena_new(OE oe) {
   COO_ATTACH(CArena, arena, get_no_peers);
   COO_ATTACH(CArena, arena, add_conn_listener);
   COO_ATTACH(CArena, arena, rem_conn_listener);
+  COO_ATTACH(CArena, arena, disconnect);
   return arena;
  failure:
   return 0;
