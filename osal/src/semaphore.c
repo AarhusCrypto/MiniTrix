@@ -24,6 +24,7 @@ void Cmaphore_down(Cmaphore c) {
   if (!c->lock) return;
 
   oe = c->oe;
+  if (!oe) return;
 
   oe->lock(c->lock);
   while(c->count <= 0) {

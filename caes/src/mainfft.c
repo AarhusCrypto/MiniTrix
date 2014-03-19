@@ -5,7 +5,7 @@
 #include <osal.h>
 #include <carena.h>
 #include <stats.h>
-
+byte * mpc_aes(MiniMacs mm, byte * plaintext, byte * key, MpcPeer mission_control);
 int main(int c, char **a) {
 
   printf("Aarhus University - Multiparty Computation AES\n");
@@ -80,7 +80,7 @@ int main(int c, char **a) {
     {
       byte key[128] = {0};
       byte pltxt[128] = {0};
-      mpc_aes(comp,pltxt,key);
+      mpc_aes(comp,pltxt,key,0);
     }
 
     PrintMeasurements(oe);

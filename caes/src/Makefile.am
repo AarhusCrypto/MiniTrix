@@ -36,10 +36,14 @@
 # 2013-07-25 12:28: Initial version created
 
 include $(top_srcdir)/caes.am
-bin_PROGRAMS = caes caesfft caessym multirun manyrun monitor
+bin_PROGRAMS = caes caesfft caessym multirun manyrun monitor multifftrun
+
+multifftrun_SOURCES = multifftrun.c caes.c
+multifftrun_LDADD = $(DEPS_LIB) -lrt
 
 monitor_SOURCES = monitor.c
 monitor_LDADD = $(DEPS_LIB) -lrt
+monitor_CFLAGS = $(AM_CFLAGS) -static
 
 manyrun_SOURCES = manyrun.c caes.c
 manyrun_LDADD = $(DEPS_LIB) -lrt

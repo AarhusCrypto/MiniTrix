@@ -35,6 +35,7 @@ extern "C" {
 
   typedef enum _Return_Code {
     RC_OK,
+    RC_DISCONN,
     RC_FAIL,
   } RC;
 

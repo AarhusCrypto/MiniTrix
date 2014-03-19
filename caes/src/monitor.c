@@ -6,13 +6,18 @@
 #include <string.h>
 #include <coo.h>
 #include <time.h>
-
+#include <singlelinkedlist.h>
+#include <stdarg.h>
 MUTEX lock;
-Map clients;
+List measures;
+CArena arena;
+FILE * log;
 
 typedef struct _c_arg_ {
   OE oe ;
   MpcPeer peer ;
+  CArena arena;
+
 } *CArg;
 
 typedef struct _measure_ {
@@ -31,6 +36,7 @@ uint hashcode_key_fh(void * a) {
   uint lip = 0;
   uint hashcode = 0;
   uint i = 0;
+
 
   if (k->ip) {
     lip=strlen(k->ip);
@@ -78,35 +84,48 @@ unsigned long long _nano_time() {
 }
 
 static 
+void writeln(const char * fmt, ... ) {
+  va_list l = {{0}};
+  byte buf[256] = {0};
+  if (!log) return;
+  va_start(l,fmt);
+  vfprintf(log,fmt,l);
+  va_end(l);
+  fflush(log);
+}
+
+static 
 void * handle_client(void  * a) {
   CArg arg = (CArg)a;
   MpcPeer peer = arg->peer;
   OE oe = arg->oe;
-  Data in = Data_new(oe, 1024);
+  Data in = Data_new(oe, 256);
   uint pid = 0;
   Key key = oe->getmem(sizeof(*key));
-  char m[128] = {0};
-  ull start = 0, end = 0;
+  ull start = 0, end = 0, dur = 0;
+  Measure m = oe->getmem(sizeof(*m));
 
   peer->receive(in);
   pid = b2i(in->data);
-  start = _nano_time();
+  m->start = _nano_time();
+  printf(" [Measuring %u]\n",pid);
+  writeln("[Measuring %u]\n",pid);
 
-  osal_sprintf(m,"[%s %u] Started at %llu\n",peer->get_ip(),pid, start);
   oe->lock(lock);
-  oe->p(m);
+  measures->add_element(m);
   oe->unlock(lock);
 
   peer->receive(in);
   pid = b2i(in->data);
-  end = _nano_time();
+  m->stop = _nano_time();
 
-  memset(m,0,sizeof(m));
-  osal_sprintf(m,"[%s %u] Ended at %llu duration %llu\n",
-               peer->get_ip(),pid,end,end-start);
   oe->lock(lock);
-  oe->p(m);
+  dur = m->stop - m->start;
+  printf( "[Completed run %u total runs %u\n",pid, measures->size());
+  writeln("[Completed run %u total runs %u\n",pid, measures->size());
+  writeln("%u,%llu,%llu,%llu\n",pid,m->start, m->stop, dur / 1000000);
   oe->unlock(lock);
+  
 
   oe->putmem(a);
   return 0;
@@ -137,11 +156,13 @@ ConnectionListener CL_new(OE oe) {
 }
 
 int main(int c, char **a) {
+  uint i  =0;
   OE oe = OperatingEnvironment_LinuxNew();
-  CArena arena = CArena_new(oe);
   ConnectionListener cl = CL_new(oe);
+  log = fopen("mission_control.log","a+");
+  measures = SingleLinkedList_new(oe);
+  arena = CArena_new(oe);  
   lock = oe->newmutex();
-  clients = HashMap_new(oe, hashcode_key_fh, compare_key_fn, 8);
 
   arena->add_conn_listener(cl);
 
@@ -150,9 +171,23 @@ int main(int c, char **a) {
   if (arena->listen(65000).rc == 0) {
     printf("Monitor active\n"); 
   }
-
-  printf("Press any key to terminate.\n");
-  getchar();
+  
+  while(1) {
+    char c = getchar();
+    if (c == 'q') {
+      fclose(log);
+      return 0;
+    }
+    oe->lock(lock);
+    for(i = 0; i < measures->size();++i) {
+      Measure m = measures->get_element(i);
+      ull dur = m->stop - m->start;
+      printf("%u,%llu,%llu,%llu\n",i,m->start, m->stop, dur / 1000000);
+    }
+    printf("\n\n");
+    oe->unlock(lock);
+    
+  }
 
   CArena_destroy(&arena);
   OperatingEnvironment_LinuxDestroy(&oe);

@@ -4,6 +4,7 @@
 #include <minimacs/generic_minimacs.h>
 #include <osal.h>
 #include <carena.h>
+#include <caes.h>
 #include <stats.h>
 
 
@@ -83,7 +84,8 @@ int main(int c, char **a) {
     {
       byte key[128] = {0};
       byte pltxt[128] = {0};
-      mpc_aes(comp,pltxt,key);
+
+      mpc_aes(comp,pltxt,key,0);
     }
     PrintMeasurements(oe);
 

@@ -136,27 +136,10 @@ typedef struct _mpcpeer_impl_ {
   MUTEX receive_lock;
   MUTEX send_lock;
 
+  Data die_package;
 } * MpcPeerImpl;
 
 
-COO_DCL(MpcPeer,CAR, send3, Data data);
-COO_DEF_RET_ARGS(MpcPeer, CAR, send3, Data data;, data) {
-  CAR c = {{0}};
-  MpcPeerImpl peer_i = (MpcPeerImpl)this->impl;
-  
-  
-  
-  return c;
-}}
-
-COO_DCL(MpcPeer,CAR, send2, Data data);
-COO_DEF_RET_ARGS(MpcPeer, CAR, send2, Data data;, data) {
-  CAR c = {{0}};
-  MpcPeerImpl peer_i = (MpcPeerImpl)this->impl;
-  byte len[4] = {0};
-  peer_i->oe->write(peer_i->fd_out, data->data, data->ldata);
-  return c;
-}}
 
 
 COO_DCL(MpcPeer, CAR, send, Data data)
@@ -164,6 +147,8 @@ COO_DEF_RET_ARGS(MpcPeer, CAR, send, Data data;, data) {
   CAR c = {{0}};
   MpcPeerImpl peer_i = (MpcPeerImpl)this->impl;
   RC rc = 0;
+
+  if (peer_i->die) return;
   //  rc = peer_i->oe->write(peer_i->fd, data->data, &data->ldata);
   //  printf("SEND %llu ns",_nano_time());
   CHECK_POINT_S(__FUNCTION__);
@@ -209,6 +194,7 @@ COO_DEF_RET_ARGS(MpcPeer, CAR, receive, Data data;, data) {
   uint ldata = 0;
   Data d = 0;
 
+  if (!peer_i->incoming) return;
 
   if (!data) { 
     osal_sprintf(c.msg,"CArena receive, bad input data is null");
@@ -229,6 +215,8 @@ COO_DEF_RET_ARGS(MpcPeer, CAR, receive, Data data;, data) {
     if (chunk) {
       // data->ldata-ldata >= chunk->ldata
       // we have enough to fill {data}
+      //      printf("A Chunk %u, ldata %u, data->ldata %u\n",chunk->ldata,
+      //             ldata, data->ldata);
       if (data->ldata-ldata >= chunk->ldata) {
         mcpy(data->data + ldata, chunk->data, chunk->ldata);
         ldata += chunk->ldata;
@@ -284,6 +272,7 @@ static void * peer_rec_function(void * a) {
   oe = mei->oe;
 
   oe->lock(mei->receive_lock);
+  
   while(mei->running) {
     uint sofar = 0;
     byte len[4] = {0};
@@ -304,7 +293,6 @@ static void * peer_rec_function(void * a) {
     }
 
     if (rc != RC_OK) {
-      oe->p("Failed to read leaving");
       oe->unlock(mei->receive_lock);
       return 0;
     }
@@ -343,6 +331,7 @@ static void * peer_rec_function(void * a) {
       // add the buffer to the queue.
       if(read_bytes == 0) {
         CHECK_POINT_E("Read data");
+        //        printf("Adding data to incoming\n");
         mei->incoming->put(buf);
         break;
       }
@@ -353,6 +342,10 @@ static void * peer_rec_function(void * a) {
       rc = mei->oe->read(mei->fd_in, buf->data+sofar, &read_bytes);
       //      printf("Die 2\n");
       if (mei->die) goto out; // are we shutting down, then leave      
+      
+      if (rc == RC_DISCONN) {
+        break;
+      }
 
       if (rc == RC_OK) {
 
@@ -377,7 +370,7 @@ static void * peer_rec_function(void * a) {
   
  out:
   oe->unlock(mei->receive_lock);
-  printf("Mpc Peer leaving receiver thread. fd_in=%u\n",mei->fd_in);
+  //  printf("Mpc Peer leaving receiver thread. fd_in=%u\n",mei->fd_in);
   return 0;
 }
 
@@ -393,16 +386,23 @@ static void * peer_snd_function(void * a) {
   //  printf("Waiting for SEND LOCK\n");
   mei->oe->lock(mei->send_lock);
   //  printf("Sender thread ready fd_out=%u\n",mei->fd_out);
-  while(mei->running) {
+  while(1) {
     //    printf("Hanging on queue outgoing\n");
-    Data item = (Data)mei->outgoing->get();
-    //    printf("Got item from outgoing\n");
-    if (mei->die) goto out;
+    Data item = 0; 
+    
+
+    item = (Data)mei->outgoing->get();
+    if (item == mei->die_package) {
+      Data_destroy(mei->oe,&item);
+      mei->die_package = 0;
+      item = 0;
+      //      printf("The blue pill\n");
+    }
+
     if (item) {
       i2b(item->ldata,len);
       int written = 0;
       int sofar = 0;
-      ull start = _nano_time();
       uint lbuf = item->ldata+4;
       byte * buf = mei->oe->getmem(lbuf);
 
@@ -411,27 +411,20 @@ static void * peer_snd_function(void * a) {
       mcpy(buf+4,item->data,item->ldata);
       Data_destroy( mei->oe, &item);
 
-      //      if (_c_) printf("[snd] Sending %u bytes ... ",lbuf);
       written = 0;sofar = 0;
       while(sofar < lbuf && written >= 0) {
         written = mei->oe->write(mei->fd_out, buf, lbuf);
         sofar += written;
-        if (mei->die) goto out;
-        //if (_c_) printf("[snd] sofar %u,%u \n",sofar,written);
       }
-
-      {
-        //        ull now = _nano_time();
-        //        printf("Done Sending took %llu at time %llu \n",(_nano_time()-start),now);
-      }
-      //      printf(" done \n");
-
+      
+      //      printf("fd_out = %u\n",mei->fd_out);
+      
       if (written < 0) {
         mei->oe->p("Error writting to file descriptor." \
                    "This peer cannot send anymore.");
         break;
       }
-    }
+    } else break;
   }
  out:
   mei->oe->unlock(mei->send_lock);
@@ -450,28 +443,30 @@ static void MpcPeerImpl_destroy( MpcPeer * peer ) {
 
   peer_i->running = 0;
   peer_i->die = 1;
-  
   oe = peer_i->oe;
 
-  //  printf("Destroying peer %p\n",*peer);
+  peer_i->die_package = Data_new(oe,4);
+  
+  //  printf("Destroying peer, waiting for send lock\n");
+  peer_i->outgoing->put(peer_i->die_package);
+  oe->lock(peer_i->send_lock);
+  //  printf("Acquired send lock, tearing down\n");
 
   if (peer_i->fd_in) {
     char m[32] = {0};
-    osal_sprintf(m,"Closing fd_in=%d", peer_i->fd_in);
-    oe->p(m);
+    //    osal_sprintf(m,"Closing fd_in=%d", peer_i->fd_in);
+    //    oe->p(m);
     oe->close(peer_i->fd_in);
   }
 
   if (peer_i->fd_out) {
     char m[32] = {0};
-    osal_sprintf(m,"Closing fd_out=%d", peer_i->fd_out);
-    oe->p(m);
+    //    osal_sprintf(m,"Closing fd_out=%d", peer_i->fd_out);
+    //    oe->p(m);
     oe->close(peer_i->fd_out);
   }
   
 
-  BlkQueue_destroy( & (peer_i->outgoing) );
-  BlkQueue_destroy( & (peer_i->incoming) );
 
   oe->destroymutex(&peer_i->send_lock);
   oe->destroymutex(&peer_i->receive_lock);
@@ -543,8 +538,8 @@ static MpcPeer MpcPeerImpl_new(OE oe, uint fd_in, char * ip, uint port) {
   peer_i->fd_in = fd_in;
   peer_i->running = 1;
   peer_i->die = 0;
-  peer_i->incoming = BlkQueue_new(oe,1024);
-  peer_i->outgoing = BlkQueue_new(oe,1024);
+  peer_i->incoming = BlkQueue_new(oe,256);
+  peer_i->outgoing = BlkQueue_new(oe,16384);
   peer_i->send_lock = oe->newmutex();
   peer_i->receive_lock = oe->newmutex();
   oe->lock(peer_i->send_lock);
@@ -674,7 +669,7 @@ static void * carena_listener_thread(void * a) {
       peer = MpcPeerImpl_new(arena_i->oe,client_fd,0,0);
       arena_i->peers->add_element(peer);
       arena_i->oe->unlock(arena_i->lock);
-      osal_sprintf(mm,"added client with id %u",peer_id);
+      //      osal_sprintf(mm,"added client with id %u",peer_id);
       //      oe->p(mm);
       continue;
     }
@@ -877,8 +872,6 @@ void CArena_destroy( CArena * arena) {
   oe = arena_i->oe;
   arena_i->running = 0;
 
-  oe->close(arena_i->server_fd);
-
   if (arena_i->worker) {
     oe->jointhread(arena_i->worker);
   }
@@ -894,6 +887,8 @@ void CArena_destroy( CArena * arena) {
     }
     SingleLinkedList_destroy( &arena_i->peers );
   }
+
+  oe->close(arena_i->server_fd);
   //  printf("Done destroying peers\n");
 
   if (arena_i->conn_obs) {

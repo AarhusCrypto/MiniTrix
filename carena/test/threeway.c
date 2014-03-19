@@ -37,7 +37,14 @@ int main(int c, char **a) {
   }
 
   printf("All peers connected\n");
-  sleep(2);
+
+  for(id = 0;id < count-1;++id) {
+    byte b[4] = {0};
+    MpcPeer peer = arena->get_peer(id);
+    peer->send(Data_shallow("1234", 4));
+    peer->receive(Data_shallow(b, 4));
+  }
+
   CArena_destroy(&arena);
   OperatingEnvironment_LinuxDestroy(&oe);
 

@@ -20,20 +20,47 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-#include <string.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
-#include <errno.h>
 #include <syscall.h>
 #include <errno.h>
 #include "config.h"
 #include <time.h>
 #include <netinet/tcp.h>
+#include <string.h>
+extern char *strerror (int __errnum);
+
+MUTEX _static_lock;
+
+typedef struct _osal_ret_val_ {
+  uint err;
+  int rval;
+} retval;
+
+static
+retval __read(int fd, byte * buf, uint lbuf) {
+  retval res = {0};
+  Mutex_lock(_static_lock);
+  res.rval = read(fd, buf, lbuf);
+  res.err = errno;
+  Mutex_unlock(_static_lock);
+  return res;
+}
+
+static
+retval __write(int fd, byte * buf, uint lbuf) {
+  retval res = {0};
+  Mutex_lock(_static_lock);
+  res.rval = write(fd, buf, lbuf);
+  res.err = errno;
+  Mutex_unlock(_static_lock);
+  return res;
+}
+
 Cmaphore Cmaphore_new(OE oe, uint count);
 void Cmaphore_up(Cmaphore c);
 void Cmaphore_down(Cmaphore c);
 void Cmaphore_destroy(Cmaphore * c);
-
 
 static 
 void set_non_blocking(int fd);
@@ -99,6 +126,7 @@ COO_DEF_RET_ARGS(OE, RC, read, uint fd;byte *buf;uint * lbuf;, fd, buf, lbuf ) {
   SimpleOE soe = (SimpleOE)this->impl;
   int os_fd = 0;
   ull start = 0;
+  retval ret = {0};
   if (!lbuf) return RC_FAIL;
 
   if (fd < 1) return RC_FAIL;
@@ -130,14 +158,14 @@ COO_DEF_RET_ARGS(OE, RC, read, uint fd;byte *buf;uint * lbuf;, fd, buf, lbuf ) {
   }
 
   start = _nano_time();
-  r = recv(os_fd,buf, *lbuf, MSG_DONTWAIT); 
+  ret = __read(os_fd,buf, *lbuf); 
+  r = ret.rval;
   if (r == 0) {
-    this->p("Peer disconnected");
-    return RC_FAIL;
+    return RC_DISCONN;
   }
 
   if (r < 0) {
-    if (errno == EAGAIN) {
+    if (ret.err == EAGAIN) {
       *lbuf = 0;
       return RC_OK;
     } else {
@@ -165,27 +193,37 @@ COO_DEF_RET_ARGS(OE, RC, write, uint fd; byte*buf;uint lbuf;,fd,buf,lbuf) {
   SimpleOE soe = (SimpleOE)this->impl;
   int writesofar = 0;
   int lastwrite = 0;
-  int os_fd = (int)(long long)soe->filedescriptors->get_element(fd-1);
+  int os_fd = 0;
   ull start = _nano_time();
 
-  if (fd >= soe->filedescriptors->size()+1) return RC_FAIL;
+  this->lock(soe->lock);
+  if (fd >= soe->filedescriptors->size()+1) {
+    this->unlock(soe->lock);
+    return RC_FAIL;
+  }
+  os_fd = (int)(long long)soe->filedescriptors->get_element(fd-1);
+  this->unlock(soe->lock);
+
+
 
   while(writesofar < lbuf && lastwrite >= 0) {
     struct timeval t = {0};
     fd_set wfds = {0};
+    retval r = {0};
     FD_SET(os_fd, &wfds);
     t.tv_usec = 1000;
     select(os_fd+1, 0, &wfds, 0, &t);
-      
-    lastwrite = send(os_fd, buf+writesofar, lbuf-writesofar,0);
+
+    r = __write(os_fd, buf+writesofar, lbuf-writesofar);
+    lastwrite = r.rval;
     if ( lastwrite == -1) {
-      if (errno == EAGAIN) {
+      if (r.err == EAGAIN) {
         lastwrite = 0;
         continue;
       } 
 
-      this->p("[OSAL] write failed");
-      return 0;
+      printf("Error: %u %s os_fd=%u\n",r.err, strerror(r.err),os_fd);
+      return -1;
     } 
     writesofar += lastwrite;
   }
@@ -198,7 +236,7 @@ COO_DEF_RET_ARGS(OE, RC, write, uint fd; byte*buf;uint lbuf;,fd,buf,lbuf) {
   return writesofar;
 
 }}
-extern char *strerror (int __errnum);
+
 /* proposal:
  *
  * file <path>          - open a file
@@ -392,7 +430,7 @@ COO_DEF_RET_ARGS(OE, int, close, uint fd;, fd) {
   }
 
   fd = (int)(long long)soe->filedescriptors->get_element(fd);
-  soe->filedescriptors->rem_element(fd);
+  //  soe->filedescriptors->rem_element(fd);
 
   return close(fd);
 }}
@@ -550,6 +588,11 @@ OE OperatingEnvironment_LinuxNew() {
   OE oe = 0;
   Memory m = LinuxMemoryNew();
   Memory special_mem = LinuxSpecialMemoryNew(m);
+
+  if (_static_lock == 0) {
+    _static_lock = Mutex_new(MUTEX_FREE);
+  }
+
   coo_init(special_mem);
 
   simpleOE = m->alloc(sizeof(*simpleOE));

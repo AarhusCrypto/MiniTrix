@@ -270,6 +270,7 @@
     replica_public_input(plaintext[126],254,mm);
     replica_public_input(plaintext[127],255,mm);
   
+  mission_control_start(mission_control);
   start = _nano_time();
     mm->add(264,128,0);
     mm->add(265,129,1);
@@ -36256,6 +36257,6 @@
     mm->open(33869);
     mm->open(33870);
     mm->open(33871);
-
+  mission_control_stop(mission_control);
 stop = _nano_time();
 printf("Circuit time %llu ms\n", (stop-start)/1000000L);

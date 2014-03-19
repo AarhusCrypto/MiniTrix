@@ -109,7 +109,7 @@ int main(int c, char **a) {
     ip =a[3];
   }
 
-  mm=GenericMiniMacs_DefaultLoadNew(oe, material);
+  mm=GenericFFTMiniMacs_new(oe,a[1]);
 
   printf("Multirun CAES\n");
   printf("material taken from: %s\n",material);

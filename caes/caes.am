@@ -54,8 +54,8 @@ DEPS_INCLUDE=-I$(top_srcdir)/deps/headers\
 DEPS_LIB=\
 	-L$(top_srcdir)/deps -lcminimacs\
 	-lmath\
-	-lencoding\
 	-lcarena\
+	-lencoding\
 	-lds\
 	-losal -lpthread
 

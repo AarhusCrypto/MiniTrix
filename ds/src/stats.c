@@ -47,7 +47,7 @@ static int str_compare(void * a, void * b) {
 typedef struct _measurement_impl_ {
   char * name;
   ull start;
-  ull min, max, avg, count;
+  ull min, max, avg, count, total;
   Map sub;
   MUTEX l;
 } * MeasurementImpl;
@@ -105,6 +105,7 @@ COO_DEF_NORET_NOARGS(Measurement, measure) {
   if (impl->min == 0) impl->min = duration;
   if (impl->min > duration) impl->min = duration;
   if (impl->max < duration) impl->max = duration;
+  impl->total += duration;
   impl->avg = ((impl->avg * impl->count) + duration)/(impl->count+1);
   impl->count += 1;
   impl->start = 0;
@@ -191,7 +192,7 @@ void Measurements_print(OE oe) {
     List keys = topi->sub->get_keys();
     oe->p("Measurements Statistics");
     oe->p("-----------------------");
-    oe->p("NAME                           MIN  \t\t  MAX  \t\t  AVG  \t\t  COUNT");
+    oe->p("NAME                           MIN  \t\t  MAX  \t\t  AVG  \t\t  COUNT \t  TOTAL");
     
     for(i = 0; i < keys->size();++i) {
       Measurement cur = (Measurement)topi->sub->get(keys->get_element(i));
@@ -208,12 +209,13 @@ void Measurements_print(OE oe) {
         lname = (lname > 30) ? 30 : lname;
         mcpy(nam,curi->name,lname);
 
-        osal_sprintf(mmm, "%s %u.%06u\t%u.%06u\t%u.%06u\t%u", 
+        osal_sprintf(mmm, "%s %u.%06u\t%u.%06u\t%u.%06u\t%06u\t%06", 
                      nam, 
                      curi->min/1000000,curi->min % 1000000, 
                      curi->max/1000000,curi->max % 1000000, 
                      curi->avg/1000000,curi->avg % 1000000, 
-                     curi->count);
+                     curi->count,
+                     curi->total);
       
         _oe_->p(mmm);
       }

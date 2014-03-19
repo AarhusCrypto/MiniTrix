@@ -1,3 +1,4 @@
+#include <caes.h>
 #include <stdio.h>
 #include <osal.h>
 #include <minimacs/minimacs.h>
@@ -38,7 +39,7 @@ int run(char * material, char * ip, OE oe, MiniMacs mm) {
     byte key[128] = {0};
     byte ptxt[128] = {0};
     ull start = _nano_time();
-    mpc_aes(mm,ptxt, key);
+    mpc_aes(mm,ptxt, key,0);
     printf("Total time %llu ns\n",_nano_time()-start);
   }
 
