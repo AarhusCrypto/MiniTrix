@@ -661,22 +661,29 @@ COO_DEF_NORET_ARGS(TinyOTImpl, checkMACs, uint len;, len) {
 
 
 
-COO_DCL(TinyOT, void, invite, uint port);
-COO_DEF_NORET_ARGS(TinyOT, invite, uint port;, port) {
+COO_DCL(TinyOT, uint, invite, uint port);
+COO_DEF_RET_ARGS(TinyOT, uint, invite, uint port;, port) {
   TinyOTImpl impl = (TinyOTImpl)this->impl;
-  impl->arena->listen_wait(1,port);
+  return impl->arena->listen_wait(1,port).rc;
 }}
 
-COO_DCL(TinyOT, void, connect, char * ip, uint port);
-COO_DEF_NORET_ARGS(TinyOT, connect, char * ip; uint port;, ip, port) {
+COO_DCL(TinyOT, uint, connect, char * ip, uint port);
+COO_DEF_RET_ARGS(TinyOT, uint, connect, char * ip; uint port;, ip, port) {
   TinyOTImpl impl = (TinyOTImpl)this->impl;
-  impl->arena->connect(ip,port);
+  return impl->arena->connect(ip,port).rc;
 }}
 
 COO_DCL(TinyOT, void, dummy, uint w);
 COO_DEF_NORET_ARGS(TinyOT, dummy, uint w;, w) {
   TinyOTImpl impl = (TinyOTImpl)this->impl;
   impl->oe->p("");
+}}
+
+
+COO_DCL(TinyOT, bool, isAlice);
+COO_DEF_RET_NOARGS(TinyOT, bool, isAlice) {
+  TinyOTImpl impl = (TinyOTImpl)this->impl;
+  return impl->isAlice;
 }}
 
 #include <config.h>
@@ -693,6 +700,7 @@ TinyOT TinyOT_new(OE oe, bool isAlice) {
   impl->oe = oe;
   impl->isAlice = isAlice;
 
+  COO_ATTACH(TinyOT, res, isAlice);
   COO_ATTACH(TinyOT, res, invite);
   COO_ATTACH(TinyOT, res, connect);
   COO_ATTACH(TinyOT, res, init_heap);

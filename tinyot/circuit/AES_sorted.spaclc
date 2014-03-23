@@ -9,6 +9,8 @@
   tot->max_width_public_common_load(128);
   tot->max_width_public_common_store(128);
 
+  mission_control->send(_pid);
+  mission_control->receive(d);
   tot->begin_layer_private_common_load(128);
     tot->private_common_load(key[0],0,0);
     tot->private_common_load(key[1],1,1);
@@ -36261,3 +36263,4 @@
     tot->public_common_store(&ciphertext[126],33870,126);
     tot->public_common_store(&ciphertext[127],33871,127);
   tot->end_layer_public_common_store(128);
+mission_control->send(_pid);

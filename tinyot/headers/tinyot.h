@@ -36,9 +36,9 @@ typedef struct {
 
 typedef struct _tinyot_ {
   
-  void (*invite)(uint port);
+  uint (*invite)(uint port);
 
-  void (*connect)(char * ip, uint port);
+  uint (*connect)(char * ip, uint port);
 
   void (*init_heap)(uint size);
 
@@ -86,9 +86,8 @@ typedef struct _tinyot_ {
   void (*begin_layer_public_common_load)(uint w);
   void (*begin_layer_private_common_load)(uint w);
   void (*end_layer_public_common_load)(uint w);
-  
-
   void (*INV)(hptr res, hptr op, uint _);
+  bool (*isAlice)(void);
 
   void * impl;
   
