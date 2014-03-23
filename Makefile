@@ -7,6 +7,7 @@ build:
 	cd cminimacs && make clean depshape
 	cd caes && make depshape CFLAGS="-O0"
 	cd cinterp && make depshape
+	cd tinyot && make depshape
 
 depshape: all
 all: clean build
@@ -20,6 +21,7 @@ clean:
 	cd cminimacs && make clean
 	cd caes && make clean
 	cd cinterp && make clean
+	cd tinyot && make clean
 
 up:
 	svn commit -m "Preparing release"
@@ -36,5 +38,6 @@ release: clean up build
 	cp -r cminimacs/build/cminimacs/* ./$(REV_DIR)
 	cp -r caes/build/caes/* ./$(REV_DIR)
 	cp -r cinterp/build/cinterp/* ./$(REV_DIR)
+	cp -t tinyot/build/tinyot/* ./$(REV_DIR)
 
 .PHONY=build all clean release depshape

@@ -209,13 +209,13 @@ void Measurements_print(OE oe) {
         lname = (lname > 30) ? 30 : lname;
         mcpy(nam,curi->name,lname);
 
-        osal_sprintf(mmm, "%s %u.%06u\t%u.%06u\t%u.%06u\t%06u\t%06", 
+        osal_sprintf(mmm, "%s %u.%06u\t%u.%06u\t%u.%06u\t%06u\t%u.%u", 
                      nam, 
                      curi->min/1000000,curi->min % 1000000, 
                      curi->max/1000000,curi->max % 1000000, 
                      curi->avg/1000000,curi->avg % 1000000, 
                      curi->count,
-                     curi->total);
+                     curi->total/1000000,curi->total % 1000000);
       
         _oe_->p(mmm);
       }

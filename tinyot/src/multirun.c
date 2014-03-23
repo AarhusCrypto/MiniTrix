@@ -97,7 +97,7 @@ int main(int c, char **a) {
 
   InitStats(oe);
 
-  if (c < 2 || c > 3) {
+  if (c < 2 || c > 4) {
     printf("multirun <1=alice|0=bob> [count] [ip]\n");
     return -1;
   }
