@@ -39,7 +39,7 @@ int run(char * material, char * ip, OE oe, MiniMacs mm) {
     byte key[128] = {0};
     byte ptxt[128] = {0};
     ull start = _nano_time();
-    mpc_aes(mm,ptxt, key,0);
+    mpc_aes(mm,ptxt, key,0,0,0);
     printf("Total time %llu ns\n",_nano_time()-start);
   }
 

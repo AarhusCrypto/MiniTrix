@@ -67,14 +67,14 @@ MiniMacsRep * minimacs_create_rep_from_plaintext_f(MiniMacsEnc encoder,
     // generate a key to every other mac owner
     for(mowner=0;mowner<nplayers;mowner++) {
       if (compat_with) {
-	res_vec[kowner]->mac_keys_to_others[mowner] = 
-	  bedoza_generate_compat_key(compat_with[kowner]->mac_keys_to_others[mowner],
+        res_vec[kowner]->mac_keys_to_others[mowner] = 
+          bedoza_generate_compat_key(compat_with[kowner]->mac_keys_to_others[mowner],
 				     _unique_id_,
 				     mowner,
 				     kowner );
       } else {
-	res_vec[kowner]->mac_keys_to_others[mowner] = 
-	  generate_bedoza_mac_key( codelength, _unique_id_, mowner, kowner );
+        res_vec[kowner]->mac_keys_to_others[mowner] = 
+          generate_bedoza_mac_key( codelength, _unique_id_, mowner, kowner );
       }
       if (!res_vec[kowner]->mac_keys_to_others[mowner]) goto failure;
     }

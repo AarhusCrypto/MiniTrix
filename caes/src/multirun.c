@@ -51,7 +51,7 @@ MiniMacs GenericFFTMiniMacs_new(OE oe, char * filename) {
 }
 
 static 
-int run(char * material, char * ip, uint count, OE oe, MiniMacs mm) {
+int run(char * material, char * ip, uint myid, uint count, OE oe, MiniMacs mm) {
   CArena mc = CArena_new(oe);
   MpcPeer mission_control = 0;
      
@@ -64,9 +64,21 @@ int run(char * material, char * ip, uint count, OE oe, MiniMacs mm) {
   }
  
   if (mm->get_id() == 0) {
-    mm->invite(1,2020+count);
+    if (mm->invite(1,2020+myid) != 0) {
+      byte d[128] = {0};
+      char m[128] = {0};
+      osal_sprintf(m,"Failed to invite %u peers on port %u",1,2020+myid);
+      oe->p(m);
+      i2b(myid, d);
+      osal_sprintf(d+4,"error");
+      mission_control->send(d);
+      return 0;
+    }
   } else {
-    if (mm->connect(ip,2020+count) != 0) {
+    if (mm->connect(ip,2020+myid) != 0) {
+      char m[128] = {0};
+      osal_sprintf(m,"Failed to connect to peer %s:%u",ip,2020+myid);
+      oe->p(m);
       return 0;
     }
   }
@@ -74,7 +86,7 @@ int run(char * material, char * ip, uint count, OE oe, MiniMacs mm) {
   {
     byte key[128] = {0};
     byte ptxt[128] = {0};
-    mpc_aes(mm,ptxt, key,mission_control);
+    mpc_aes(mm,ptxt, key,myid,count,mission_control);
     CArena_destroy(&mc);
   }
   PrintMeasurements(oe);
@@ -109,7 +121,11 @@ int main(int c, char **a) {
     ip =a[3];
   }
 
+#ifndef FFT
   mm=GenericMiniMacs_DefaultLoadNew(oe, material);
+#else
+  mm = GenericFFTMiniMacs_new(oe, material);
+#endif
 
   printf("Multirun CAES\n");
   printf("material taken from: %s\n",material);
@@ -120,7 +136,7 @@ int main(int c, char **a) {
   for( i = 0; i < count; ++i) {
     pids[i] = fork();
     if (pids[i] == 0) {
-      return run(material,ip,i,oe,mm);
+      return run(material,ip,i,count,oe,mm);
     }
   }
   CHECK_POINT_S("TOTAL");

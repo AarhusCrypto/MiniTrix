@@ -2,6 +2,7 @@
 #include <tinyot.h>
 #include <stdio.h>
 #include <stats.h>
+#include <carena.h>
 
 void sim(TinyOT tot) {
   tinyotshare s = {0};
@@ -28,8 +29,10 @@ void sim(TinyOT tot) {
   printf("res = %02x \n",v);
 }
 
-
-void mpc_aes(OE oe, TinyOT tot, byte * plaintext, tinyotshare ** key, byte * ciphertext);
+void 
+mpc_aes(OE oe, TinyOT tot, 
+        byte * plaintext, tinyotshare ** key, byte * ciphertext, 
+        Data _pid, MpcPeer mission_control);
 
 int main(int c, char **args) {
 
@@ -55,7 +58,7 @@ int main(int c, char **args) {
 
   // sim(alice);
   CHECK_POINT_S("AES");
-  mpc_aes(oe, alice, plaintext, key,ciphertext);
+  mpc_aes(oe, alice, plaintext, key,ciphertext, 0,0);
   CHECK_POINT_E("AES");
   
   for(i = 0;i < 128;++i) {

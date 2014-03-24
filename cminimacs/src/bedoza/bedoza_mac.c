@@ -91,8 +91,8 @@ bedoza_mac_key generate_bedoza_mac_key( uint security_parameter,
   rand();rand();rand();
 
   for(i=0;i<security_parameter;i++) {
-    res->alpha[i] = (byte)(rand() % 256);
-    res->beta[i] = (byte)(rand() % 256);
+    res->alpha[i] = 0; //(byte)(rand() % 256);
+    res->beta[i] = 0; //(byte)(rand() % 256);
   }
 
   return res;

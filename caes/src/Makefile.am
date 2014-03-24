@@ -38,8 +38,9 @@
 include $(top_srcdir)/caes.am
 bin_PROGRAMS = caes caesfft caessym multirun manyrun monitor multifftrun
 
-multifftrun_SOURCES = multifftrun.c caes.c
+multifftrun_SOURCES = multirun.c caes.c
 multifftrun_LDADD = $(DEPS_LIB) -lrt
+multifftrun_CFLAGS = $(AM_CFLAGS) -DFFT
 
 monitor_SOURCES = monitor.c
 monitor_LDADD = $(DEPS_LIB) -lrt

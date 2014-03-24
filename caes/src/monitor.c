@@ -8,10 +8,12 @@
 #include <time.h>
 #include <singlelinkedlist.h>
 #include <stdarg.h>
+#include <unistd.h>
 MUTEX lock;
 List measures;
 CArena arena;
 FILE * log;
+uint no_connected;
 
 typedef struct _c_arg_ {
   OE oe ;
@@ -100,24 +102,44 @@ void * handle_client(void  * a) {
   MpcPeer peer = arg->peer;
   OE oe = arg->oe;
   Data in = Data_new(oe, 256);
-  uint pid = 0;
+  uint pid = 0, cid = 0, count = 0;
+  
   Key key = oe->getmem(sizeof(*key));
   ull start = 0, end = 0, dur = 0;
   Measure m = oe->getmem(sizeof(*m));
 
   peer->receive(in);
   pid = b2i(in->data);
+  cid = b2i(in->data+4);
+  count = b2i(in->data+8);
   m->start = _nano_time();
-  printf(" [Measuring %u]\n",pid);
-  writeln("[Measuring %u]\n",pid);
+  printf(" [Measuring %u %u/%u]\n",pid,cid,count);
+  writeln("[Measuring %u %u/%u]\n",pid,cid,count);
 
   oe->lock(lock);
   measures->add_element(m);
+  no_connected++;
+  printf("%u connected so far\n",no_connected);
   oe->unlock(lock);
+
+  oe->lock(lock);
+  while(no_connected < 2*count) { // one connection for client and server
+    oe->unlock(lock);
+    usleep(200);
+    oe->lock(lock);
+  }
+  writeln("[All Ready] BANG !\n");
+  printf( "[All Ready] BANG !\n");
+  peer->send(in);
+  printf("Sendt BANG\n");
+  oe->unlock(lock);
+  
 
   peer->receive(in);
   pid = b2i(in->data);
   m->stop = _nano_time();
+
+  printf("[Peer done %u]\n",pid);
 
   oe->lock(lock);
   dur = m->stop - m->start;
@@ -166,7 +188,7 @@ int main(int c, char **a) {
 
   arena->add_conn_listener(cl);
 
-  printf("MiniTrix Monitor version 0.1\n");
+  printf("MiniTrix Monitor version 0.2\n");
 
   if (arena->listen(65000).rc == 0) {
     printf("Monitor active\n"); 

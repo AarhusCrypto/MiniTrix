@@ -449,35 +449,24 @@ static void MpcPeerImpl_destroy( MpcPeer * peer ) {
   
   //  printf("Destroying peer, waiting for send lock\n");
   peer_i->outgoing->put(peer_i->die_package);
+
   oe->lock(peer_i->send_lock);
   //  printf("Acquired send lock, tearing down\n");
 
   if (peer_i->fd_in) {
-    char m[32] = {0};
-    //    osal_sprintf(m,"Closing fd_in=%d", peer_i->fd_in);
-    //    oe->p(m);
     oe->close(peer_i->fd_in);
   }
 
   if (peer_i->fd_out) {
-    char m[32] = {0};
-    //    osal_sprintf(m,"Closing fd_out=%d", peer_i->fd_out);
-    //    oe->p(m);
+    oe->yieldthread();
     oe->close(peer_i->fd_out);
   }
-  
-
-
   oe->destroymutex(&peer_i->send_lock);
   oe->destroymutex(&peer_i->receive_lock);
 
   oe->jointhread(peer_i->receiver);
-  //  printf("Done joining receive thread\n");
 
-  //  printf("Joining sender thread\n");
   oe->jointhread(peer_i->sender);
-  //  printf("Done joining sender thread\n");
-
 
   oe->putmem(peer_i);
   oe->putmem(*peer);

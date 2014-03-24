@@ -1,6 +1,13 @@
 #include <osal.h>
 #include <tinyot.h>
 #include <stdio.h>
+#include <carena.h>
+
+
+void 
+mpc_aes(OE oe, TinyOT tot, 
+        byte * plaintext, tinyotshare ** key, byte * ciphertext, 
+        Data _pid, MpcPeer mission_control);
 
 void sim(TinyOT tot) {
   tinyotshare s = {0};
@@ -27,7 +34,6 @@ void sim(TinyOT tot) {
   printf("res = %02x \n",v);
 }
 
-void mpc_aes(OE oe, TinyOT tot, byte * plaintext, tinyotshare ** key, byte * ciphertext);
 
 int main(int c, char **args) {
 
@@ -55,9 +61,8 @@ int main(int c, char **args) {
     key[i]->key = 0;
   }
 
-  mpc_aes(oe,bob,plaintext,key,ciphertext);
+  mpc_aes(oe,bob,plaintext,key,ciphertext,0,0);
   
-  //sim(bob);
   oe->p("DONE\n");
 
   TinyOT_destroy(&bob);

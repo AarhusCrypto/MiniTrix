@@ -85,7 +85,7 @@ int main(int c, char **a) {
       byte key[128] = {0};
       byte pltxt[128] = {0};
 
-      mpc_aes(comp,pltxt,key,0);
+      mpc_aes(comp,pltxt,key,0,0,0);
     }
     PrintMeasurements(oe);
 

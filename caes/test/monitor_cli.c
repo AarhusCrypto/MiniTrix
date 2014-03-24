@@ -5,7 +5,7 @@ int main(int c, char **a) {
   OE oe = OperatingEnvironment_LinuxNew();
   CArena arena = CArena_new(oe);
   MpcPeer peer = 0;
-  Data id = Data_new(oe, 1024);
+  Data id = Data_new(oe, 256);
   char * ip = "87.104.238.146";
 
   if (c == 2) 
@@ -19,6 +19,7 @@ int main(int c, char **a) {
 
   peer = arena->get_peer(0);
   peer->send(id);
+  peer->receive(id);
   peer->send(id);
   CArena_destroy(&arena);
   OperatingEnvironment_LinuxDestroy(&oe);

@@ -48,29 +48,44 @@ unsigned long long _nano_time() {
 
 
 static
-void mission_control_start(MpcPeer mission_control) {
+void mission_control_start(MpcPeer mission_control, uint myid,uint count) {
   byte raw_pid[256] = {0};
   Data _pid = Data_shallow(raw_pid, sizeof(raw_pid));
   uint pid = getpid();
   i2b(pid, _pid->data);
+  i2b(myid, _pid->data+4);
+  i2b(count, _pid->data+8);
+
   if (mission_control) {
     mission_control->send(_pid);
+  }
+
+}
+
+static
+void mission_control_bang(MpcPeer mission_control) {
+  byte _bang[256] = {0};
+  Data bang = Data_shallow(_bang,sizeof(_bang));
+  if (mission_control) {
+    mission_control->receive(bang);
   }
 }
 
 static
-void mission_control_stop(MpcPeer mission_control) {
+void mission_control_stop(MpcPeer mission_control, uint myid) {
   byte raw_pid[256] = {0};
   Data _pid = Data_shallow(raw_pid, sizeof(raw_pid));
   uint pid = getpid();
   i2b(pid, _pid->data);
+  i2b(myid, _pid->data+4);
   if (mission_control) {
     mission_control->send(_pid);
   }
 }
 
 
-byte * mpc_aes(MiniMacs mm, byte * plaintext, byte * key, MpcPeer mission_control) {
+byte * mpc_aes(MiniMacs mm, byte * plaintext, byte * key, 
+               uint myid, uint count, MpcPeer mission_control) {
   uint i=0, player=0;
   uint nplayers = mm->get_no_peers() + 1;
   unsigned long long start = 0, stop = 0;

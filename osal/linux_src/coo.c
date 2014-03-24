@@ -7,6 +7,18 @@
 #endif
 
 
+void f() {
+
+}
+
+#define TEST(NAME) \
+  asm("mov $"#NAME", %rbx\n");
+
+inline
+void set_rbx() {
+  TEST(f);
+}
+
 static Memory mem;
 static byte * freelist;
 

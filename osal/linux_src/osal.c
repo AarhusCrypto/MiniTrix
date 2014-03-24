@@ -165,7 +165,7 @@ COO_DEF_RET_ARGS(OE, RC, read, uint fd;byte *buf;uint * lbuf;, fd, buf, lbuf ) {
   }
 
   if (r < 0) {
-    if (ret.err == EAGAIN) {
+    if (ret.err == EAGAIN || ret.err == EWOULDBLOCK) {
       *lbuf = 0;
       return RC_OK;
     } else {
