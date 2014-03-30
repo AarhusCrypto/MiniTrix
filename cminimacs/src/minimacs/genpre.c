@@ -21,12 +21,16 @@ void ui_print(SetupEventKind kind, uint count, uint total) {
   return;
 }
 
+
+
+  
 int main(int c, char ** a) {
   
   MiniMacsRep * compats = 0; 
   MiniMacsRep ** singles = 0;
   MiniMacsRep *** pairs  = 0;
   MiniMacsTripleRep ** triples = 0;
+  BitDecomposedTriple ** btriples = 0;
   
   uint ltext = 0;
   uint nplayers = 0;
@@ -90,10 +94,16 @@ int main(int c, char ** a) {
                                 &pairs,ncount,
                                 ui_print );
 
+  
+   minimacs_fake_bdt(oe, encoder,
+                    compats, &btriples,
+                    ncount);
+  
   if (!triples || !singles || !pairs ) {
     printf("Generation of preprocessing materials failed.\n");
     return -1;
   }
+  save_bdt(postfix, ltext, codelength, nplayers, btriples, ncount);
 
   save_shares(postfix, nplayers, triples, ncount, singles, ncount, pairs, ncount );
   OperatingEnvironment_LinuxDestroy( & oe );

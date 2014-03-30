@@ -7,11 +7,21 @@ extern "C" {
 
 #include "minimacs/minimacs_rep.h"
 
+
+
+
+  void minimacs_fake_bdt(OE oe, MiniMacsEnc encoder,
+                         MiniMacsRep * proto,
+                         BitDecomposedTriple *** triples,
+                         uint ltriples);
+
+
 typedef enum {
   SINGLES,
   PAIRS,
   TRIPLES
 } SetupEventKind;
+
 typedef void(*SetupListener)(SetupEventKind kind, uint count, uint total);
   /*!
    * \brief               Create Preprocessing data for MiniMacs Online-phase.

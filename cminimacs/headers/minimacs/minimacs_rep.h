@@ -48,6 +48,8 @@ extern "C" {
 #include <reedsolomon/reedsolomon.h>
 #include <osal.h>
 
+
+
   typedef struct _rep_value_ {
 
     /*
@@ -92,6 +94,15 @@ extern "C" {
     MiniMacsRep cstar;
 
   } * MiniMacsTripleRep;
+
+typedef struct _bit_decomposed_triples_ {
+  MiniMacsRep a;
+  MiniMacsRep b;
+  MiniMacsRep c;
+  MiniMacsRep abits[8];
+  MiniMacsRep bbits[8];
+} * BitDecomposedTriple;
+
 
 
   /*!
@@ -369,6 +380,71 @@ extern "C" {
   uint minimacs_rep_store(MiniMacsRep rep, byte * data);
 
   
+
+  /*!
+   * \brief saves the shares to a set of files, one for each player.
+   *
+   * \param postfix - the last group of the filename typically used to
+   *                  indicate encoding form: mxt=matrix, fft=fast fourier.
+   *
+   * \param ltext - the length of message this is not check against
+   *                the acutal length in the triples. It is used for
+   *                filename generation only.
+   *
+   * \param lcode - the length of codewords. This is not checked
+   *                against the acutal length in the triples
+   *                {btriples}. {lcode} is only used for the filename.
+   *
+   * \param nplayers - the number of players and hence the number of files 
+   *                   that will be created.
+   *
+   * \param btriples - the triples layed out such that there are
+   *                   {nplayers} rows of {ncount} triples.
+   *
+   * \param ncount - the number of triples in {btriples}
+   *
+   *
+   */
+  void 
+  save_bdt(char * postfix, uint ltext, uint lcode, uint nplayers, 
+           BitDecomposedTriple ** btriples, uint ncount);
+
+
+
+  /*!
+   * \brief load a single set of triples, e.g. for one player.
+   *
+   * \param filename - the filename to load from
+   *
+   * \param btriples - *{btriples} will point to an array of *{ncount}
+   *                   bit decomposed triples upon success. On failure
+   *                   *{btriples} will be ZERO.
+   *
+   * \param ncount - on success *{ncount} will contain the number of
+   *                 triples loaded into {btriples}.
+   *
+   *
+   * TODO(rwl): Better error reporting please.
+   *
+   */
+  void
+  load_bdt(const char * filename,
+           BitDecomposedTriple ** btriples, uint * ncount);
+
+  /*!
+   * \brief load a set of bit decomposed triples for a one player from
+   * {data}.
+   *
+   * \param data - the serialised triple
+   * \param ldata- the length of {data}
+   * \param btriples - *{btriples} will store *{ltriples} triples on success.
+   *
+   * Note: If any error occurres *{btriples} will be ZERO and
+   * *{ltriples} will be ZERO.
+   */
+  DerRC read_bdt(byte * data, uint ldata, 
+                 BitDecomposedTriple ** btriples, uint * lbtriples);
+  
   /*!
    * \brief saves the shares to a set of files.
    *
@@ -472,6 +548,8 @@ extern "C" {
 					  MiniMacsEnc encoder, 
 					  MiniMacsRep rep, 
 					  byte * c, uint lc);
+
+  MiniMacsRep minimacs_rep_and_const(OE oe, MiniMacsRep left, byte * c, uint lc);
 
 
   /*!

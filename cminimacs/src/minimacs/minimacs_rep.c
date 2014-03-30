@@ -280,6 +280,76 @@ bool minimacs_check_othershare_fast(MiniMacsEnc enc,
 
 
 
+/*!
+ * \brief this function generates the representation the shares
+ * corresponding to the bitwise and of the codewords.
+ *
+ */
+MiniMacsRep minimacs_rep_and_const(OE oe, MiniMacsRep left, byte * c, uint lc) {
+
+
+  int i = 0;
+  MiniMacsRep res = 0;
+
+  if (!left) return 0;
+
+  if (left->ldx_codeword != lc) return 0;
+
+  if (left->lcodeword != lc) return 0;
+
+  res = (MiniMacsRep)malloc(sizeof(*res));
+  if (!res) return 0;
+  memset(res,0,sizeof(*res));
+
+  //  CHECK_POINT_S("RepXor");
+
+  res->lval = left->lval;
+
+  // dx codeword
+  res->dx_codeword = oe->getmem(left->ldx_codeword);
+  if (!res->dx_codeword) goto failure;
+  res->ldx_codeword = left->ldx_codeword;
+  
+  for(i = 0;i < lc;++i) {
+    res->dx_codeword[i] = c[i] & left->codeword[i];
+  }
+
+  // the codeword
+  res->codeword = (byte*)oe->getmem(left->ldx_codeword);
+  if (!res->codeword) goto failure;
+  res->lcodeword = left->lcodeword;
+  
+  for(i = 0; i < res->lcodeword;++i) {
+    res->codeword[i] = c[i] & left->codeword[i];
+  }
+
+  // and macs
+  res->mac = (bedoza_mac*)oe->getmem(left->lmac*sizeof(bedoza_mac));
+  if (!res->mac) goto failure;
+  res->lmac = left->lmac;
+
+  for(i = 0;i < left->lmac;++i) {
+    if (left->mac[i] == 0) continue;
+    res->mac[i] = bedoza_mac_and_const(left->mac[i],c,lc);
+  }
+
+  // and mac keys
+  res->mac_keys_to_others = 
+    oe->getmem(left->lmac_keys_to_others * sizeof(bedoza_mac_key));
+  if (!res->mac_keys_to_others) goto failure;
+  res->lmac_keys_to_others = left->lmac_keys_to_others;
+
+  for(i = 0;i < left->lmac_keys_to_others;++i) {
+    res->mac_keys_to_others[i] = 
+      bedoza_mac_key_and_const(left->mac_keys_to_others[i],c,lc);
+  }
+
+
+  return res;
+ failure:
+  return 0;
+}
+
 MiniMacsRep minimacs_rep_xor(MiniMacsRep left, MiniMacsRep right) {
 
   int i = 0;
@@ -595,7 +665,8 @@ MiniMacsRep * minimacs_rep_mul(MiniMacsRep * left, MiniMacsRep * right, uint npl
 
   */
 
-MiniMacsRep minimacs_rep_add_const_fast(MiniMacsEnc encoder, MiniMacsRep rep, byte * c, uint lc ) {
+MiniMacsRep minimacs_rep_add_const_fast(MiniMacsEnc encoder, 
+                                        MiniMacsRep rep, byte * c, uint lc ) {
 
 
   MiniMacsRep r = 0;
@@ -770,7 +841,8 @@ MiniMacsRep minimacs_rep_add_const(MiniMacsRep rep, byte * c, uint lc ) {
 */
 
 
-MiniMacsRep minimacs_rep_mul_const_fast(MiniMacsEnc encoder, MiniMacsRep rep, byte * c, uint lc) { 
+MiniMacsRep minimacs_rep_mul_const_fast(MiniMacsEnc encoder, 
+                                        MiniMacsRep rep, byte * c, uint lc) { 
   uint i = 0, j = 0;
   MiniMacsRep r = 0;
   byte * encoded_c = 0;
@@ -1195,6 +1267,39 @@ uint minimacs_rep_store(MiniMacsRep rep, byte * data) {
 }
 
 
+void 
+load_bdt(const char * filename,
+         BitDecomposedTriple ** btriples,
+         uint * ncount) {
+
+  byte *buf = 0;
+  uint lbuf = 0;
+  DerRC rc = DER_OK;
+  BitDecomposedTriple * triples = 0;
+  uint ltriples = 0;
+
+  if (!btriples) return;
+  if (!ncount) return;
+
+  *btriples = 0;
+  *ncount = 0;
+
+  lbuf = read_file_size(filename);
+
+  buf = malloc(lbuf);
+  if (!buf) return;
+  memset(buf, 0, lbuf);
+
+  lbuf = read_entire_file(filename,buf,lbuf);
+
+  rc = read_bdt(buf,lbuf,&triples,&ltriples);
+  if (rc != DER_OK) return;
+
+  *btriples = triples;
+  *ncount = ltriples;
+
+}
+
 
 void load_shares( const char * filename, 
 		  MiniMacsTripleRep ** triples, uint * ltriples,
@@ -1388,6 +1493,200 @@ DerRC write_triple( DerCtx * c, MiniMacsTripleRep t ) {
  failure:
   return rc;
 }
+
+
+DerRC minimacs_rep_ld(DerCtx * c, MiniMacsRep * out) {
+  DerRC rc = DER_OK;
+  MiniMacsRep r = 0;
+  uint i = 0;
+  if (!c) return DER_ARG;
+  if (!out) return DER_ARG;
+
+  r = *out = (MiniMacsRep)malloc(sizeof(**out));
+  if (!*out) return DER_MEM;
+  
+  
+  _DG(der_take_uint, c, 0, &r->lval);
+  _DG(der_take_octetstring, c, 1, &r->dx_codeword, &r->ldx_codeword);
+  _DG(der_take_octetstring, c, 2, &r->codeword, &r->lcodeword);
+  _DG(der_enter_seq, &c, 3);
+  _DG(der_take_uint, c, 0, &r->lmac);
+  r->mac = malloc(sizeof(*r->mac)*(r->lmac+1));
+  if (!r->mac) { rc = DER_MEM; goto failure;}
+  for(i = 0;i < r->lmac-1;++i) {
+    bedoza_mac tmp = 0;
+    _DG(der_enter_seq, &c, i+1);
+    _DG(bedoza_mac_ld, c, &tmp);
+    r->mac[tmp->fromid] = tmp;
+    _DG(der_leave_seq, &c);
+  }
+  _DG(der_leave_seq, &c);
+  
+  _DG(der_enter_seq, &c, 4);
+  _DG(der_take_uint, c, 0, &r->lmac_keys_to_others);
+  r->mac_keys_to_others = malloc(sizeof(*r->mac_keys_to_others)*(r->lmac_keys_to_others+1));
+  for(i = 0;i < r->lmac_keys_to_others;++i) {
+    _DG(der_enter_seq, &c, i+1);
+    _DG(bedoza_mac_key_ld, c, &r->mac_keys_to_others[i]);
+    _DG(der_leave_seq, &c );
+  }
+  _DG(der_leave_seq, &c);
+  _DG(der_leave_seq, &c);
+  
+  return rc;
+ failure:
+  return rc;
+}
+
+DerRC read_bdt(byte * data, uint ldata, 
+               BitDecomposedTriple ** btriples, uint * lbtriples) {
+  DerRC rc = DER_OK;
+  DerCtx * c = 0;
+  BitDecomposedTriple * ts = 0;
+  uint i = 0, j = 0;
+  
+  _DG(der_begin_read, &c, data, ldata);
+  _DG(der_take_uint, c, 0, lbtriples);
+
+  ts = malloc(sizeof(*ts)*(*lbtriples));
+  if (!ts) return DER_MEM;
+  memset(ts, 0, sizeof(*ts)*(*lbtriples));
+
+  for(i = 0;i < *lbtriples;++i) {
+    uint ld = 0;
+    byte * d = 0;
+
+    ts[i] = malloc(sizeof(*ts[i]));
+    if (!ts[i]) goto failure;
+    memset(ts[i], 0, sizeof(*ts[i]));
+    
+    _DG(der_enter_seq, &c, i+1);
+    // a
+    _DG(der_enter_seq, &c, 0);
+    rc = minimacs_rep_ld(c, &ts[i]->a);
+    if (rc != DER_OK) goto failure;
+    _DG(der_leave_seq, &c);
+
+    // b
+    _DG(der_enter_seq, &c, 1);
+    rc = minimacs_rep_ld(c, &ts[i]->b);
+    if (rc != DER_OK) goto failure;
+    _DG(der_leave_seq, &c);
+   
+    // c
+    _DG(der_enter_seq, &c, 2);
+    rc = minimacs_rep_ld(c, &ts[i]->c);
+    if (rc != DER_OK) goto failure;
+    _DG(der_leave_seq, &c);
+
+    for(j = 3;j < 3+8;++j) {
+      _DG(der_enter_seq, &c, j);
+      rc = minimacs_rep_ld(c,&ts[i]->abits[j-3]);
+    if (rc != DER_OK) goto failure;
+      _DG(der_leave_seq, &c );
+    }
+
+    for(j = 11;j < 11+8;++j) {
+      _DG(der_enter_seq, &c, j);
+      rc = minimacs_rep_ld(c,&ts[i]->bbits[j-11]);
+      if (rc != DER_OK) goto failure;
+      _DG(der_leave_seq, &c);
+    }
+
+    _DG(der_leave_seq, &c);
+
+    *btriples = ts;
+  }
+ failure:
+  return rc;
+}
+
+DerRC serialize_bdt(DerCtx *c, BitDecomposedTriple * t, uint lt) {
+  DerRC rc = DER_OK;
+  uint i = 0;
+  _DG(der_begin_seq, &c);
+  _DG(der_insert_uint, c, lt);
+  for(i = 0;i < lt;++i) {
+    _DG(der_begin_seq, &c);
+    write_rep(c, t[i]->a);
+    write_rep(c, t[i]->b);
+    write_rep(c, t[i]->c);
+    write_rep(c, t[i]->abits[0]);
+    write_rep(c, t[i]->abits[1]);
+    write_rep(c, t[i]->abits[2]);
+    write_rep(c, t[i]->abits[3]);
+    write_rep(c, t[i]->abits[4]);
+    write_rep(c, t[i]->abits[5]);
+    write_rep(c, t[i]->abits[6]);
+    write_rep(c, t[i]->abits[7]);
+    write_rep(c, t[i]->bbits[0]);
+    write_rep(c, t[i]->bbits[1]);
+    write_rep(c, t[i]->bbits[2]);
+    write_rep(c, t[i]->bbits[3]);
+    write_rep(c, t[i]->bbits[4]);
+    write_rep(c, t[i]->bbits[5]);
+    write_rep(c, t[i]->bbits[6]);
+    write_rep(c, t[i]->bbits[7]);
+    _DG(der_end_seq, &c);
+  }
+  _DG(der_end_seq, &c);
+  return rc;
+ failure:
+  return rc;
+}
+
+DerRC write_bdt(BitDecomposedTriple * t, uint lt, byte ** dout, uint * ldout ) {
+  DerRC rc = DER_OK;
+  uint ldata = 0;
+  byte * data = 0;
+  DerCtx * out = 0;
+
+  _DG(der_begin, &out);
+
+  rc = serialize_bdt(out, t, lt);
+  if (rc != DER_OK) goto failure;
+
+  _DG(der_final, &out, *dout, ldout);
+
+  *dout = malloc(*ldout);
+
+  _DG(der_final, &out, *dout, ldout);
+
+ failure:
+  return rc;
+}
+
+void 
+save_bdt(char * postfix, uint ltext, uint lcode, uint nplayers, 
+         BitDecomposedTriple ** btriples, uint ncount) {
+  uint i = 0;
+  FILE * out =0;
+  char filename[128] = {0};
+  byte * buf = 0;
+  uint lbuf = 0;
+  uint player = 0;
+  DerRC rc = DER_OK;
+
+  for(player = 0; player < nplayers;++player) {
+    sprintf(filename, "bdt_%u_%u_%uof%u_%u_%s.rep",ltext,lcode,player,nplayers,ncount,postfix);
+    out = fopen(filename,"wb");
+    
+    printf("Writting file \"%s\"\n",filename);
+    buf = 0;
+    rc = write_bdt(btriples[player],ncount,&buf, &lbuf);
+    if (rc != DER_OK) goto failure;
+
+    fwrite(buf, 1, lbuf, out);
+    
+    fclose(out);out=0;
+  }
+    return ;
+  failure:
+    if (out) fclose(out);
+    printf("Failed to serialise bdt\n");
+    return;
+}
+
 
 
 // TODO(rwl): Figure out how we do this. We need a filename for each

@@ -288,6 +288,21 @@ extern "C" {
   bedoza_mac bedoza_mac_mul_const( bedoza_mac mac, byte * c, uint lc);
 
   /*!
+   * \brief given a mac and a constant produce the representation the
+   * AND.
+   *
+   * \param mac - the mac to AND {c} onto.
+   * \param c   - the constant to AND with.
+   * \param lc  - the length of {c}
+   *
+   * \return the mac of the bit wise and of {c} and r, where r is the
+   * representation that {mac} is a MAC for.
+   */
+  bedoza_mac bedoza_mac_and_const( bedoza_mac mac, byte * c, uint lc);
+
+
+
+  /*!
    * \brief given a mac key and a constant, make a fresh mac key for 
    * the mac on the product. 
    *
@@ -298,6 +313,8 @@ extern "C" {
    * \return a fresh mac key for the product
    */
   bedoza_mac_key  bedoza_mac_key_mul_const( bedoza_mac_key key, byte * c, uint lc);
+
+  bedoza_mac_key bedoza_mac_key_and_const( bedoza_mac_key key, byte * c, uint lc);
 
   /*!
    * \brief serialise the given {mac} data structure into data. If
@@ -396,6 +413,7 @@ extern "C" {
   DerRC bedoza_macs_load( byte * data, uint ldata,
 			  bedoza_mac * macs_out, uint * lmacs_out );
 
+  DerRC bedoza_mac_ld(DerCtx * c, bedoza_mac * mac_out);
 #ifdef __cplusplus
 }
 #endif

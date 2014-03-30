@@ -355,6 +355,49 @@ void bedoza_mul_mac_keys( bedoza_mac_key left,
   return ;
 }
 
+void bedoza_and_macs( bedoza_mac left, bedoza_mac right, bedoza_mac * result) {
+
+  bedoza_mac res = 0;
+  int i = 0;
+
+  if (!result) return;
+
+  if (!left) goto failure;
+  
+  if (!right) goto failure;
+
+  if (left->toid 
+      != 
+      right->toid) goto failure;
+
+  if (left->fromid != right->fromid) goto failure;
+
+  if (left->lmac != right->lmac) goto failure;
+
+  res = (bedoza_mac)malloc(sizeof(*res));
+  if (!res) goto failure;
+  memset(res,0,sizeof(*res));
+
+  res->mid = 0;
+  res->toid = left->toid;
+  res->fromid = left->fromid;
+
+  // Handle macs needs to be the sum
+  res->mac = (byte*)malloc(left->lmac);
+  if (!res->mac) goto failure;
+  res->lmac = left->lmac;
+
+  for(i = 0;i < left->lmac;++i) {
+    res->mac[i] = left->mac[i] ^ right->mac[i];
+  }
+
+  *result = res;
+  return;
+ failure:
+  bedoza_mac_destroy ( & res );
+  return;
+}
+
 void bedoza_add_macs( bedoza_mac left, bedoza_mac right, bedoza_mac * result ) {
 
   bedoza_mac res = 0;
@@ -395,6 +438,8 @@ void bedoza_add_macs( bedoza_mac left, bedoza_mac right, bedoza_mac * result ) {
   bedoza_mac_destroy ( & res );
   return;
 }
+
+
 
 void bedoza_add_mac_keys( bedoza_mac_key leftkey, 
 			  bedoza_mac_key rightkey, 
@@ -571,6 +616,108 @@ bedoza_mac bedoza_mac_mul_const( bedoza_mac mac, byte * c, uint lc) {
   bedoza_mac_destroy( & res );
   return 0;
 }
+
+
+
+bedoza_mac bedoza_mac_and_const( bedoza_mac mac, byte * c, uint lc) {
+  uint i = 0;
+  bedoza_mac res = 0;
+  if (!mac) {
+    goto failure;
+  }
+
+  if (lc != mac->lmac) {
+    goto failure;
+  }
+
+  res = (bedoza_mac)malloc(sizeof(*res));
+  if (!res) {
+    goto failure;
+  }
+  memset(res,0,sizeof(*res));
+
+  res->mid = mac->mid;
+  res->toid = mac->toid;
+  res->fromid = mac->fromid;
+  res->mac = (byte*)malloc(mac->lmac);
+  if (!res->mac) {
+    goto failure;
+  }
+  memset(res->mac,0,mac->lmac);
+  res->lmac = mac->lmac;
+  for(i = 0;i < res->lmac;++i) {
+    res->mac[i] = mac->mac[i] & c[i];
+  }
+  return res;
+ failure:
+  bedoza_mac_destroy( & res );
+  return 0;
+}
+
+bedoza_mac_key bedoza_mac_key_and_const( bedoza_mac_key key, byte * c, uint lc) {
+  
+  uint i = 0;
+  bedoza_mac_key res = 0;
+
+  if (!key) {
+    goto failure;
+  }
+
+  if (!c) {
+    goto failure;
+  }
+  
+  if (lc != key->lalpha) {
+    goto failure;
+  }
+
+  if (lc != key->lbeta) {
+    goto failure;
+  }
+
+  res = (bedoza_mac_key)malloc(sizeof(*res));
+  if (!res) {
+    goto failure;
+  }
+  memset(res,0,sizeof(*res));
+
+  res->mid = key->mid;
+  res->toid = key->toid;
+  res->fromid = key->fromid;
+  
+  // alpha
+  res->alpha = (byte*)malloc(key->lalpha);
+  if (!res->alpha) {
+    goto failure;
+  }
+  memset(res->alpha,0,key->lalpha);
+  res->lalpha = key->lalpha;
+
+  // beta
+  res->beta = (byte*)malloc(key->lbeta);
+  if (!res->beta) {
+    goto failure;
+  }
+  memset(res->beta,0,key->lbeta);
+  res->lbeta = key->lbeta;
+  
+  // alpha is the same
+  for(i = 0;i<res->lalpha;++i) {
+    res->alpha[i] = key->alpha[i];
+  }
+  
+  // beta is and'ed by our constant
+  for(i = 0;i<res->lbeta;++i) {
+    res->beta[i] = key->beta[i] & c[i];
+  }
+
+  return res;
+ failure:
+  bedoza_mac_key_destroy( &res );
+  return 0;
+}
+
+
 
 bedoza_mac_key bedoza_mac_key_mul_const( bedoza_mac_key key, byte * c, uint lc) {
   uint i = 0;
@@ -784,6 +931,28 @@ DerRC bedoza_mac_save( bedoza_mac mac, byte * data, uint * ldata) {
   return DER_OK;
 }
 
+DerRC bedoza_mac_ld(DerCtx * c, bedoza_mac * mac_out) {
+  DerRC rc = DER_OK;
+  bedoza_mac m = 0;
+
+  if (!c) return DER_ARG;
+  if (!mac_out) return DER_ARG;
+
+  m = *mac_out = malloc(sizeof(**mac_out));
+  if (!*mac_out) return DER_MEM;
+  memset(*mac_out, 0, sizeof(**mac_out));
+
+  rc = der_take_uint(c, 0, &m->mid);
+  if (rc != DER_OK) goto failure;
+  rc = der_take_uint(c, 1, &m->toid);
+  if (rc != DER_OK) goto failure;
+  rc = der_take_uint(c, 2, &m->fromid);
+  if (rc != DER_OK) goto failure;
+  rc = der_take_octetstring(c, 3, &m->mac, &m->lmac);
+ failure:
+  return rc;
+}
+
 DerRC bedoza_mac_load( byte * data, uint ldata, bedoza_mac * mac_out ) {
   uint off = 0;
   DerRC rc = DER_OK;
@@ -910,6 +1079,20 @@ DerRC bedoza_mac_key_save( bedoza_mac_key key, byte * data, uint * ldata) {
   return rc;
 }
 
+
+DerRC bedoza_mac_key_ld( DerCtx * c, bedoza_mac_key * key_out) {
+  bedoza_mac_key res = 0;
+
+  res = *key_out = malloc(sizeof(*res));
+  if (!res) return DER_MEM;
+  memset(res, 0, sizeof(*res));
+
+  der_take_uint(c,0, &res->mid);
+  der_take_uint(c,1, &res->toid);
+  der_take_uint(c,2, &res->fromid);
+  der_take_octetstring(c, 3, &res->alpha, &res->lalpha);
+  der_take_octetstring(c, 4, &res->beta, &res->lbeta);
+}
 
 DerRC bedoza_mac_key_load( byte * data, uint ldata, bedoza_mac_key * key_out) {
   uint seq_off = 0;

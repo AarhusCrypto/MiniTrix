@@ -665,7 +665,7 @@ COO_DEF_RET_ARGS(MiniMacs,MR,open,hptr dst;,dst) {
 
   if(!v) MRGF(oe,"Value at %u is not set",dst);
 
-  if (minimacs_rep_is_public_const(v)) return;
+  if (minimacs_rep_is_public_const(v)) return 0;
 
   shares = (Data *)oe->getmem(sizeof(*shares)*(gmm->peer_map->size()+1));
   if (!shares) MRGF(oe,"Failed to allocate shares for opening.");

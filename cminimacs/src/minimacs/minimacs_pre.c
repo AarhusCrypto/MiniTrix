@@ -23,6 +23,111 @@ static void rand_bytes( byte * b, uint lb ) {
   } 
 }
 
+void minimacs_fake_bdt(OE oe, MiniMacsEnc encoder,
+                       MiniMacsRep * proto,
+                       BitDecomposedTriple *** triples,
+                       uint ltriples) {
+  uint striples = 0;
+  uint nplayers = proto[0]->lmac;
+  uint player = 0;
+  uint triple = 0;
+  uint lcode = proto[0]->lcodeword;
+  uint lval = proto[0]->lval;
+  byte * a = malloc(lval);
+  byte * b = malloc(lval);
+  byte * c = malloc(2*lval);
+
+  
+  striples = sizeof(**triples) * nplayers;
+  *triples = (BitDecomposedTriple**)malloc(striples);
+  memset(*triples, 0, striples);
+
+  
+  for(player = 0;player < nplayers;++player) {
+    uint siz = sizeof(BitDecomposedTriple)*ltriples;
+    (*triples)[player] = 
+      (BitDecomposedTriple*)malloc(siz);
+    memset((*triples)[player],0,siz);
+  }
+
+  for(triple = 0; triple < ltriples;++triple) {
+    uint i = 0;
+    MiniMacsRep *as = 0;
+    MiniMacsRep *bs = 0;
+    MiniMacsRep *cs = 0;
+    MiniMacsRep *ais[8] = {0};
+    MiniMacsRep *bis[8] = {0};
+    byte * masked = malloc(lval);
+    char m[128] = {0};
+    
+    rand_bytes(a,lval);
+    rand_bytes(b,lval);
+    for(i = 0; i < lval;++i) {
+      c[i] = a[i] & b[i];
+    }
+
+    as = minimacs_create_rep_from_plaintext_f(encoder, a, lval, nplayers, lcode, proto);
+    bs = minimacs_create_rep_from_plaintext_f(encoder, b, lval, nplayers, lcode, proto);
+    cs = minimacs_create_rep_from_plaintext_f(encoder, c, lval, nplayers, lcode, proto);
+    
+    for(i = 0;i < 8;++i) {
+      uint j = 0;
+      byte mask = ( 1 << i );
+      memset(masked,0,lval);
+      for(j = 0;j < lval;++j) {
+        masked[j] = (a[j] & mask);
+      }
+      
+
+      ais[i] = 
+        minimacs_create_rep_from_plaintext_f(encoder, masked, lval, 
+                                             nplayers,lcode, proto);
+
+
+      if ( (ais[i][0]->codeword[0] ^ ais[i][1]->codeword[0] ^ 
+            ais[i][0]->dx_codeword[0]) != masked[0]) {
+        printf("########### ERROR (%u) ###########\n",i);
+      }
+      _p("a value",a,8,8);
+      _p("masked value",masked,8,8);
+      osal_sprintf(m,"ais[%u][0]   ",i);
+      _p(m,ais[i][0]->codeword,8,8);
+      osal_sprintf(m,"ais[%u][1]   ",i);      
+      _p(m,ais[i][1]->codeword,8,8);
+      osal_sprintf(m,"ais[%u][1]_dx",i);      
+      _p(m,ais[i][0]->dx_codeword,8,8);
+      printf("\n");
+
+      memset(masked,0,lval);
+      for(j = 0;j < lval;++j) {
+        masked[j] = (b[j] & mask);
+      }
+      bis[i] = 
+        minimacs_create_rep_from_plaintext_f(encoder, masked, lval, 
+                                             nplayers, lcode, proto);
+    }
+
+    
+    for(player = 0; player < nplayers;++player) {
+      (*triples)[player][triple] = 
+        (BitDecomposedTriple)malloc(sizeof(*(*triples)[player][triple]));
+      (*triples)[player][triple]->a = as[player];
+      (*triples)[player][triple]->b = bs[player];
+      (*triples)[player][triple]->c = cs[player];
+     
+      for(i = 0; i < 8;++i) {
+        (*triples)[player][triple]->abits[i] = ais[i][player];
+      }
+      
+      for(i = 0; i < 8;++i) {
+        (*triples)[player][triple]->bbits[i] = bis[i][player];
+      }
+      
+    }
+    
+  }
+  
+}
 
 MiniMacsRep * minimacs_fake_setup(
                                   OE oe,
