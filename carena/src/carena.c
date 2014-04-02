@@ -148,7 +148,7 @@ COO_DEF_RET_ARGS(MpcPeer, CAR, send, Data data;, data) {
   MpcPeerImpl peer_i = (MpcPeerImpl)this->impl;
   RC rc = 0;
 
-  if (peer_i->die) return;
+  if (peer_i->die) return c;
   //  rc = peer_i->oe->write(peer_i->fd, data->data, &data->ldata);
   //  printf("SEND %llu ns",_nano_time());
   CHECK_POINT_S(__FUNCTION__);
@@ -194,7 +194,7 @@ COO_DEF_RET_ARGS(MpcPeer, CAR, receive, Data data;, data) {
   uint ldata = 0;
   Data d = 0;
 
-  if (!peer_i->incoming) return;
+  if (!peer_i->incoming) return (c.rc=1,c);
 
   if (!data) { 
     osal_sprintf(c.msg,"CArena receive, bad input data is null");
@@ -393,10 +393,11 @@ static void * peer_snd_function(void * a) {
 
     item = (Data)mei->outgoing->get();
     if (item == mei->die_package) {
+      mei->oe->syslog(OSAL_LOGLEVEL_FATAL, "Send function killed");
       Data_destroy(mei->oe,&item);
-      mei->die_package = 0;
       item = 0;
-      //      printf("The blue pill\n");
+      mei->oe->unlock(mei->send_lock);
+      return 0;
     }
 
     if (item) {
@@ -428,7 +429,6 @@ static void * peer_snd_function(void * a) {
   }
  out:
   mei->oe->unlock(mei->send_lock);
-  mei->oe->p("Leaving sender thread");
   return 0;
 }
 
@@ -557,7 +557,6 @@ void send_int(OE oe, uint fd, int i) {
   uint sofar = 0;
   i2b(i,d);
   if ( oe->write(fd,d,4) != RC_OK) {
-    //    oe->p("Write failed sending int");
   }
 }
 
@@ -658,15 +657,15 @@ static void * carena_listener_thread(void * a) {
       peer = MpcPeerImpl_new(arena_i->oe,client_fd,0,0);
       arena_i->peers->add_element(peer);
       arena_i->oe->unlock(arena_i->lock);
-      //      osal_sprintf(mm,"added client with id %u",peer_id);
-      //      oe->p(mm);
+      osal_sprintf(mm,"added client with id %u",peer_id);
+      oe->p(mm);
       continue;
     }
 
     if (peer_id < 1024) {
       MpcPeerImpl peer_i = 0;
-      //      osal_sprintf(mm,"incoming id was %u",peer_id);
-      //      oe->p(mm);
+      osal_sprintf(mm,"incoming id was %u",peer_id);
+      oe->p(mm);
       oe->lock(arena_i->lock);
       peer = arena_i->peers->get_element(peer_id);
       oe->unlock(arena_i->lock);
@@ -678,8 +677,10 @@ static void * carena_listener_thread(void * a) {
       peer_i = (MpcPeerImpl)peer->impl;
       peer_i->fd_out = client_fd;
       
+
       oe->unlock(peer_i->send_lock);
       oe->unlock(peer_i->receive_lock);
+      oe->p("Done unlocking send and receive locks, peer operational.");
       for(i = 0;i < arena_i->conn_obs->size();++i) {
         ConnectionListener cur = (ConnectionListener)
           arena_i->conn_obs->get_element(i);
@@ -688,7 +689,6 @@ static void * carena_listener_thread(void * a) {
         }
       }
     } 
-    
     arena_i->oe->yieldthread();
   }
   return 0;
@@ -861,6 +861,8 @@ void CArena_destroy( CArena * arena) {
   oe = arena_i->oe;
   arena_i->running = 0;
 
+  oe->close(arena_i->server_fd);
+
   if (arena_i->worker) {
     oe->jointhread(arena_i->worker);
   }
@@ -868,9 +870,11 @@ void CArena_destroy( CArena * arena) {
 
   if (arena_i->peers) {
     uint i = 0;
+    oe->p(" [d] destroy peers.");
     for(i = 0;i<arena_i->peers->size();++i) {
       MpcPeer peer = (MpcPeer)arena_i->peers->get_element(i);
       if (peer) {
+        oe->p("Destroying peer");
         MpcPeerImpl_destroy( &peer );
       }
     }
