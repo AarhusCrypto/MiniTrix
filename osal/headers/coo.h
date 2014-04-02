@@ -116,6 +116,7 @@ void set_rbx();
  * Otherwise as COO_DEF_RET_ARGS above.
  */
 
+
 #define COO_DEF_NORET_ARGS(CLZ, NAME, TYPES, ...)	\
   static  void stub_##CLZ##_##NAME(__VA_ARGS__) TYPES		\
   {							\
