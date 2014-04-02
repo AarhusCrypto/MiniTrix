@@ -647,11 +647,6 @@ OE OperatingEnvironment_LinuxNew() {
   oe->p("   "PACKAGE_STRING" - "CODENAME );
   oe->p("   "BUILD_TIME);
   oe->p("************************************************************");
-  {
-    char m[64] = {0};
-    osal_sprintf(m,"STUB SIZE %u",STUB_SIZE);
-    oe->p(m);
-  }
   return oe;
 }
 

@@ -18,7 +18,7 @@ void * ts(void * a) {
   OE oe = (OE)a;
   sleep(1);
   printf("ID from thread %llu\n", (ull)pthread_self());
-  printf("newthread tid=%u\n",oe->get_thread_id());
+  //  printf("newthread tid=%u\n",oe->get_thread_id());
   return 0;
 }
 

@@ -58,7 +58,7 @@ void set_rbx();
  *
  */
 #define COO_DEF_RET_ARGS(CLZ, RET, NAME, TYPES, ...)	\
-  static  RET stub_##CLZ##_##NAME(__VA_ARGS__) TYPES \
+  static  __attribute__((optimize("O0"))) RET stub_##CLZ##_##NAME(__VA_ARGS__) TYPES \
   {                                                                     \
     register void * ths = (void*)0xDEADBEEFDEADBEEFL;                   \
     register RET (*k)(void * t, ...) = (void*)&CLZ##_##NAME;            \
@@ -78,7 +78,7 @@ void set_rbx();
  * Otherwise as COO_DEF_RET_ARGS above.
  */
 #define COO_DEF_RET_NOARGS(CLZ, RET, NAME)                              \
-  static  RET stub_##CLZ##_##NAME(void)                                 \
+  static  __attribute__((optimize("O0"))) RET stub_##CLZ##_##NAME(void) \
   {                                                                     \
   volatile void * ths = (void*)0xDEADBEEFDEADBEEFL;                     \
   RET (* k)(void * t) = (void*)&CLZ##_##NAME;                           \
@@ -98,7 +98,7 @@ void set_rbx();
  * Otherwise as COO_DEF_RET_ARGS above. 
  */
 #define COO_DEF_NORET_NOARGS(CLZ, NAME)                                 \
-  static  void stub_##CLZ##_##NAME(void) \
+  static  __attribute__((optimize("O0")))  void stub_##CLZ##_##NAME(void) \
   {                                                                     \
     register void * ths = (void*)0xDEADBEEFDEADBEEFL;                   \
   void (*k)(void * t) = (void*)&CLZ##_##NAME;                           \
@@ -118,7 +118,7 @@ void set_rbx();
 
 
 #define COO_DEF_NORET_ARGS(CLZ, NAME, TYPES, ...)	\
-  static  void stub_##CLZ##_##NAME(__VA_ARGS__) TYPES		\
+  static  __attribute__((optimize("O0"))) void stub_##CLZ##_##NAME(__VA_ARGS__) TYPES		\
   {							\
     register void * ths = (void*)0xDEADBEEFDEADBEEFL;         \
     void (*k)(void * t, ...) = (void*)&CLZ##_##NAME;          \
