@@ -39,6 +39,6 @@
 
 include $(top_srcdir)/carena.am
 lib_LIBRARIES= libcarena.a 
-libcarena_a_SOURCES = carena2.c
+libcarena_a_SOURCES = carena.c
 libcarena_a_LIBADD = $(DEPS_OSAL_A) 
 

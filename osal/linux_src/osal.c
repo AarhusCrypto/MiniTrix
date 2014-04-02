@@ -28,7 +28,11 @@
 #include <time.h>
 #include <netinet/tcp.h>
 #include <string.h>
+#include <pthread.h>
 extern char *strerror (int __errnum);
+
+extern
+int memcmp(const char * s1, const char * s2, size_t l);
 
 MUTEX _static_lock;
 
@@ -469,7 +473,7 @@ COO_DEF_RET_ARGS(OE, void *, jointhread, ThreadID tid;,tid) {
   if (tid > soe->threads->size()+1) { 
     this->syslog(OSAL_LOGLEVEL_FATAL, "Failed to join thread"
 		 ", thread id is greater than any active thread id.");
-    return;
+    return 0;
   }
   if (t) {
     pthread_join(*t,&p);
@@ -540,7 +544,14 @@ COO_DEF_NORET_ARGS(OE, down, Cmaphore c;, c) {
 
 COO_DCL(OE, void, syslog, LogLevel level, const char * msg) 
 COO_DEF_NORET_ARGS(OE, syslog, LogLevel level; const char * msg;, level, msg) {
-  printf(" - log - %s\n", msg);
+  
+  if (level == OSAL_LOGLEVEL_FATAL) {
+    printf("\033[1;31m - log - \033[00m");
+  } else {
+    printf(" - log - ");
+  }
+  
+  printf("%s\n", msg);
 }}
 
 COO_DCL(OE, void, p, const char * msg)
@@ -570,7 +581,7 @@ COO_DEF_RET_NOARGS(OE,ThreadID,get_thread_id) {
   for(i = 0;i < simpleOE->threads->size();++i) {
     pthread_t * cur = (pthread_t *)simpleOE->threads->get_element(i);
     if (cur) {
-      if (pthread_equal(*cur,t)) {
+      if (pthread_equal(*cur,__t)) {
         this->unlock(simpleOE->lock);
         return i+1;
       }
@@ -710,7 +721,7 @@ Data Data_copy(OE oe, Data other) {
   
 }
 
-Data Data_destroy(OE oe, Data * d) {
+void Data_destroy(OE oe, Data * d) {
   if (d) {
     if (*d) {
       if ((*d)->data) {
@@ -720,4 +731,5 @@ Data Data_destroy(OE oe, Data * d) {
       *d = 0;
     }
   }
+  
 }

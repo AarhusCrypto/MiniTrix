@@ -31,6 +31,7 @@ DEV_OSAL="../osal/build/osal/"
 DEV_DS="../ds/build/ds/"
 DEV_CMINIMACS="../cminimacs/build/cminimacs/"
 DEV_CARENA="../carena/build/carena"
+DEV_ENCODING="../encoding/build/encoding/"
 
 # This "all" target builds the whole project every time. To re-compile
 # the project without rebuilding the whole thing do "cd build && make
@@ -76,6 +77,7 @@ $(DEPS)/libosal.a:
 	-@[ -d $(DEV_DS) ] && ( cp -r $(DEV_DS)/* ./deps && echo "DS Updated to DEV Version")
 	-@[ -d $(DEV_CMINIMACS) ]&&( cp -r $(DEV_CMINIMACS)/* ./deps && echo "CMiniMacs Updated to DEV Version")
 	-@[ -d $(DEV_CARENA) ]&&( cp -r $(DEV_CARENA)/* ./deps && echo "CArena Updated to DEV Version")
+	-@[ -d $(DEV_ENCODING) ] && ( cp -r $(DEV_ENCODING)/* ./deps && echo "ENCODING Updated to DEV Version")
 
 
 

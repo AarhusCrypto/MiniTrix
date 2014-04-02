@@ -1,7 +1,7 @@
 build:
 	cd osal && make depshape 
-	cd ds && make  depshape
 	cd encoding && make  depshape
+	cd ds && make  depshape
 	cd carena && make  depshape
 	cd math && make  depshape
 	cd cminimacs && make clean depshape

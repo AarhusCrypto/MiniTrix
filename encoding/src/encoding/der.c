@@ -282,6 +282,7 @@ DerRC der_decode_octetstring(byte *v, uint * lv, byte * in, uint * off, uint lin
   
   if (!v) {
     *lv = len;
+    *off = *off + len;
     return DER_OK;
   }
 
@@ -698,6 +699,17 @@ DerRC der_end_seq( DerCtx ** ctx ) {
   return rc;
 }
 
+DerRC der_insert_cstr(DerCtx * ctx, const char * str) {
+  DerRC rc = DER_OK;
+  uint lstr = 0;
+  while(str[lstr]) ++lstr;
+
+  rc = der_insert_octetstring(ctx, (byte*)str, lstr+1);
+
+  return rc;
+}
+
+
 DerRC der_insert_octetstring( DerCtx * ctx, byte * d, uint ld) {
 
   DerRC rc = DER_OK;
@@ -788,4 +800,179 @@ DerRC der_insert_octetstring( DerCtx * ctx, byte * d, uint ld) {
   return DER_OK;
 }
 
+static 
+uint peek_tag(byte * d) {
+  byte tag = 0;
+  if (!d) return 0;
+  tag = d[0];
+  
+  if ((tag & 0x1F /*00011111*/) == 31) {
+    printf("[EncDer] Unsupported DER tag\n");
+    return 0;
+  }
 
+  return tag;
+}
+
+
+DerRC der_begin_read(DerCtx ** ctx, byte * data, uint ldata) {
+  DerCtx * res = 0;
+  uint tag = 0;
+  uint data_read = 0;
+  DerRC rc = DER_OK;
+  uint nsubs = 0;
+  uint sub_no = 0;
+  uint off = 0, ltmp = 0;
+  byte * tmp = 0;
+  
+
+  if (!ctx) return DER_ARG;
+  if (!data) return DER_ARG;
+
+  res =  malloc(sizeof(*res));
+  if (!res) return DER_MEM;
+
+  tag = peek_tag(data);
+  if (tag != SEQ) return DER_ARG;
+
+  // compute number of subs
+  while(rc == DER_OK) {
+    rc = der_decode_seq(data, ldata, nsubs,
+                        &off, 0, &ltmp);
+    if (rc == DER_OK)
+      ++nsubs;
+  }
+
+  res->subs = malloc(sizeof(DerData)*nsubs);
+  if (!res->subs) return DER_MEM;
+  res->lsubs = nsubs;
+
+  off = 0;
+  for(sub_no = 0; sub_no < nsubs;++sub_no) {
+    rc = der_decode_seq(data, ldata, sub_no,
+                        &off, 
+                        &res->subs[sub_no].data,
+                        &res->subs[sub_no].ldata);
+    if (rc != DER_OK) return rc;
+  }
+
+  rc = DER_OK;
+  
+
+  *ctx = res;
+  return DER_OK;
+ failure:
+  return rc;
+}
+
+
+
+DerRC der_take_octetstring(DerCtx * ctx, uint idx, byte ** data, uint * ldata) {
+  DerRC rc = 0;
+  uint len = 0;
+  uint off = 0, ltmp = 0, tag = 0;
+  byte * tmp = 0;
+  
+  if (!ctx) return DER_ARG;
+  if (!data) return DER_ARG;
+  if (!ldata) return DER_ARG;
+  if (ctx->lsubs < idx) return DER_ARG;
+  
+  tmp = ctx->subs[idx].data;
+  ltmp = ctx->subs[idx].ldata;
+
+  tag = peek_tag(tmp);
+  if (tag != OCTET_STR_P) return DER_ARG; 
+
+  off = 1;
+  rc = get_len(&len, tmp, &off, ltmp);
+  if (rc != DER_OK) return rc;
+  
+  *data = (tmp+off);
+  *ldata = len;
+  
+  return DER_OK;
+}
+
+
+DerRC der_take_uint(DerCtx * ctx, uint idx, uint * v) {
+  DerRC rc = DER_OK;
+  uint tag = 0, ltmp = 0, off = 0;
+  byte *tmp = 0;
+  uint len = 0;
+  
+
+  if (!ctx) return DER_ARG;
+  if (!v) return DER_ARG;
+  if (idx > ctx->lsubs) return DER_ARG;
+  
+  tmp = ctx->subs[idx].data;
+  ltmp = ctx->subs[idx].ldata;
+
+  tag = peek_tag(tmp);
+  if (tag != INT_P) return DER_ARG;
+  
+  off = 1;
+  rc = get_len(&len, tmp, &off, ltmp);
+  if (rc != DER_OK) return rc;
+
+  if (len != 4) return DER_ARG;
+  
+  *v = b2i(tmp+2);
+  return rc;
+}
+
+
+
+DerRC der_enter_seq(DerCtx**ctx, uint idx) {
+  DerCtx * c =0;
+  DerRC rc = DER_OK;
+  uint tag = 0;
+  DerCtx * result = 0;
+
+
+  if (!ctx) return DER_ARG;
+  if (!*ctx) return DER_ARG;
+  
+  c = *ctx;
+  
+  if (idx > c->lsubs) return DER_ARG;
+  
+  tag = peek_tag(c->subs[idx].data);
+  if (tag != 0x30) return DER_ARG;
+
+  rc = der_begin_read(&result,c->subs[idx].data, c->subs[idx].ldata);
+  if (rc != DER_OK) return rc;
+
+  result->parent = *ctx;
+
+  *ctx = result;
+  
+  return rc;
+}
+
+
+
+DerRC der_leave_seq(DerCtx **ctx) {
+
+  if (!ctx) return DER_ARG;
+  if (!*ctx) return DER_ARG;
+
+  *ctx = (*ctx)->parent;
+
+  return DER_OK;
+}
+
+
+
+DerRC der_end_read(DerCtx ** ctx) {
+  DerCtx * c = 0;
+  if (!*ctx) return DER_OK;
+
+  c = *ctx;
+  if (c->subs) free(c->subs);
+  free(c);
+
+  *ctx = 0;
+  return DER_OK;
+}

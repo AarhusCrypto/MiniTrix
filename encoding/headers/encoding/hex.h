@@ -60,7 +60,7 @@ void dump_data_as_hex(byte * data, uint ldata, uint width);
  */
 void print_data_as_hex(byte * data, uint ldata);
 
-  void _p(const char * s, byte * d, uint ld);
+  void _p(const char * s, byte * d, uint ld, uint w);
 
 #ifdef __cplusplus
 }

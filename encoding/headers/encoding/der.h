@@ -316,6 +316,7 @@ DerRC der_decode_octetstring(byte * v, uint * lv, byte * in, uint * off, uint li
    * \return DER_OK on success.
    */
   DerRC der_insert_octetstring( DerCtx * ctx, byte * d, uint ld);
+  DerRC der_insert_cstr(DerCtx * ctx, const char * str);
 
   /*!
    * \brief this function allocates a fresh context to start with.
@@ -341,6 +342,68 @@ DerRC der_decode_octetstring(byte * v, uint * lv, byte * in, uint * off, uint li
    */
   DerRC der_final( DerCtx ** ctx, byte * data, uint * ldata);
 
+  /*!
+   *
+   * \breif reads the bytes in {data} and constructs a DER context for
+   * use with the take, leave and enter functions follwing.
+   *
+   * \param ctx   - *ctx will point to a context after invocation.
+   * \param data  - the data source to decode from
+   * \param ldata - the length of {data}.
+   *
+   * \return DER_OK on success.
+   */
+  DerRC der_begin_read(DerCtx ** ctx, byte * data, uint ldata);
+
+  /*!
+   * \brief decodes an unsigned integer from the context {ctx}. 
+   *
+   * \param ctx - the DerCtx to decode from
+   * \param res - point to an int when the result will be stored on succes.
+   *
+   * \return DER_OK on success
+   */
+  DerRC der_take_uint(DerCtx * ctx, uint idx, uint * res);
+
+
+  /*!
+   * \brief take an octet string from the context.
+   *
+   * \param ctx - the der context to read an octet string from.
+   * \param data - pointer to the data read on success.
+   * \param ldata- the length of {data}
+   *
+   * \return DER_OK on success.
+   */
+  DerRC der_take_octetstring(DerCtx * ctx, uint idx, byte ** data, uint * ldata);
+
+
+
+  /*!
+   *
+   * \brief enters a sequence.
+   *
+   * \param ctx - updates the *{ctx} for the sequence entered.
+   *
+   * \return DER_OK on success.
+   */
+  DerRC der_enter_seq(DerCtx ** ctx, uint idx);
+
+  /*!
+   * \breif leaves a sequence.
+   *
+   * \param ctx - the *{ctx} is updated for the parent sequence.
+   *
+   * \return DER_OK on success.
+   */
+  DerRC der_leave_seq(DerCtx ** ctx);
+
+  /*!
+   * \brief free resources allocated for *{ctx} and set *{ctx} to zero.
+   *
+   * \param ctx - the DER context to free.
+   */
+  DerRC der_end_read(DerCtx ** ctx);
 
 #ifdef __cplusplus
 }

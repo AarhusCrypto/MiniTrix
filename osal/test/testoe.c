@@ -6,6 +6,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <unistd.h>
+
 #define C(fn) {					\
     if (!fn) printf("%s\tfailed" , #fn ); else	\
       printf("%s\tok", #fn);printf("\n");	\
@@ -17,7 +19,7 @@ void * ts(void * a) {
   sleep(1);
   printf("ID from thread %llu\n", (ull)pthread_self());
   printf("newthread tid=%u\n",oe->get_thread_id());
- 
+  return 0;
 }
 
 typedef struct _sobj_ {
@@ -65,5 +67,7 @@ int main(int c, char **a) {
     printf("%llu \n",(ull)*t);
     sleep(2);
   }
+
+  printf("leaving ... ");
 
 }

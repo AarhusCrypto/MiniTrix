@@ -2,9 +2,7 @@
 #define COO_H
 #include <memory.h>
 #define STUB_SIZE 512
-
 #include<stdio.h>
-
 
 void set_rbx();
 /* COO ATTACH
@@ -54,15 +52,14 @@ void set_rbx();
  * look for an repleace this pointer when this stub-code is copied to
  * rwx memory and assignmed to a function pointer with COO_ATTACH.
  *
- * __attribute__((optimize("O0"))) is special GCC lingo for "do not
+ *  is special GCC lingo for "do not
  * optimize this function at all". coo_patch will not be able to
  * function properly if any pointers or calls are optimized away.
  *
  */
 #define COO_DEF_RET_ARGS(CLZ, RET, NAME, TYPES, ...)	\
-  static __attribute__((optimize("O0"))) RET stub_##CLZ##_##NAME(__VA_ARGS__) TYPES \
+  static  RET stub_##CLZ##_##NAME(__VA_ARGS__) TYPES \
   {                                                                     \
-    asm("mov $0x42, %%rbx\nmov %%rbx, -0x8(%%rbp)\n": : : "%rbx");  \
     register void * ths = (void*)0xDEADBEEFDEADBEEFL;                   \
     register RET (*k)(void * t, ...) = (void*)&CLZ##_##NAME;            \
     RET val = k(ths, __VA_ARGS__ );                                     \
@@ -71,7 +68,7 @@ void set_rbx();
                                                                         \
   static RET CLZ##_##NAME(t, ##__VA_ARGS__) void * t; TYPES             \
   {                                                                     \
-  CLZ this = (CLZ)t;
+  register  CLZ this = (CLZ)t;
 
 /* COO_DEF_RET_NOARGS
  *
@@ -80,18 +77,17 @@ void set_rbx();
  *
  * Otherwise as COO_DEF_RET_ARGS above.
  */
-#define COO_DEF_RET_NOARGS(CLZ, RET, NAME)                             \
-  static __attribute__((optimize("O0"))) RET stub_##CLZ##_##NAME(void) \
+#define COO_DEF_RET_NOARGS(CLZ, RET, NAME)                              \
+  static  RET stub_##CLZ##_##NAME(void)                                 \
   {                                                                     \
-    asm("mov $0x42, %%rbx\nmov %%rbx, -0x8(%%rbp)\n": : : "%rbx");  \
-    register void * ths = (void*)0xDEADBEEFDEADBEEFL;                   \
-    RET (*k)(void * t) = (void*)&CLZ##_##NAME;                          \
-    RET val = k(ths);                                                   \
-    return val;                                                         \
+  volatile void * ths = (void*)0xDEADBEEFDEADBEEFL;                     \
+  RET (* k)(void * t) = (void*)&CLZ##_##NAME;                           \
+  RET val = k((void*)ths);                                              \
+  return val;                                                           \
   }                                                                     \
   static RET CLZ##_##NAME(void * t)                                     \
   {                                                                     \
-  CLZ this = (CLZ)t;
+  register CLZ this = (CLZ)t;
 
 /* COO_DEF_NORET_NOARGS
  *
@@ -102,16 +98,15 @@ void set_rbx();
  * Otherwise as COO_DEF_RET_ARGS above. 
  */
 #define COO_DEF_NORET_NOARGS(CLZ, NAME)                                 \
-  static __attribute__((optimize("O0"))) void stub_##CLZ##_##NAME(void) \
+  static  void stub_##CLZ##_##NAME(void) \
   {                                                                     \
-    asm("mov $0x42, %%rbx\nmov %%rbx, -0x8(%%rbp)\n": : : "%rbx");  \
     register void * ths = (void*)0xDEADBEEFDEADBEEFL;                   \
   void (*k)(void * t) = (void*)&CLZ##_##NAME;                           \
   k(ths);                                                               \
   }                                                                     \
   static void CLZ##_##NAME(void * t)                                    \
   {                                                                     \
-  CLZ this = (CLZ)t;
+  register CLZ this = (CLZ)t;
 
 /* COO_DEF_NORET_ARGS
  *
@@ -120,12 +115,10 @@ void set_rbx();
  *
  * Otherwise as COO_DEF_RET_ARGS above.
  */
-    //    asm("mov $0x42, %%rbx\nmov %%rbx, -0x8(%%rbp)\n": : : "%rbx"); \
 
 #define COO_DEF_NORET_ARGS(CLZ, NAME, TYPES, ...)	\
-  static __attribute__((optimize("O0"))) void stub_##CLZ##_##NAME(__VA_ARGS__) TYPES		\
+  static  void stub_##CLZ##_##NAME(__VA_ARGS__) TYPES		\
   {							\
-    asm("mov $0x42, %%rbx\nmov %%rbx, -0x8(%%rbp)\n": : : "%rbx");  \
     register void * ths = (void*)0xDEADBEEFDEADBEEFL;         \
     void (*k)(void * t, ...) = (void*)&CLZ##_##NAME;          \
     k(ths, __VA_ARGS__ );                                     \
@@ -133,7 +126,7 @@ void set_rbx();
   }                                                           \
   static void CLZ##_##NAME(t, ##__VA_ARGS__) void * t; TYPES	\
   {							\
-  CLZ this = (CLZ)t;
+  register CLZ this = (CLZ)t;
 
 /* COO_DETACH
  *

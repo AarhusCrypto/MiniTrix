@@ -165,6 +165,7 @@ static bool utf8_is_valid(byte * s, uint ls) {
     // Oops not supported or invalid UTF8 encoding.
     return False;
   }
+  return False;
 }
 
 COO_DCL(String, uint, length )

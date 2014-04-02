@@ -1,6 +1,6 @@
 include $(top_srcdir)/osal.am
 
-bin_PROGRAMS =  utf8test opentest threadtest mutextest testoe singlelinkedlisttest stack
+bin_PROGRAMS =  utf8test opentest threadtest mutextest testoe singlelinkedlisttest stack 
 
 stack_SOURCES = stack.c
 stack_LDADD = $(LIB_OSAL) -lrt
@@ -19,9 +19,6 @@ threadtest_LDADD = $(LIB_OSAL) -lrt
 
 opentest_SOURCES = opentest.c
 opentest_LDADD = $(LIB_OSAL) -lrt
-
-test1_SOURCES = test1.c
-test1_LDADD = $(LIB_OSAL) -lrt
 
 utf8test_SOURCES = utf8test.c
 utf8test_LDADD = $(LIB_OSAL) -lrt

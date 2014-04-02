@@ -64,7 +64,7 @@ int main(int c, char **a) {
     C(mm->open(3));
     
     oe->p(mm->heap_get(0)->codeword);
-    _p("Mul res", mm->heap_get(3)->codeword,8);
+    _p("Mul res", mm->heap_get(3)->codeword,8,8);
   }
 
   PrintMeasurements(oe);

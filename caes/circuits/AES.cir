@@ -1,5 +1,5 @@
     mm->init_heap(33873);
-    replica_public_input(1,33872,mm);	
+    replica_public_input(0xFF,33872,mm);	
 #define ONE 33872
     // load zeros for each player in each position from 0 to 127.
     {

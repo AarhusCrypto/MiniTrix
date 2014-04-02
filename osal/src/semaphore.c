@@ -29,7 +29,7 @@ void Cmaphore_down(Cmaphore c) {
   oe->lock(c->lock);
   while(c->count <= 0) {
     oe->unlock( c->lock );
-    usleep(0);
+    oe->yieldthread();
     oe->lock( c->lock );
     if (!c->oe)  { 
       oe->unlock(c->lock);
@@ -55,7 +55,7 @@ void Cmaphore_destroy(Cmaphore * c) {
   oe->unlock(s->lock);
 
   // give all other threads a chance to run.
-  usleep(0); 
+  oe->yieldthread();
 
   // Really now we destroy it !
   oe->lock(s->lock);

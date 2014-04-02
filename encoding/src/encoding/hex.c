@@ -88,14 +88,14 @@ void dump_data_as_hex(byte * data, uint ldata, uint width) {
   }
 }
 
-void _p(const char * s,byte * d, uint ld) {
+void _p(const char * s,byte * d, uint ld, uint w) {
   if (!_screen_m) {
      _screen_m = Mutex_new(0);
   }
   
   Mutex_lock ( _screen_m );
   printf(" - - - [%s] - - -\n",s);
-  dump_data_as_hex(d,ld, 32);  
+  dump_data_as_hex(d,ld,w);  
   printf(" - - - - - - - - \n");
   Mutex_unlock(_screen_m);
 }

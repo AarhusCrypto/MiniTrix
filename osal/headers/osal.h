@@ -252,7 +252,7 @@ typedef struct _operating_environment_ {
 
   Data Data_new(OE oe,uint size);
   Data Data_copy(OE oe, Data other);
-  Data Data_destroy(OE oe, Data * d);
+  void Data_destroy(OE oe, Data * d);
   Data Data_shallow(byte * d, uint ld);
 
 #ifdef __cplusplus

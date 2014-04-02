@@ -11,6 +11,7 @@ AC_PROG_RANLIB
 #AC_C_INLINE
 #AC_FUNC_MALLOC
 # List the makefiles that configure should care about creating (in cooperation with automake)
+AM_PROG_CC_C_O
 AC_OUTPUT([Makefile 
           src/Makefile
 	  test/Makefile
