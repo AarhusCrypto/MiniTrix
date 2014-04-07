@@ -116,7 +116,7 @@ int run(char * ip, uint myid, uint count, OE oe, MiniMacs mm) {
   }
 
   oe->yieldthread();
-  CArena_destroy(&mc);
+  //  CArena_destroy(&mc);
   PrintMeasurements(oe);
   return 0;
 }
