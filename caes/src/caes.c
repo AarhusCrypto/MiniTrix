@@ -95,7 +95,7 @@ byte * mpc_aes(MiniMacs mm, byte * plaintext, byte * key,
     MiniMacsRep rep = mm->heap_get(i);
     if ( (i-33744) > 0 && ((i-33744) % 16) == 0) printf("\n");
     if (rep) 
-      printf("%u ",rep->codeword[0]);
+      printf("%2x ",rep->codeword[0]);
     else 
       printf("x ");
   }

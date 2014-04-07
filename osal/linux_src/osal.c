@@ -544,12 +544,24 @@ COO_DEF_NORET_ARGS(OE, down, Cmaphore c;, c) {
 
 COO_DCL(OE, void, syslog, LogLevel level, const char * msg) 
 COO_DEF_NORET_ARGS(OE, syslog, LogLevel level; const char * msg;, level, msg) {
-  
-  if (level == OSAL_LOGLEVEL_FATAL) {
+  switch(level) {
+  case OSAL_LOGLEVEL_TRACE: {
+    printf("\033[0;34m - log - \033[00m");
+  } break;
+  case OSAL_LOGLEVEL_DEBUG: {
+    printf("\033[1;34m - log - \033[00m");
+  } break;
+  case OSAL_LOGLEVEL_WARN: {
+    printf("\033[1;33m - log - \033[00m");
+  } break;
+  case OSAL_LOGLEVEL_FATAL: {
     printf("\033[1;31m - log - \033[00m");
-  } else {
+  } break;
+    
+  default: {
     printf(" - log - ");
-  }
+  } break;
+  } 
   
   printf("%s\n", msg);
 }}
