@@ -2637,15 +2637,15 @@
     mm->add(2551,2389,ONE);
     mm->add(2561,2396,ONE);
   
-
+  /*
   {
         int i = 0;
         for(i = 0; i < 2567;++i) {
           mm->open(i);
           printf("%2x ",mm->heap_get(i)->codeword[0]);
         }
-        return 0;
-    }  
+    }
+*/  
     mm->add(2568,2400,2036);
     mm->add(2569,1799,2401);
     mm->add(2570,2036,2401);

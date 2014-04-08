@@ -37,7 +37,9 @@
 
 include $(top_srcdir)/caes.am
 bin_PROGRAMS = caes caesfft caessym multirun manyrun monitor multifftrun bitw\
-	multibitwrun multirunmul multirunand
+	multibitwrun multirunmul multirunand multibitwfftrun
+
+
 
 multirunand_SOURCES = multirunand.c
 multirunand_LDADD = $(DEPS_LIB) -lrt
@@ -47,6 +49,10 @@ multirunmul_LDADD = $(DEPS_LIB) -lrt
 
 multibitwrun_SOURCES = multibitwrun.c caes.c
 multibitwrun_LDADD = $(DEPS_LIB) -lrt
+
+multibitwfftrun_SOURCES = multibitwfftrun.c caes.c
+multibitwfftrun_CFLAGS = $(AM_CFLAGS) -static
+multibitwfftrun_LDADD = $(DEPS_LIB) -lrt
 
 bitw_SOURCES = mainbw.c caes.c
 bitw_LDADD = $(DEPS_LIB) -lrt

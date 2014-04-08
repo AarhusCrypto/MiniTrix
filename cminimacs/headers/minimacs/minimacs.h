@@ -118,6 +118,12 @@ typedef struct _minimacs_ {
   MR (*mul)(hptr dst, hptr left, hptr right);
 
   /*!
+   * Indicate the next {count} multiplications can be done in
+   * parallel.
+   */
+  MR (*mulpar)(hptr dst, uint count);
+
+  /*!
    * Perform an input gate for the given value storing it in address
    * {dst}.
    */
