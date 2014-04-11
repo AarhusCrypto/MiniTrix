@@ -2,6 +2,7 @@
 #include <tinyot.h>
 #include <stdio.h>
 #include <stats.h>
+#include "aes.h"
 #include <carena.h>
 
 void sim(TinyOT tot) {
