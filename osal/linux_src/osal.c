@@ -22,7 +22,7 @@
 #include <fcntl.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
-#include <syscall.h>
+//#include <syscall.h>
 #include <errno.h>
 #include "config.h"
 #include <time.h>
