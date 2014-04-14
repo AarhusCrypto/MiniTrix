@@ -405,23 +405,24 @@ MiniMacsRep minimacs_rep_xor(MiniMacsRep left, MiniMacsRep right) {
   memset(res->mac_keys_to_others,0,left->lmac_keys_to_others * sizeof(bedoza_mac_key));
   res->lmac_keys_to_others = left->lmac_keys_to_others;
 
-  for(i = 0; i < res->lmac; i++) {
 
-    if (left->mac[i] == 0 && right->mac[i] == 0) continue; // no self macs
-
-    bedoza_add_macs( left->mac[i], 
-		     right->mac[i],
-		     (res->mac+i));
-
-    bedoza_add_mac_keys( left->mac_keys_to_others[i],
-			 right->mac_keys_to_others[i],
+    for(i = 0; i < res->lmac; i++) {
+      
+      if (left->mac[i] == 0 && right->mac[i] == 0) continue; // no self macs
+      
+      bedoza_add_macs( left->mac[i], 
+                       right->mac[i],
+                       (res->mac+i));
+      
+      bedoza_add_mac_keys( left->mac_keys_to_others[i],
+                           right->mac_keys_to_others[i],
 			 (res->mac_keys_to_others+i));
+      
+      if (!res->mac[i]) goto failure;
+      
+      if (!res->mac_keys_to_others[i]) goto failure;
+    }
     
-    if (!res->mac[i]) goto failure;
-
-    if (!res->mac_keys_to_others[i]) goto failure;
-  }
-  
   //  CHECK_POINT_E("RepXor");
   return res;
  failure:
@@ -706,7 +707,6 @@ MiniMacsRep minimacs_rep_add_const_fast(MiniMacsEnc encoder,
     //    printf("CODEWORD add const lc=%u\n",lc);
 
   // compute C(u), the constant as a codeword 
-    printf(" -- encoding add -- (%u)\n",lc);
     MEASURE_FN(encoded_c = encoder->encode(tmp,rep->lval));
     free(tmp);tmp=0;
     if (!encoded_c) { 
@@ -883,7 +883,6 @@ MiniMacsRep minimacs_rep_mul_const_fast(MiniMacsEnc encoder,
     memcpy(tmp,c,lc);
 
     // encoded c
-    printf(" -- encoding mul -- (%u)\n",lc);
     MEASURE_FN(encoded_c = encoder->encode(tmp,rep->lval));
     if (!encoded_c) {
       goto failure;
@@ -1326,8 +1325,6 @@ void load_shares( const char * filename,
 
   byte * ppairs = 0;
   uint lppairs = 0;
-
-  printf("Loading ... \n");
 
   lbuf = read_file_size(filename);
   if (!lbuf) return;  

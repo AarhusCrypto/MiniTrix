@@ -36,6 +36,7 @@ int main(int c, char ** a) {
   uint nplayers = 0;
   uint ncount = 0;
   uint codelength = 0;
+  uint ltriples = 0, lpairs = 0;
   
   uint player = 0;
   uint count = 0;
@@ -46,15 +47,24 @@ int main(int c, char ** a) {
   init_polynomial();  
   oe = OperatingEnvironment_LinuxNew();
 
-  if (c != 6) {
-    printf("Usage <ltext> <codelength> <nplayers> <count> <mxt|fft>\n");
+  if (c < 6 || c > 7) {
+    printf("Usage <ltext> <codelength> <nplayers> <count> <mxt|fft> [<bwa|sba>]\n");
+    printf("\tmxt - proprocessing using Vandermonde matrix encoding.\n" \
+           "\tfft - preprocessing using Fast Fourier encoding.\n"       \
+           "\n\n"                                                       \
+           "\tbwa - generate bit decomposed triples with [a],[b]\n"     \
+           "        and [c]* with [a_i] and [b_i]."                     \
+           "\tsba - smart bit decomposed triples saving one round of\n" \
+           "        communication. A triple is not [a]*,[b]*,[c]* and\n"\
+           "        [a_i], [b_i].\n");
+
     return 1;
   }
   
   ltext = atoi(a[1]);
   codelength = atoi(a[2]);
   nplayers = atoi(a[3]);
-  ncount = atoi(a[4]);
+  ltriples = lpairs = ncount = atoi(a[4]);
   
   printf("-- Generation report --\n");
   printf("message length          : %d\n",ltext);
@@ -87,25 +97,56 @@ int main(int c, char ** a) {
     return -1;
   } while(0);
 
+  if (c == 7) {
+    uint l = 0;
+    while(a[6][l]) ++l;
+    if (l != 3) {
+      printf("Error: Expected the 6th argument to be either bwa or sba\n");
+      return 0;
+    }
+
+    if (memcmp("bwa",a[6],3) == 0) {
+      ltriples = 0;
+    }
+
+    if (memcmp("sba",a[6],3) == 0) {
+      ltriples = 0;
+      lpairs = 0;
+    }
+  }
+
   compats = minimacs_fake_setup(oe,encoder,
                                 ltext,nplayers,codelength,
-                                &triples,ncount,
+                                &triples,ltriples,
                                 &singles,ncount,
-                                &pairs,ncount,
+                                &pairs,lpairs,
                                 ui_print );
 
-  
-   minimacs_fake_bdt(oe, encoder,
-                    compats, &btriples,
-                    ncount);
-  
+
+  if (c == 7) {
+    if (memcmp("bwa",a[6],3) == 0) {
+      minimacs_fake_bdt(oe, encoder,
+                        compats, &btriples,
+                        ncount);
+      
+    }
+
+    if (memcmp("sba",a[6],3) == 0) {
+      minimacs_fake_bdt(oe, encoder,
+                        compats, &btriples,
+                        ncount);
+    }
+  }
+
   if (!triples || !singles || !pairs ) {
     printf("Generation of preprocessing materials failed.\n");
     return -1;
   }
-  save_bdt(postfix, ltext, codelength, nplayers, btriples, ncount);
 
-  save_shares(postfix, nplayers, triples, ncount, singles, ncount, pairs, ncount );
+  save_shares(postfix, nplayers, triples, ltriples, singles, ncount, pairs, lpairs );
+  if (btriples) 
+    save_bdt(postfix, ltext, codelength, nplayers, btriples, ncount);
+
   OperatingEnvironment_LinuxDestroy( & oe );
   return 0;
 }
