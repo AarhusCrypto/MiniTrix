@@ -259,7 +259,7 @@ polynomial * minimacs_encode(polynomial * msg, uint lmsg, uint lcode) {
 
     load_vector(msgvec,code,lmsg);
     
-    MEASURE_FN(codevec = matrix_multiplication(enc,msgvec))
+    codevec = matrix_multiplication(enc,msgvec);
     if (!codevec) GOTOEXIT("Failed to multiply enc and msgvec");
 
     flat = matrix_topoly(codevec,0);
@@ -281,7 +281,7 @@ polynomial * minimacs_encode(polynomial * msg, uint lmsg, uint lcode) {
     MATRIX * vander_lcode = build_matrix(lcode,lmsg);
     MATRIX * Abar = 0;
 
-    printf("GENERATING MATRIX, this might not be the best thing to do?\n");
+    //    printf("GENERATING MATRIX, this might not be the best thing to do?\n");
 
     // check inputs
     if (lmsg > lcode) GOTOEXIT("Message cannot be longer than its code");
@@ -333,7 +333,7 @@ polynomial * minimacs_encode(polynomial * msg, uint lmsg, uint lcode) {
     load_vector(msgvec,msg,lmsg);
     
     // compute Abar times x producing the code word
-    MEASURE_FN(codevec = matrix_multiplication(enc,msgvec));
+    codevec = matrix_multiplication(enc,msgvec);
     if (!codevec) GOTOEXIT("failed to multiply Abar and msgvec");
     
     // extract result

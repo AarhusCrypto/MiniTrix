@@ -195,7 +195,7 @@ COO_DEF_RET_ARGS(MiniMacsEnc, byte *, encode, byte * msg; uint lmsg;, msg, lmsg)
     byte a[255] = {0};
     byte tmp[512] = {0};
     CHECK_POINT_S("[RSCODE] Encoding FFT Schur Transform");
-    oe->p("Encoding in the Schur transform, inefficiently");
+    //    oe->p("Encoding in the Schur transform, inefficiently");
     res = matrix_multiplication(fftmme->big_enc, vec);
     k = matrix_to_flatmem(res);
     mcpy(tmp,k,lmsg);
