@@ -17,6 +17,7 @@ doit 's/max_width_public_common_load\(.*\);//'
 doit 's/max_width_public_common_store\(.*\);//'
 doit 's/max_width_INV\(.*\);//'
 
+doit 's/begin_layer_AND\((.*)\);/mm->mulpar(\1);/'
 doit 's/begin_.*\(.*\);//'
 doit 's/end_.*\(.*\);//'
 

@@ -1,4 +1,3 @@
-
 #include <stdio.h>
 #include <minimacs/minimacs_rep.h>
 #include <minimacs/bitwiseand_minimacs.h>

@@ -37,8 +37,20 @@
 
 include $(top_srcdir)/caes.am
 bin_PROGRAMS = caes caesfft caessym multirun manyrun monitor multifftrun bitw\
-	multibitwrun multirunmul multirunand multibitwfftrun
+	multibitwrun multirunmul multirunand multibitwfftrun multibitwfftmulparrun mulpar2\
+	mulpar2bit mulpar2bitfft
 
+mulpar2bitfft_SOURCES = mulpar2bitfft.c caesmp.c
+mulpar2bitfft_LDADD = $(DEPS_LIB) -lrt
+
+mulpar2bit_SOURCES = mulpar2bit.c caesmp.c
+mulpar2bit_LDADD = $(DEPS_LIB) -lrt
+
+mulpar2_SOURCES = mulpar2.c caesmp.c
+mulpar2_LDADD = $(DEPS_LIB) -lrt
+
+multibitwfftmulparrun_SOURCES = multibitwfftmulparrun.c caesmp.c
+multibitwfftmulparrun_LDADD = $(DEPS_LIB) -lrt
 
 
 multirunand_SOURCES = multirunand.c

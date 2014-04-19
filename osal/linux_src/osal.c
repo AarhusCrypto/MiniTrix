@@ -29,12 +29,16 @@
 #include <netinet/tcp.h>
 #include <string.h>
 #include <pthread.h>
+
+
+
 extern char *strerror (int __errnum);
 
 extern
 int memcmp(const char * s1, const char * s2, size_t l);
 
 MUTEX _static_lock;
+static uint no_osal_instance;
 
 typedef struct _osal_ret_val_ {
   uint err;
@@ -151,7 +155,7 @@ COO_DEF_RET_ARGS(OE, RC, read, uint fd;byte *buf;uint * lbuf;, fd, buf, lbuf ) {
     struct timeval timeout = {0};
     FD_ZERO(&read_set);
     timeout.tv_sec = 0;
-    timeout.tv_usec = 500;
+    timeout.tv_usec = 230; // latency on Giga bit LAN
     FD_SET(os_fd, &read_set);
     if (select(os_fd+1, &read_set, 0,0,&timeout) <= 0) { 
       *lbuf = 0;
@@ -215,7 +219,7 @@ COO_DEF_RET_ARGS(OE, RC, write, uint fd; byte*buf;uint lbuf;,fd,buf,lbuf) {
     fd_set wfds = {0};
     retval r = {0};
     FD_SET(os_fd, &wfds);
-    t.tv_usec = 1000;
+    t.tv_usec = 230;
     select(os_fd+1, 0, &wfds, 0, &t);
 
     r = __write(os_fd, buf+writesofar, lbuf-writesofar);
@@ -395,7 +399,7 @@ COO_DEF_RET_ARGS(OE, int, accept, uint fd;,fd) {
 
   FD_ZERO(&rd);
   FD_SET(os_fd, &rd);
-  timeout.tv_usec=1000;
+  timeout.tv_usec=100000;
   
   while(1) {
     select(os_fd+1,&rd,0,0,&timeout);
@@ -659,6 +663,9 @@ OE OperatingEnvironment_LinuxNew() {
   oe->p("   "PACKAGE_STRING" - "CODENAME );
   oe->p("   "BUILD_TIME);
   oe->p("************************************************************");
+  oe->lock(_static_lock);
+  no_osal_instance += 1;
+  oe->unlock(_static_lock);
   return oe;
 }
 
@@ -677,7 +684,16 @@ void OperatingEnvironment_LinuxDestroy( OE * oe) {
 
     free(m);
   }
-  coo_end();
+  Mutex_lock(_static_lock);
+  no_osal_instance -= 1;
+  if (!no_osal_instance) {
+    coo_end();
+    Mutex_unlock(_static_lock);
+    Mutex_destroy(_static_lock);
+  } else {
+    Mutex_unlock(_static_lock);
+  }
+  
 }
 
 Data Data_shallow(byte * d, uint ld) {

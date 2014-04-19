@@ -549,6 +549,44 @@ typedef struct _bit_decomposed_triples_ {
 					  MiniMacsRep rep, 
 					  byte * c, uint lc);
 
+  
+  /*!
+   * \brief mul a constant to the representation in {rep}.
+   *
+   * \param encoder - minimacs encoder for create codewords
+   * \param rep     - representation to which {c} is added
+   * \param lval    - the length of the message we encode to
+   * \param c       - the constant to add
+   * \param lc      - length of {c}
+   *
+   * \return The sum of {rep} and {c} on success, (void*)0 otherwise.
+   *
+   *
+   */
+  MiniMacsRep minimacs_rep_mul_const_fast_lval(MiniMacsEnc encoder, 
+                                               uint lval,
+                                               MiniMacsRep rep, 
+                                               byte * c, uint lc);
+
+  /*
+   * \brief add constant in {c} fast to {rep}. Encoding will only
+   * occur in the {lval} message length. E.g. {lval} is the degreee of
+   * the Reed solomon code.
+   *
+   * \param encoder - minimacs encoder for create codewords
+   * \param rep     - representation to which {c} is added
+   * \param lval    - the length of the message we encode to
+   * \param c       - the constant to add
+   * \param lc      - length of {c}
+   *
+   * \return The sum of {rep} and {c} on success, (void*)0 otherwise.
+   *
+   */
+  MiniMacsRep minimacs_rep_add_const_fast_lval(MiniMacsEnc encoder, 
+                                               MiniMacsRep rep, 
+                                               uint lval,
+                                               byte * c, uint lc);
+  
   MiniMacsRep minimacs_rep_and_const(OE oe, MiniMacsRep left, byte * c, uint lc);
 
 

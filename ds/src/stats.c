@@ -206,8 +206,15 @@ void Measurements_print(OE oe) {
         lname = 0;
         while(curi->name[lname]) ++lname;
         
-        lname = (lname > 30) ? 30 : lname;
-        mcpy(nam,curi->name,lname);
+        if (lname > 30) {
+          // typically the last 30 chars are more
+          // interesting than the first 30.
+          mcpy(nam,curi->name+(lname-30),30);
+        } else {
+          mcpy(nam,curi->name,lname);
+        }
+
+
 
         osal_sprintf(mmm, "%s %u.%06u\t%u.%06u\t%u.%06u\t%06u\t%u.%u", 
                      nam, 

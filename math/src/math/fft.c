@@ -486,7 +486,6 @@ void composite_fft2(uint P, uint Q, byte qroot, byte nroot, byte * f, byte * y) 
     }
   }
   
-  // Belive in your self !
   for(i = 0;i < P;++i) {
     for(j = 0;j < Q;++j) {
       nroot_to_sigma_k = 1;

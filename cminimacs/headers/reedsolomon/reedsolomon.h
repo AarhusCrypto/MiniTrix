@@ -47,6 +47,12 @@ Changes:
 extern "C" {
 #endif
 
+  /* \brief
+   * \struct
+   *
+   * Encoder that encodes a message in either the Reed Solomon code or
+   * it Schur transform.
+   */
   typedef struct _minimacs_encoder_ {
     polynomial * (*encode)(byte * msg, uint lmsg);
     bool (*validate)(byte * code, uint lmsg);

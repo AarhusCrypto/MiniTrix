@@ -80,7 +80,7 @@ void set_rbx();
 #define COO_DEF_RET_NOARGS(CLZ, RET, NAME)                              \
   static  __attribute__((optimize("O0"))) RET stub_##CLZ##_##NAME(void) \
   {                                                                     \
-  volatile void * ths = (void*)0xDEADBEEFDEADBEEFL;                     \
+  register void * ths = (void*)0xDEADBEEFDEADBEEFL;                     \
   RET (* k)(void * t) = (void*)&CLZ##_##NAME;                           \
   RET val = k((void*)ths);                                              \
   return val;                                                           \

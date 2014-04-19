@@ -1,6 +1,20 @@
 include $(top_srcdir)/cminimacs.am
 
-bin_PROGRAMS = test testminimacs client testencoder testfft clientfft perf testsymminimacs symclient perfsrv perfcli loadreps bdttest
+bin_PROGRAMS = test testminimacs client testencoder testfft clientfft perf testsymminimacs symclient perfsrv perfcli loadreps bdttest bdtmptest mulpar2test bitenctest bitfftenctest
+
+bitfftenctest_SOURCES = bitfftenctest.c
+bitfftenctest_LDADD = $(CMINIMACS_LIB) -lrt
+
+
+bitenctest_SOURCES = bitenctest.c
+bitenctest_LDADD = $(CMINIMACS_LIB) -lrt
+
+mulpar2test_SOURCES = mulpar2test.c
+mulpar2test_LDADD = $(CMINIMACS_LIB) -lrt
+
+bdtmptest_SOURCES = bdtmptest.c
+bdtmptest_LDADD = $(CMINIMACS_LIB) -lrt
+
 
 bdttest_SOURCES = bdttest.c
 bdttest_LDADD = $(CMINIMACS_LIB) -lrt
