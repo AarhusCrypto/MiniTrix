@@ -1,8 +1,8 @@
 #include <osal.h>
+#include "aes.h"
 #include <tinyot.h>
 #include <stdio.h>
 #include <stats.h>
-#include "aes.h"
 #include <carena.h>
 
 void sim(TinyOT tot) {
@@ -30,10 +30,6 @@ void sim(TinyOT tot) {
   printf("res = %02x \n",v);
 }
 
-void 
-mpc_aes(OE oe, TinyOT tot, 
-        byte * plaintext, tinyotshare ** key, byte * ciphertext, 
-        Data _pid, MpcPeer mission_control);
 
 int main(int c, char **args) {
 

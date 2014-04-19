@@ -6,7 +6,7 @@
  *
  */
 #ifndef TINYOT_H
-#define TiNYOT_H
+#define TINYOT_H
 #include <common.h>
 #include <osal.h>
 
