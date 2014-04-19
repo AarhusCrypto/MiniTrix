@@ -1,18 +1,16 @@
-#include "minimacs/bitwisemulpar2_minimacs.h"
-#include "reedsolomon/minimacs_bitfft_encoder.h"
-#include "reedsolomon/minimacs_bit_encoder.h"
+#include "minimacs/bitwiseand_minimacs.h"
 #include <coo.h>
 #include <common.h>
 #include <math/matrix.h>
 #include <blockingqueue.h>
 #include <config.h>
 #include "stats.h"
-#include <singlelinkedlist.h>
+
 
 
 COO_DCL(MiniMacs, uint, get_id);
 COO_DEF_RET_NOARGS(MiniMacs, uint, get_id) {
-  BitWiseMulPar2MiniMacs gmm = (BitWiseMulPar2MiniMacs)this->impl;
+  BitWiseANDMiniMacs gmm = (BitWiseANDMiniMacs)this->impl;
   OE oe = gmm->oe;
   
   if (gmm->singles) {
@@ -24,24 +22,24 @@ COO_DEF_RET_NOARGS(MiniMacs, uint, get_id) {
   return 0;
 }}
 
-COO_DCL(BitWiseMulPar2MiniMacs, BitDecomposedTriple, next_triple)
-COO_DEF_RET_NOARGS(BitWiseMulPar2MiniMacs, BitDecomposedTriple, next_triple) {
+COO_DCL(BitWiseANDMiniMacs, BitDecomposedTriple, next_triple)
+COO_DEF_RET_NOARGS(BitWiseANDMiniMacs, BitDecomposedTriple, next_triple) {
   if (this->idx_triple < this->ltriples) {
     return this->triples[this->idx_triple++];
   }
   return 0;
 }}
 
-COO_DCL(BitWiseMulPar2MiniMacs, MiniMacsRep, next_single)
-COO_DEF_RET_NOARGS(BitWiseMulPar2MiniMacs, MiniMacsRep, next_single) {
+COO_DCL(BitWiseANDMiniMacs, MiniMacsRep, next_single)
+COO_DEF_RET_NOARGS(BitWiseANDMiniMacs, MiniMacsRep, next_single) {
   if (this->idx_single < this->lsingles) {
     return this->singles[this->idx_single++];
   }
   return 0;
 }}
 
-COO_DCL(BitWiseMulPar2MiniMacs, MiniMacsRep *, next_pair) 
-COO_DEF_RET_NOARGS(BitWiseMulPar2MiniMacs, MiniMacsRep *, next_pair) {
+COO_DCL(BitWiseANDMiniMacs, MiniMacsRep *, next_pair) 
+COO_DEF_RET_NOARGS(BitWiseANDMiniMacs, MiniMacsRep *, next_pair) {
   if (this->idx_pair < this->lpairs) {
     return this->pairs[this->idx_pair++];
   }
@@ -50,7 +48,7 @@ COO_DEF_RET_NOARGS(BitWiseMulPar2MiniMacs, MiniMacsRep *, next_pair) {
 
 COO_DCL(MiniMacs,MR,add,uint dst, uint l, uint r)
 COO_DEF_RET_ARGS(MiniMacs, MR, add, uint dst; uint l; uint r;,dst,l,r) {
-  BitWiseMulPar2MiniMacs gmm = (BitWiseMulPar2MiniMacs)this->impl;
+  BitWiseANDMiniMacs gmm = (BitWiseANDMiniMacs)this->impl;
   OE oe = gmm->oe;
   MiniMacsRep left = this->heap_get(l);
   MiniMacsRep right = this->heap_get(r);
@@ -59,8 +57,8 @@ COO_DEF_RET_ARGS(MiniMacs, MR, add, uint dst; uint l; uint r;,dst,l,r) {
   
   if (gmm->peer_map->size() < 1) MRRF(oe,"[add] No peers connected.");
 
-  if (!left) MRRF(oe,"[add] Left operand (%d) was not set.",l);
-  if (!right) MRRF(oe, "[add] Right operand (%d) was not set.", r);
+  if (!left) MRRF(oe,"Left operand (%d) was not set.",l);
+  if (!right) MRRF(oe, "Right operand (%d) was not set.", r);
 
   mr = gmm->__add__(&res,left,right);
   if (res == 0) MRRF(oe, "[add] Failed with null.");
@@ -69,15 +67,15 @@ COO_DEF_RET_ARGS(MiniMacs, MR, add, uint dst; uint l; uint r;,dst,l,r) {
   return mr;
 }}
 
-COO_DCL(BitWiseMulPar2MiniMacs, MR, __add__, MiniMacsRep * res_out, MiniMacsRep left, MiniMacsRep right)
-COO_DEF_RET_ARGS(BitWiseMulPar2MiniMacs, MR, __add__,MiniMacsRep * res_out; MiniMacsRep left; MiniMacsRep right;,res_out, left, right) {
+COO_DCL(BitWiseANDMiniMacs, MR, __add__, MiniMacsRep * res_out, MiniMacsRep left, MiniMacsRep right)
+COO_DEF_RET_ARGS(BitWiseANDMiniMacs, MR, __add__,MiniMacsRep * res_out; MiniMacsRep left; MiniMacsRep right;,res_out, left, right) {
   OE oe = this->oe;
   bool left_const = minimacs_rep_is_public_const(left);
   bool right_const = minimacs_rep_is_public_const(right);
   MiniMacsRep result = 0;
 
   if (!res_out) {
-    MRRF(oe,"Programming error no pointer to store result");
+    MRRF(oe,"Programing error no pointer to store result");
   }
   if (!left) {
     MRRF(oe,"Left operand not set");
@@ -90,15 +88,13 @@ COO_DEF_RET_ARGS(BitWiseMulPar2MiniMacs, MR, __add__,MiniMacsRep * res_out; Mini
   // left is proper rep and right is a public constant
   if (left_const && !right_const) {
     MiniMacsEnc enc = this->encoder;
-    result = minimacs_rep_add_const_fast_lval(enc, right, this->ltext,
-                                              left->codeword, left->lval);
+    result = minimacs_rep_add_const_fast(enc, right, left->codeword, left->lval);
   }
 
   // left is a public constant and right is a proper rep
   if (!left_const && right_const) {
     MiniMacsEnc enc = this->encoder;
-    result = minimacs_rep_add_const_fast_lval(enc, left, this->ltext,
-                                              right->codeword, right->lval);
+    result = minimacs_rep_add_const_fast(enc, left, right->codeword, right->lval);
   }
 
 
@@ -127,37 +123,12 @@ COO_DEF_RET_ARGS(BitWiseMulPar2MiniMacs, MR, __add__,MiniMacsRep * res_out; Mini
 }}
 
 
-typedef struct _mulpar_entry_ {
-  OE oe;
-  uint dst;
-  uint l;
-  uint r;
-} * MPE;
 
-MPE MulParEntry_New(OE oe, uint dst, uint l, uint r) {
-  MPE result = (MPE)oe->getmem(sizeof(*result));
-  result->oe = oe;
-  result->dst = dst;
-  result->l = l;
-  result->r = r;
-  return result;
-}
-
-void MulParEntry_Destroy(MPE * e) {
-  OE oe = 0;
-  if (!e) return;
-  if (!*e) return;
-  
-  oe = (*e)->oe;
-
-  oe->putmem(*e);
-  *e = 0;
-}
 
 
 COO_DCL(MiniMacs,MR,mul,uint dst, uint l, uint r) 
 COO_DEF_RET_ARGS(MiniMacs,MR, mul, uint dst; uint l; uint r;,dst,l,r) {
-  BitWiseMulPar2MiniMacs gmm = (BitWiseMulPar2MiniMacs)this->impl;
+  BitWiseANDMiniMacs gmm = (BitWiseANDMiniMacs)this->impl;
   OE oe = gmm->oe;
   MiniMacsRep left = this->heap_get(l);
   MiniMacsRep right = this->heap_get(r);
@@ -165,26 +136,36 @@ COO_DEF_RET_ARGS(MiniMacs,MR, mul, uint dst; uint l; uint r;,dst,l,r) {
   bool right_const = minimacs_rep_is_public_const(right);
   MR mr = 0;
   MiniMacsRep result = 0;
-
-  BitDecomposedTriple * triples = 0;
-  MiniMacsRep * deltas = 0;
-  Data deltas_send = 0, deltas_in = 0, deltas_clear = 0;
-  Data epsilons_send = 0, epsilons_in = 0, epsilons_clear = 0;
-  MiniMacsRep * epsilons = 0;
+  MiniMacsRep * star_pair = 0;
+  BitDecomposedTriple triple = 0;
+  MiniMacsRep delta = 0;
+  MiniMacsRep epsilon = 0;
+  Data d = 0;
   MpcPeer peer = 0;
+  Data delta_share = 0;
+  Data delta_clear = 0;
+  Data epsilon_share = 0;
+  Data epsilon_clear = 0;
+  uint id = 0, i=0;
+  bool epsilon_ok = 0;
+  bool delta_ok = 0;
+  Data epsilonmac = 0;
+  Data deltamac = 0;
+  MiniMacsRep delta_b = 0;
+  MiniMacsRep epsilon_a = 0;
+  Data epsilon_times_delta = 0;
   MiniMacsRep tmp = 0, tmp2=0;
+  MiniMacsRep res_star = 0;
+  MiniMacsRep sigma_star = 0;
+  Data sigma_star_plain=0;
+  byte * sigma = 0;
 
   byte * ed_raw = 0;
   MiniMacsRep ae = 0, db = 0;
-  MPE mpe = 0;
 
-  uint mulcount = 0, mulcounter= 0, lcode = 0, id = 0, i=0, nplayers = 0;
+  if (!left) MUL_FAIL(oe,"Left operand (%d) is not set.", l);
 
-  if (!left) MUL_FAIL(oe,"[mul] Left operand (%d) is not set.", l);
-
-  if (!right) MUL_FAIL(oe,"[mul] Right operand (%d) is not set.", r);
-
-  gmm->mulpar--;
+  if (!right) MUL_FAIL(oe,"Right operand (%d) is not set.", r);
 
   // Both public constants
   if (left_const && right_const) {
@@ -193,131 +174,33 @@ COO_DEF_RET_ARGS(MiniMacs,MR, mul, uint dst; uint l; uint r;,dst,l,r) {
     for(j = 0;j < left->lval;++j) {
       tmpd->data[j] = multiply(left->codeword[j],right->codeword[j]);
     }
-   
     result = minimacs_create_rep_public_plaintext_fast(gmm->encoder,tmpd->data, tmpd->ldata, left->lcodeword);
     if (!result) MUL_FAIL(oe,"%u Result gave null, some condition is wrong.",__LINE__);
-    
-    
     this->heap_set(dst, result);
     Data_destroy(gmm->oe,&tmpd);
-    
-    
-    //
-    // NOTICE(rwl): Constant multiplication are dealt with immediately
-    // however if this is the last multiplication in a mulpar sequence
-    // we need to complete all the cached up multiplications. Thus, we
-    // cannot return.
-    //
-    if (gmm->mulpar > 0)
-      MR_RET_OK;
-    
-  } else {
-    //
-    // Ok we have a non-constant add it to the list of cached up work
-    // in mulpar_entries. If this isn't the last in a mulpar section
-    // we leave with success.
-    //
-    //
-
-    mpe = MulParEntry_New(oe, dst, l ,r );
-    if (!mpe) {
-      MUL_FAIL(oe,"No more memory :(");
-    }
-
-    gmm->mulpar_entries->add_element( mpe );
-
-    if (gmm->mulpar > 0) {
-      MR_RET_OK;
-    }
-    
-  }
-  
-  // Okay nice ! we have a cached up list of work ahead of us.
-
-  // 1] Build everything to send
-
-  // 2] Receive everything 
-
-  // 3] Do the computation
-
-  // 4] Send all the sigmas
-  
-  // 5] Receive all the sigmas
-
-  // do {mulcount} multiplications in the following
-  mulcount = gmm->mulpar_entries->size();
-  lcode = this->get_lcode();
-
-
-  {
-    char _m[64] = {0};
-    osal_sprintf(_m,"%u times mul",mulcount);
-    oe->p(_m);
-  }
-
-
-  if (mulcount <= 0) { 
-    oe->syslog(OSAL_LOGLEVEL_WARN,"Mulcount is zero");
-    gmm->mulpar = 1;
     MR_RET_OK;
   }
 
-  CHECK_POINT_S("Non-constant-AND");
-  triples = oe->getmem(mulcount*sizeof(*triples));
-  if (!triples) { MUL_FAIL(oe, "No more memory :(");}
-
-  deltas = oe->getmem(mulcount*sizeof(*deltas));
-  if (!deltas) { MUL_FAIL(oe, "No more memory :( "); }
-
-  epsilons = oe->getmem(mulcount*sizeof(*epsilons));
-  if (!epsilons) { MUL_FAIL(oe, "No more memory :( "); }
-
-
-  for(mulcounter = 0;mulcounter < mulcount;++mulcounter) {
-    mpe = (MPE) gmm->mulpar_entries->get_element(mulcounter);
-    MiniMacsRep mul_left  = this->heap_get(mpe->l);
-    MiniMacsRep mul_right = this->heap_get(mpe->r);
-
-    if (mul_left == 0) {
-      MUL_FAIL(oe, "Left operand (%u) is null.",mpe->l);
-    }
-
-    if (mul_right == 0) {
-      MUL_FAIL(oe, "right operand (%u) is null.", mpe->r);
-    }
-
-    triples[mulcounter] = gmm->next_triple();
-    if (!triples[mulcounter]) { 
-      MUL_FAIL(oe,"No more triples (%d taken).", gmm->idx_triple);
-    }
   
-    mr = gmm->__add__(&deltas[mulcounter],triples[mulcounter]->a, mul_left);
+
+  star_pair = gmm->next_pair();
+  if (!star_pair) MUL_FAIL(oe,"No more pairs (%d taken).",gmm->idx_pair);
+
+  // both real representations
+  if (!right_const && !left_const) {
+    oe->p("mul");
+    CHECK_POINT_S("  BOTH  ");
+    triple = gmm->next_triple();
+    if (!triple) MUL_FAIL(oe,"No more triples (%d taken).", gmm->idx_triple);
+    
+    mr = gmm->__add__(&delta,triple->a, left);
     if (mr != 0) MUL_FAIL(oe,"Could not add triple->a and left");
     
-    mr = gmm->__add__(&epsilons[mulcounter],triples[mulcounter]->b, mul_right);
+    mr = gmm->__add__(&epsilon,triple->b, right);
     if (mr != 0) MUL_FAIL(oe,"Could not add triple->b and right");
     
-  }
+    if (epsilon->lval != delta->lval) MUL_FAIL(oe,"Inconsistent epsilon and delta");
 
-  // first {mulcount} codeword then {mulcount} macs for each other player
-  deltas_send = Data_new(oe, 2*lcode*mulcount);
-  if (!deltas_send) {
-    MUL_FAIL(oe, "No more memory.");
-  }
-
-  epsilons_send = Data_new(oe, 2*lcode*mulcount);
-  if (!epsilons_send) {
-    MUL_FAIL(oe, "No more memory.");
-  }
-
-
-  for(mulcounter = 0; mulcounter < mulcount;++mulcounter) {
-    uint off = (lcode*mulcounter);
-    mcpy(deltas_send->data+off, deltas[mulcounter]->codeword,lcode);
-    mcpy(epsilons_send->data+off, epsilons[mulcounter]->codeword,lcode);
-  }
-  
-  
     // build one big codeword package
 
     // build one big mac package
@@ -329,26 +212,19 @@ COO_DEF_RET_ARGS(MiniMacs,MR, mul, uint dst; uint l; uint r;,dst,l,r) {
       peer = gmm->peer_map->get( (void*)(unsigned long long)id );
       if (!peer) MUL_FAIL(oe,"Peer with id, %u, is undefined",id);
       
-      for(mulcounter = 0; mulcounter < mulcount;++mulcounter) {
-        uint off = mulcount*lcode+lcode*mulcounter;
-        mcpy(deltas_send->data+off,deltas[mulcounter]->mac[id]->mac,lcode);
-        mcpy(epsilons_send->data+off,epsilons[mulcounter]->mac[id]->mac,lcode);
-      }
-
-      // One giant burst to each peer
-      peer->send(deltas_send);
-      peer->send(epsilons_send);
+      peer->send(Data_shallow(delta->codeword, delta->lcodeword));
+      peer->send(Data_shallow(delta->mac[id]->mac, delta->mac[id]->lmac));
+      peer->send(Data_shallow(epsilon->codeword, epsilon->lcodeword));
+      peer->send(Data_shallow(epsilon->mac[id]->mac, epsilon->mac[id]->lmac));
     }
-
-    // From each party we will receive a giant package. This package
-    // is mulpar*2*{lcode} long and contains {lcode}-codewords followed by
-    // {lcode}-macs.
-
-    nplayers = gmm->peer_map->size()+1;
-    deltas_in = Data_new(oe, lcode*2*mulcount);
-    epsilons_in = Data_new(oe, lcode*2*mulcount);
-    deltas_clear = Data_new(oe, lcode*mulcount);
-    epsilons_clear = Data_new(oe, lcode*mulcount);
+    
+    // the following will be mulpar*{lcodeword} big
+    deltamac = Data_new(oe, delta->lcodeword);
+    delta_share = Data_new(oe, delta->lcodeword);
+    delta_clear = Data_new(oe, delta->lcodeword);    
+    epsilonmac = Data_new(oe,epsilon->lcodeword);
+    epsilon_share = Data_new(oe, epsilon->lcodeword);
+    epsilon_clear = Data_new(oe, epsilon->lcodeword);
 
     // receive and check epsilon and delta from every one else.
     for(id = 0;id<gmm->peer_map->size()+1;++id) {
@@ -356,83 +232,77 @@ COO_DEF_RET_ARGS(MiniMacs,MR, mul, uint dst; uint l; uint r;,dst,l,r) {
       
       peer = gmm->peer_map->get( (void*)(ull)id);
       if (!peer) MUL_FAIL(oe,"Peer with id, %u, is undefined (after sending to him)", id);
-
-      peer->receive(deltas_in);
-      if (deltas_in->ldata != lcode*2*mulcount) {
-        MUL_FAIL(oe, "deltas in has wrong length %u expected %u",
-                 deltas_in->ldata,lcode*2*mulcount);
-      }
-
-      peer->receive(epsilons_in);
-      if (epsilons_in->ldata != lcode*2*mulcount) {
-        MUL_FAIL(oe, "epsilons in has wrong length %u expected %u",
-                 epsilons_in->ldata, lcode*2*mulcount);
-      }
-           
-
-      for(mulcounter = 0;mulcounter < mulcount;++mulcounter) {
-
-        if (!minimacs_check_othershare_fast(gmm->encoder,deltas[mulcounter],
-                                           id,
-                                           deltas_in->data+(mulcounter*lcode),
-                                           deltas_in->data+(lcode*mulcount+
-                                                           lcode*mulcounter),
-                                           lcode)) {
-          MRGF(oe,"Peer %u is cheating, mac didn't check out on delta. (lval=%u)",id,deltas[mulcounter]->lval);
-        };
-
-        if (!minimacs_check_othershare_fast(gmm->encoder, epsilons[mulcounter],
-                                           id,
-                                           epsilons_in->data+(mulcounter*lcode),
-                                           epsilons_in->data+(lcode*mulcount +
-                                                              lcode*mulcounter),
-                                           lcode)) {
-          MRGF(oe,"Peer %u is cheating, mac didn't check out on epsilon.",id);
-        }
       
+      peer->receive(delta_share);
+      if (delta_share->ldata != delta->lcodeword) 
+        MRGF(oe,"Received delta with invalid length (%u) from %u",
+             delta_share->ldata, id);
+      
+      peer->receive(deltamac);
+      if (deltamac->ldata < delta->lcodeword) 
+        MRGF(oe,"Received delta mac with invalid length (%u) from %u",
+             deltamac->ldata, id);
+      
+      peer->receive(epsilon_share);
+      if (epsilon_share->ldata != epsilon->lcodeword) 
+        MRGF(oe,"Received epsilon with invalid length (%u) from %u",
+             epsilon_share->ldata, id);
+      
+      peer->receive(epsilonmac);
+      if (epsilonmac->ldata != epsilon->lcodeword) 
+        MRGF(oe,"Received epsilon with invalid length (%u) from %u",
+             epsilonmac->ldata, id);
+      
+      // now we need todo mulpar checks 
+      if (!
+          minimacs_check_othershare_fast(gmm->encoder,delta,
+                                         id,
+                                         delta_share->data,
+                                         deltamac->data,
+                                         delta_share->ldata) ) {
+        MRGF(oe,"Peer %u is cheating, mac didn't check out on delta.",id);
+      }
+      
+      if (!minimacs_check_othershare_fast(gmm->encoder,epsilon,
+                                          id, 
+                                          epsilon_share->data,
+                                          epsilonmac->data,
+                                          epsilon_share->ldata)) {
+        MRGF(oe,"Peer %u is cheating, mac didn't check out on epsilon.",id);
+      }
 
-        // we'll have a mulpar*{lcodeword} clear delta and epsilon vector
-        for(i = 0;i < lcode;++i) {
-          deltas_clear->data[lcode*mulcounter+i] = 
-            add(deltas_clear->data[lcode*mulcounter+i],
-                deltas_in->data[lcode*mulcounter+i]);
-        }
-        
-        for(i = 0;i < lcode;++i) {
-          epsilons_clear->data[mulcounter*lcode+i] = 
-            add(epsilons_clear->data[mulcounter*lcode+i],
-                epsilons_in->data[mulcounter*lcode+i]);
-        }
+      // we'll have a mulpar*{lcodeword} clear delta and epsilon vector
+      for(i = 0;i < delta->lcodeword;++i) {
+        delta_clear->data[i] = add(delta_clear->data[i],
+                                   delta_share->data[i]);
+      }
+
+      for(i = 0;i < epsilon->lcodeword;++i) {
+        epsilon_clear->data[i] = add(epsilon_clear->data[i],
+                                     epsilon_share->data[i]);
       }
     } // done receiving from all players
 
-    Data_destroy(oe,&deltas_in);
-    Data_destroy(oe,&epsilons_in);
+    Data_destroy(oe,&deltamac);
+    Data_destroy(oe,&epsilonmac);
     
-    // again mulpar*{lcodeword} length vectors
-
-    for(mulcounter = 0;mulcounter < mulcount;++mulcounter) {
-      //compute clear text delta
-      for(i = 0;i<deltas[mulcounter]->lcodeword;++i) {
-        deltas_clear->data[mulcounter*lcode+i] = 
-          add(deltas[mulcounter]->dx_codeword[i],
-              add(deltas[mulcounter]->codeword[i], 
-                  deltas_clear->data[mulcounter*lcode+i]));
-      }
-      minimacs_rep_clean_up( & deltas[mulcounter] );
-
-      // compute clear text epsilon
-      for(i = 0;i < epsilons[mulcounter]->lcodeword;++i) {
-        epsilons_clear->data[mulcounter*lcode+i] = 
-          add(epsilons_clear->data[lcode*mulcounter+i],
-              add(epsilons[mulcounter]->dx_codeword[i],
-                  epsilons[mulcounter]->codeword[i]));
-      }
-      minimacs_rep_clean_up( &epsilons[mulcounter] );
+    //compute clear text delta
+    for(i = 0;i<delta->lcodeword;++i) {
+      delta_clear->data[i] = add(delta->dx_codeword[i],
+                                 add(delta->codeword[i], delta_clear->data[i]));
     }
+    minimacs_rep_clean_up( & delta );
+
+    // compute clear text epsilon
+    for(i = 0;i < epsilon->lcodeword;++i) {
+      epsilon_clear->data[i] = add(epsilon_clear->data[i],
+                                   add(epsilon->dx_codeword[i],epsilon->codeword[i]));
+    }
+    minimacs_rep_clean_up( &epsilon );
+
 
     // ------------------------------------------------------------
-    // We have epsilon(s) and delta(s) in clear
+    // We have epsilon and delta in clear
     // ------------------------------------------------------------
 
     // [  i] compute epsilon ^ delta = ed
@@ -442,115 +312,162 @@ COO_DEF_RET_ARGS(MiniMacs,MR, mul, uint dst; uint l; uint r;,dst,l,r) {
 
     // [   i] compute ed
 
+    ed_raw = oe->getmem(left->lval);
+    for(i = 0;i < left->lval;++i) {
+      ed_raw[i] = epsilon_clear->data[i] & delta_clear->data[i];
+    }
 
-    // we'll have lval*{lcodeword} long vectors here
-    for(mulcounter = 0; mulcounter < mulcount;++mulcounter) {
-      mpe = (MPE) gmm->mulpar_entries->get_element(mulcounter);
-      MiniMacsRep mul_left  = this->heap_get(mpe->l);
-      MiniMacsRep mul_right = this->heap_get(mpe->r);
-      MiniMacsEnc enc = (gmm->bitenc == 0 ? gmm->encoder : gmm->bitenc);
+    /*    
+    _p("d     ",delta_clear->data,8,8);
+    _p("e     ",epsilon_clear->data, 8, 8);
+    _p("ed_raw",ed_raw,8,8);
+    _p("x     ",left->codeword,8,8);
+    _p("x_dx  ",left->dx_codeword,8,8);
+    _p("y     ",right->codeword,8,8);
+    _p("y_dx  ",right->dx_codeword,8,8);
+    _p("a     ",triple->a->codeword,8,8);
+    _p("a_dx  ",triple->a->dx_codeword,8,8);
+    _p("b     ",triple->b->codeword,8,8);
+    _p("b_dx  ",triple->b->dx_codeword,8,8);
+    _p("c     ",triple->c->codeword,8,8);
+    _p("c_dx  ",triple->c->dx_codeword,8,8);
+    */
+    
+    
+    for( i = 0; i < 8;++i ) {
+      uint  j = 0;
+      byte m_i = (1 << i);
+      byte * e_i = oe->getmem(left->lcodeword);
+      byte * d_i = oe->getmem(left->lcodeword);
 
-
-      ed_raw = oe->getmem(this->get_ltext());
-      for(i = 0;i < this->get_ltext();++i) {
-        ed_raw[i] = epsilons_clear->data[mulcounter*lcode+i] & 
-          deltas_clear->data[mulcounter*lcode+i];
+      for(j = 0;j < left->lcodeword;++j) {
+        e_i[j] = (epsilon_clear->data[j] & m_i) == 0 ? 0 : 1;
+        d_i[j] = (delta_clear->data[j] & m_i) == 0 ? 0 : 1;
       }
-
-      // we'll work on mulpar*{lcodeword} vectors instead 
-      // having mulpar triples lined up
-      for( i = 0; i < 8;++i ) {
-        uint  j = 0;
-        byte m_i = (1 << i);
-        byte * e_i = oe->getmem(mul_left->lcodeword);
-        byte * d_i = oe->getmem(mul_left->lcodeword);
-        
-        for(j = 0;j < this->get_lcode();++j) {
-          e_i[j] = (epsilons_clear->data[mulcounter*lcode+j] & m_i) == 0 ? 0 : 1;
-          d_i[j] = (deltas_clear->data[lcode*mulcounter+j] & m_i) == 0 ? 0 : 1;
-        }
-        
-        
-        tmp = minimacs_rep_mul_const_fast_lval(enc,
-                                              this->get_ltext(),
-                                              triples[mulcounter]->abits[i],
-                                              e_i,
-                                              this->get_ltext());
-        
-        if (ae == 0) ae = tmp;
-        else {
-          MiniMacsRep tmp2 = ae;
-          ae=minimacs_rep_xor(ae,tmp);
-          minimacs_rep_clean_up( &tmp );
-          minimacs_rep_clean_up( &tmp2 );
-        }
-        
-
-        tmp = minimacs_rep_mul_const_fast_lval(enc,
-                                               this->get_ltext(),
-                                               triples[mulcounter]->bbits[i],
-                                               d_i, 
-                                               this->get_ltext());
-        
-        if (db == 0) db = tmp; 
-        else {
-          MiniMacsRep tmp2 = db;
-          db = minimacs_rep_xor(db,tmp);
-          minimacs_rep_clean_up( &tmp );
-          minimacs_rep_clean_up( &tmp2 );
-        }
       
-        oe->putmem(e_i);
-        oe->putmem(d_i);
+      tmp = minimacs_rep_mul_const_fast(gmm->encoder,
+                                        triple->abits[i],
+                                        e_i,
+                                        left->lval);
+
+      if (ae == 0) ae = tmp;
+      else {
+        MiniMacsRep tmp2 = ae;
+        ae=minimacs_rep_xor(ae,tmp);
+        minimacs_rep_clean_up( &tmp );
+        minimacs_rep_clean_up( &tmp2 );
       }
 
-      result = minimacs_rep_xor(db,ae);
-      tmp = result;
-      result = minimacs_rep_xor(triples[mulcounter]->c ,result);
-      minimacs_rep_clean_up(&tmp);tmp = result;
-      result = minimacs_rep_add_const_fast_lval(gmm->encoder,
-                                                result, 
-                                                this->get_ltext(),
-                                                ed_raw,
-                                                this->get_ltext());
-      minimacs_rep_clean_up(&tmp);
-      result->lval = this->get_ltext()*2;
 
+      tmp = minimacs_rep_mul_const_fast(gmm->encoder,
+                                        triple->bbits[i],
+                                        d_i, 
+                                        left->lval);
+      
+      if (db == 0) db = tmp; 
+      else {
+        MiniMacsRep tmp2 = db;
+        db = minimacs_rep_xor(db,tmp);
+        minimacs_rep_clean_up( &tmp );
+        minimacs_rep_clean_up( &tmp2 );
+      }
+      
+      oe->putmem(e_i);
+      oe->putmem(d_i);
+    }
+    
+    result = minimacs_rep_xor(db,ae);
+    result = minimacs_rep_xor(triple->c ,result);
+    result = minimacs_rep_add_const_fast(gmm->encoder,
+                                         result, 
+                                         ed_raw,
+                                         left->lval);
+
+
+    /*
+    _p("result",result->codeword,8,8);
+    _p("result_dx",result->dx_codeword,8,8);
+    _p("ae       ",ae->codeword,8,8);
+    _p("ae_dx    ",ae->dx_codeword,8,8);
+    _p("db       ",db->codeword,8,8);
+    _p("db_dx    ",db->dx_codeword,8,8);
+    */
+    sigma_star = minimacs_rep_xor(result, star_pair[1]);
+    if (!sigma_star) {
+      printf("Failed to compute sigma star\n");
+      return 0;
+    }
+    sigma_star->lval = left->lval*2; // why?
+
+    for(i = 0; i < gmm->peer_map->size()+1;++i) {
+      MpcPeer peer = 0;
+      if (i == gmm->myid) continue;
+
+      peer = gmm->peer_map->get((void*)(ull)i);
+
+      peer->send(Data_shallow(sigma_star->codeword,
+                              sigma_star->lcodeword));
+
+      peer->send(Data_shallow(sigma_star->mac[i]->mac, 
+                              sigma_star->mac[i]->lmac));
+
+    }
+
+    {
+      uint j = 0;
+      Data share = Data_new(oe,left->lcodeword);
+      Data mac = Data_new(oe,left->lcodeword);
+
+      sigma_star_plain = Data_new(oe,left->lcodeword);
+      for(i = 0;i < gmm->peer_map->size()+1;++i) {
+        MpcPeer peer = 0;
+        if (i == gmm->myid) continue;
+        
+        peer = gmm->peer_map->get((void*)(ull)i);
+        
+        peer->receive(share);
+        peer->receive(mac);
+
+        if (minimacs_check_othershare_fast(gmm->encoder,
+                                           sigma_star, i,
+                                           share->data,
+                                           mac->data,
+                                           sigma_star->lcodeword) == 0) {
+          oe->syslog(OSAL_LOGLEVEL_FATAL, "Party is cheating sigma star is wrong");
+          return -1;
+        }
+        
+        for(j = 0;j < left->lcodeword;++j) {
+          sigma_star_plain->data[j] ^= share->data[j];
+        }
+      }
+      Data_destroy(oe,&share);
+      Data_destroy(oe,&mac);
+
+      for(i = 0;i < sigma_star->lcodeword;++i) {
+        sigma_star_plain->data[i] = add(sigma_star_plain->data[i],
+                                        add(sigma_star->codeword[i],
+                                            sigma_star->dx_codeword[i]));
+      }
+      
+      // we have sigma_star plain in plain 
+
+      result = minimacs_rep_add_const_fast(gmm->encoder,
+                                           star_pair[0],
+                                           sigma_star_plain->data,
+                                           left->lval);
+    }
 
     if (!result) {
-      oe->p("Oh, result is null\n");
+      printf("Oh, result is null\n");
       return -1;
     }
 
-    /*
-    {
-      char _m[64] = {0};
-      osal_sprintf(_m,"mul(%u) is non null.",mpe->dst);
-      oe->p(_m);
-    }
-    */
-    this->heap_set(mpe->dst, result);
-    
-
-    }
-      
-    oe->putmem(deltas);
-    oe->putmem(epsilons);
-    
-    // clear up and reset for next mul
-    gmm->mulpar = 1;
-    for(mulcounter = 0; mulcounter < mulcount; ++mulcounter) {
-      MPE mpe = (MPE)gmm->mulpar_entries->get_element(mulcounter);
-      MulParEntry_Destroy(&mpe);
-    }
-    
-    SingleLinkedList_destroy(&gmm->mulpar_entries);
-    gmm->mulpar_entries = (List)SingleLinkedList_new(oe);
-    // leave ok
-    CHECK_POINT_E("Non-constant-AND");
+    this->heap_set(dst, result);
     MR_RET_OK;
+  }
   failure:
-    oe->syslog(OSAL_LOGLEVEL_FATAL,"Multiplication failed");
+  printf("Failure \n");
     return mr;
 }}
 
@@ -558,7 +475,7 @@ COO_DEF_RET_ARGS(MiniMacs,MR, mul, uint dst; uint l; uint r;,dst,l,r) {
 
 COO_DCL(MiniMacs,MR,secret_input, uint pid, hptr dst, Data plain_val)
 COO_DEF_RET_ARGS(MiniMacs,MR,secret_input, uint pid; hptr dst; Data plain_val;, pid,dst,plain_val) {
-  BitWiseMulPar2MiniMacs gmm = (BitWiseMulPar2MiniMacs)this->impl;
+  BitWiseANDMiniMacs gmm = (BitWiseANDMiniMacs)this->impl;
   OE oe = gmm->oe;
   MiniMacsRep r = 0;
   Data * shares = 0;
@@ -720,7 +637,7 @@ COO_DEF_RET_ARGS(MiniMacs,MR,secret_input, uint pid; hptr dst; Data plain_val;, 
 
 COO_DCL(MiniMacs,MR,public_input, hptr dst, Data pub_val)
 COO_DEF_RET_ARGS(MiniMacs,MR,public_input, hptr dst; Data pub_val;,dst,pub_val) {
-  BitWiseMulPar2MiniMacs gmm = (BitWiseMulPar2MiniMacs)this->impl;
+  BitWiseANDMiniMacs gmm = (BitWiseANDMiniMacs)this->impl;
   OE oe = gmm->oe;
   MiniMacsRep vrep = minimacs_create_rep_public_plaintext_fast(gmm->encoder, pub_val->data, pub_val->ldata, gmm->singles[0]->lcodeword);
   this->heap_set(dst, vrep);
@@ -733,7 +650,7 @@ COO_DEF_RET_ARGS(MiniMacs,MR,public_input, hptr dst; Data pub_val;,dst,pub_val) 
 COO_DCL(MiniMacs,MR,open, hptr dst)
 COO_DEF_RET_ARGS(MiniMacs,MR,open,hptr dst;,dst) {
   uint i = 0;
-  BitWiseMulPar2MiniMacs gmm = (BitWiseMulPar2MiniMacs)this->impl;
+  BitWiseANDMiniMacs gmm = (BitWiseANDMiniMacs)this->impl;
   Data * shares = 0;
   OE oe = gmm->oe;
   MiniMacsRep v = this->heap_get(dst);
@@ -787,12 +704,6 @@ COO_DEF_RET_ARGS(MiniMacs,MR,open,hptr dst;,dst) {
   }
 
   result = minimacs_create_rep_public_plaintext_fast(gmm->encoder, clear->data, clear->ldata, v->lcodeword);
-
-
-  if (!result) {
-    MRGF(oe,"Failed with result being null. (%u)",dst);
-  }
-
   this->heap_set(dst, result);
 
  failure:
@@ -810,7 +721,7 @@ COO_DEF_RET_ARGS(MiniMacs,MR,open,hptr dst;,dst) {
 
 COO_DCL(MiniMacs, MR, init_heap, uint size)
 COO_DEF_RET_ARGS(MiniMacs, MR, init_heap, uint size;,size) {
-  BitWiseMulPar2MiniMacs gmm = (BitWiseMulPar2MiniMacs)this->impl;
+  BitWiseANDMiniMacs gmm = (BitWiseANDMiniMacs)this->impl;
   OE oe = gmm->oe;
   MR mr = 0;
   
@@ -825,14 +736,14 @@ COO_DEF_RET_ARGS(MiniMacs, MR, init_heap, uint size;,size) {
 COO_DCL(MiniMacs, MR, heap_set, hptr addr, MiniMacsRep rep)
 COO_DEF_RET_ARGS(MiniMacs, MR, heap_set ,hptr addr; MiniMacsRep rep;, addr, rep) {
   MR mr = 0;
-  BitWiseMulPar2MiniMacs gmm = (BitWiseMulPar2MiniMacs)this->impl;
+  BitWiseANDMiniMacs gmm = (BitWiseANDMiniMacs)this->impl;
   OE oe = gmm->oe;
   
   if (addr < gmm->lheap) {
     if (rep == 0) {
       char m[64] = {0};
       osal_sprintf(m,"Setting address %u to null",addr);
-      oe->syslog(OSAL_LOGLEVEL_FATAL, m);
+      oe->p(m);
     }
     gmm->heap[addr] = rep;
   } else MRGF(oe,"Address %u is out of range (0-%u). Invoke init_heap with a greater number ;).", gmm->lheap, (gmm->lheap==0?0:gmm->lheap-1));
@@ -844,7 +755,7 @@ COO_DEF_RET_ARGS(MiniMacs, MR, heap_set ,hptr addr; MiniMacsRep rep;, addr, rep)
 
 COO_DCL(MiniMacs, MiniMacsRep, heap_get, uint addr)
 COO_DEF_RET_ARGS(MiniMacs,MiniMacsRep,heap_get,uint addr;,addr) {
-  BitWiseMulPar2MiniMacs gmm = (BitWiseMulPar2MiniMacs)this->impl;
+  BitWiseANDMiniMacs gmm = (BitWiseANDMiniMacs)this->impl;
   OE oe = gmm->oe;
   
   if (addr < gmm->lheap) {
@@ -858,7 +769,7 @@ COO_DEF_RET_ARGS(MiniMacs,MiniMacsRep,heap_get,uint addr;,addr) {
 
 COO_DCL(MiniMacs, MR, invite, uint count, uint port)
 COO_DEF_RET_ARGS(MiniMacs, MR, invite, uint count; uint port;, count, port) {
-  BitWiseMulPar2MiniMacs gmm = (BitWiseMulPar2MiniMacs)this->impl;
+  BitWiseANDMiniMacs gmm = (BitWiseANDMiniMacs)this->impl;
   OE oe = gmm->oe;
   CArena arena = gmm->arena;
   uint id = 0;
@@ -894,7 +805,7 @@ COO_DEF_RET_ARGS(MiniMacs, MR, invite, uint count; uint port;, count, port) {
 }}
 
 typedef struct _waiting_connecting_listener_ {
-  BitWiseMulPar2MiniMacs gmm;
+  BitWiseANDMiniMacs gmm;
   BlkQueue q;
   void (*wait_for)(uint n);
 } *WaitingConnectionListener;
@@ -903,7 +814,7 @@ typedef struct _waiting_connecting_listener_ {
 COO_DCL(ConnectionListener, void, client_connected, MpcPeer peer)
 COO_DEF_NORET_ARGS(ConnectionListener, client_connected, MpcPeer peer;,peer) {
   WaitingConnectionListener wcl = AS(WaitingConnectionListener,this);
-  BitWiseMulPar2MiniMacs gmm = wcl->gmm;
+  BitWiseANDMiniMacs gmm = wcl->gmm;
   OE oe = this->oe;
   Map map = 0;
   uint i = 0;
@@ -952,7 +863,7 @@ COO_DEF_NORET_ARGS(WaitingConnectionListener, wait_for, uint count;,count) {
 
 
 
-ConnectionListener WaitingConnectionListener_new(OE oe, BitWiseMulPar2MiniMacs gmm) {
+ConnectionListener WaitingConnectionListener_new(OE oe, BitWiseANDMiniMacs gmm) {
   WaitingConnectionListener wcl = (WaitingConnectionListener)oe->getmem(sizeof(*wcl));
   if (!wcl) return 0;
 
@@ -978,7 +889,7 @@ ConnectionListener WaitingConnectionListener_new(OE oe, BitWiseMulPar2MiniMacs g
 
 COO_DCL(MiniMacs, MR, connect,  char * ip, uint port) 
 COO_DEF_RET_ARGS(MiniMacs, MR, connect,  char * ip; uint port;, ip, port) {
-  BitWiseMulPar2MiniMacs gmm = (BitWiseMulPar2MiniMacs)this->impl;
+  BitWiseANDMiniMacs gmm = (BitWiseANDMiniMacs)this->impl;
   OE oe = gmm->oe;
   CArena arena = gmm->arena;
   CAR car = {{0}};
@@ -996,14 +907,14 @@ COO_DEF_RET_ARGS(MiniMacs, MR, connect,  char * ip; uint port;, ip, port) {
 
 COO_DCL(MiniMacs, uint, get_no_peers)
 COO_DEF_RET_NOARGS(MiniMacs, uint, get_no_peers) {
-  BitWiseMulPar2MiniMacs gmm = (BitWiseMulPar2MiniMacs)this->impl;
+  BitWiseANDMiniMacs gmm = (BitWiseANDMiniMacs)this->impl;
   return gmm->peer_map->size();
 }}
 
 
 COO_DCL(MiniMacs, uint, get_ltext)
 COO_DEF_RET_NOARGS(MiniMacs, uint, get_ltext) {
-  BitWiseMulPar2MiniMacs gmm = (BitWiseMulPar2MiniMacs)this->impl;
+  BitWiseANDMiniMacs gmm = (BitWiseANDMiniMacs)this->impl;
   if (gmm->lsingles > 0) {
     return gmm->ltext;
   }
@@ -1013,7 +924,7 @@ COO_DEF_RET_NOARGS(MiniMacs, uint, get_ltext) {
 
 COO_DCL(MiniMacs, uint, get_lcode)
 COO_DEF_RET_NOARGS(MiniMacs, uint, get_lcode) {
-  BitWiseMulPar2MiniMacs gmm = (BitWiseMulPar2MiniMacs)this->impl;
+  BitWiseANDMiniMacs gmm = (BitWiseANDMiniMacs)this->impl;
   if (gmm->lsingles > 0) {
     return gmm->lcode;
   }
@@ -1024,7 +935,7 @@ COO_DEF_RET_NOARGS(MiniMacs, uint, get_lcode) {
 
 COO_DCL(MiniMacs, uint, get_no_players)
 COO_DEF_RET_NOARGS(MiniMacs, uint, get_no_players) {
-  BitWiseMulPar2MiniMacs gmm = (BitWiseMulPar2MiniMacs)this->impl;
+  BitWiseANDMiniMacs gmm = (BitWiseANDMiniMacs)this->impl;
   if (gmm->lsingles > 0) {
     return gmm->singles[0]->lmac;
   }
@@ -1085,21 +996,27 @@ typedef struct _mul_par_buffer_entry_ {
 COO_DCL(MiniMacs, MR, mulpar, uint count);
 COO_DEF_RET_ARGS(MiniMacs, MR, mulpar, uint count;, count) {
   
-  BitWiseMulPar2MiniMacs gmm = (BitWiseMulPar2MiniMacs)this->impl;
+  BitWiseANDMiniMacs gmm = (BitWiseANDMiniMacs)this->impl;
   OE oe = gmm->oe;
-  
-  gmm->mulpar = count;
+
+  if (gmm->mulbuffer != 0) {
+    oe->putmem(gmm->mulbuffer);
+  }
+
+  gmm->mulbuffer = oe->getmem(sizeof(*gmm->mulbuffer)*count);
+  gmm->lmulbuffer = count;
+
 }}
 
-MiniMacs BitWiseMulPar2MiniMacs_New(OE oe, CArena arena, MiniMacsEnc encoder,
-                                    MiniMacsRep * singles, uint lsingles, 
-                                    MiniMacsRep ** pairs, uint lpairs, 
-                                    BitDecomposedTriple * triples, uint ltriples) {
+MiniMacs BitWiseANDMiniMacs_New(OE oe, CArena arena, MiniMacsEnc encoder,
+                             MiniMacsRep * singles, uint lsingles, 
+                             MiniMacsRep ** pairs, uint lpairs, 
+                             BitDecomposedTriple * triples, uint ltriples) {
   
   MiniMacs res = oe->getmem(sizeof(*res));
   if (!res) return 0;
 
-  BitWiseMulPar2MiniMacs gres = (BitWiseMulPar2MiniMacs)oe->getmem(sizeof(*gres));
+  BitWiseANDMiniMacs gres = (BitWiseANDMiniMacs)oe->getmem(sizeof(*gres));
   if (!gres) goto failure;
 
   
@@ -1115,36 +1032,29 @@ MiniMacs BitWiseMulPar2MiniMacs_New(OE oe, CArena arena, MiniMacsEnc encoder,
   gres->heap = 0;
   gres->idx_triple = gres->idx_pair = gres->idx_single = 0;
   gres->peer_map = HashMap_new(oe, uint_hfn, uint_cfn, 3);
-  gres->mulpar = 1;
-  gres->mulpar_entries = (List)SingleLinkedList_new(oe);
-  
+  gres->mulbuffer = 0;
+  gres->lmulbuffer = 0;
 
 
   if (lsingles) {
     uint nplayers = singles[0]->lmac+1;
     gres->myid = minimacs_rep_whoami(singles[0]);
     gres->encoder = encoder;
-
     gres->lcode = singles[0]->lcodeword;
     gres->ltext = singles[0]->lval;
-    if (gres->ltext == 85) {
-      gres->bitenc = MiniMacsEnc_BitFFTNew(oe,gres->lcode,gres->ltext);
-    } else {
-      gres->bitenc = MiniMacsEnc_BitNew(oe,gres->lcode,gres->ltext);
-    }
     gres->constants = build_constants(oe,encoder,nplayers,
                                       gres->ltext,gres->lcode);
   } else {
-    oe->syslog(OSAL_LOGLEVEL_WARN, "No singles; this instance of BitWiseMulPar2MiniMacs" 
+    oe->syslog(OSAL_LOGLEVEL_WARN, "No singles; this instance of BitWiseANDMiniMacs" 
 	       " will not have encoders nor a determined id.");
   }
 
   
 
-  COO_ATTACH(BitWiseMulPar2MiniMacs, gres, next_triple);
-  COO_ATTACH(BitWiseMulPar2MiniMacs, gres, next_single);
-  COO_ATTACH(BitWiseMulPar2MiniMacs, gres, next_pair);
-  COO_ATTACH(BitWiseMulPar2MiniMacs, gres, __add__);
+  COO_ATTACH(BitWiseANDMiniMacs, gres, next_triple);
+  COO_ATTACH(BitWiseANDMiniMacs, gres, next_single);
+  COO_ATTACH(BitWiseANDMiniMacs, gres, next_pair);
+  COO_ATTACH(BitWiseANDMiniMacs, gres, __add__);
 
   res->impl = gres;
   
@@ -1172,11 +1082,11 @@ MiniMacs BitWiseMulPar2MiniMacs_New(OE oe, CArena arena, MiniMacsEnc encoder,
 
   return res;
  failure:
-  BitWiseMulPar2MiniMacs_destroy( &res );
+  BitWiseANDMiniMacs_destroy( &res );
   return 0;
 }
 
-MiniMacs BitWiseMulPar2MiniMacs_DefaultNew(OE oe, CArena arena, 
+MiniMacs BitWiseANDMiniMacs_DefaultNew(OE oe, CArena arena, 
                                     MiniMacsRep * singles, uint lsingles,
                                     MiniMacsRep ** pairs, uint lpairs,
                                     BitDecomposedTriple * triples, uint ltriples) {
@@ -1186,19 +1096,19 @@ MiniMacs BitWiseMulPar2MiniMacs_DefaultNew(OE oe, CArena arena,
     ltext = singles[0]->lval;
     lcode = singles[0]->lcodeword;
   } else {
-    oe->syslog(OSAL_LOGLEVEL_WARN, "Cannot create BitWiseMulPar2MiniMacs default instance without any singles :(");
+    oe->syslog(OSAL_LOGLEVEL_WARN, "Cannot create BitWiseANDMiniMacs default instance without any singles :(");
     return 0;
   }
 
   MiniMacsEnc matrix_encoder = MiniMacsEnc_MatrixNew(oe, lcode, ltext );
-  return BitWiseMulPar2MiniMacs_New(oe, arena, matrix_encoder,
+  return BitWiseANDMiniMacs_New(oe, arena, matrix_encoder,
                              singles, lsingles,
                              pairs, lpairs, 
                              triples, ltriples );
 }
 
 
-MiniMacs BitWiseMulPar2MiniMacs_DefaultFFTNew(OE oe, CArena arena, 
+MiniMacs BitWiseANDMiniMacs_DefaultFFTNew(OE oe, CArena arena, 
                                     MiniMacsRep * singles, uint lsingles,
                                     MiniMacsRep ** pairs, uint lpairs,
                                     BitDecomposedTriple * triples, uint ltriples) {
@@ -1208,7 +1118,7 @@ MiniMacs BitWiseMulPar2MiniMacs_DefaultFFTNew(OE oe, CArena arena,
     ltext = singles[0]->lval;
     lcode = singles[0]->lcodeword;
   } else {
-    oe->syslog(OSAL_LOGLEVEL_WARN, "Cannot create BitWiseMulPar2MiniMacs default instance without any singles :(");
+    oe->syslog(OSAL_LOGLEVEL_WARN, "Cannot create BitWiseANDMiniMacs default instance without any singles :(");
     return 0;
   }
 
@@ -1218,14 +1128,15 @@ MiniMacs BitWiseMulPar2MiniMacs_DefaultFFTNew(OE oe, CArena arena,
   }
 
   MiniMacsEnc matrix_encoder = MiniMacsEnc_FFTNew(oe);
-  return BitWiseMulPar2MiniMacs_New(oe, arena, matrix_encoder,
+  return BitWiseANDMiniMacs_New(oe, arena, matrix_encoder,
                              singles, lsingles,
                              pairs, lpairs, 
                              triples, ltriples );
 }
 
 
-MiniMacs BitWiseMulPar2MiniMacs_DefaultLoadNew(OE oe, const char * filename, const char * bdt_filename) {
+
+MiniMacs BitWiseANDMiniMacs_DefaultLoadNew(OE oe, const char * filename, const char * bdt_filename) {
   
   MiniMacsRep * singles = 0;
   MiniMacsRep ** pairs  = 0;
@@ -1252,12 +1163,12 @@ MiniMacs BitWiseMulPar2MiniMacs_DefaultLoadNew(OE oe, const char * filename, con
     return 0;
   }
 
-  return BitWiseMulPar2MiniMacs_DefaultNew(oe, arena,singles, lsingles, pairs,lpairs,  btriples, lbtriples );
+  return BitWiseANDMiniMacs_DefaultNew(oe, arena,singles, lsingles, pairs,lpairs,  btriples, lbtriples );
   
 }
 
 
-MiniMacs BitWiseMulPar2MiniMacs_DefaultLoadFFTNew(OE oe, const char * filename, const char * bdt_filename) {
+MiniMacs BitWiseANDMiniMacs_DefaultLoadFFTNew(OE oe, const char * filename, const char * bdt_filename) {
   MiniMacsRep * singles = 0;
   MiniMacsRep ** pairs  = 0;
   MiniMacsTripleRep * triples = 0;
@@ -1271,8 +1182,8 @@ MiniMacs BitWiseMulPar2MiniMacs_DefaultLoadFFTNew(OE oe, const char * filename, 
               &triples, &ltriples, 
               &singles, &lsingles,
               &pairs, &lpairs );
-  if (!singles ) {
-    oe->syslog(OSAL_LOGLEVEL_FATAL, "BitWiseDecomposed instances requires at least one of each, singles, triples and pairs in the preprocessing.\n");
+  if (!singles || !triples || !pairs) {
+    oe->syslog(OSAL_LOGLEVEL_WARN, "BitWiseDecomposed instances requires at least one of each, singles, triples and pairs in the preprocessing.\n");
     return 0;
   }
 
@@ -1283,18 +1194,18 @@ MiniMacs BitWiseMulPar2MiniMacs_DefaultLoadFFTNew(OE oe, const char * filename, 
     return 0;
   }
 
-  return BitWiseMulPar2MiniMacs_DefaultFFTNew(oe, arena,singles, lsingles, pairs,lpairs,  btriples, lbtriples );
+  return BitWiseANDMiniMacs_DefaultFFTNew(oe, arena,singles, lsingles, pairs,lpairs,  btriples, lbtriples );
   
 }
 
 
-void BitWiseMulPar2MiniMacs_destroy( MiniMacs * instance) {
+void BitWiseANDMiniMacs_destroy( MiniMacs * instance) {
 
-  BitWiseMulPar2MiniMacs gmm = 0;
+  BitWiseANDMiniMacs gmm = 0;
   if (!instance) return;
   if (!*instance) return;
 
-  gmm =   (BitWiseMulPar2MiniMacs)(*instance)->impl;
+  gmm =   (BitWiseANDMiniMacs)(*instance)->impl;
 
   CArena_destroy( &gmm->arena );
 

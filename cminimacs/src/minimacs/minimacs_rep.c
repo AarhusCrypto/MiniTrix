@@ -45,7 +45,7 @@ MiniMacsRep * minimacs_create_rep_from_plaintext_f(MiniMacsEnc encoder,
   if (!shares) goto failure;
 
   // encode the public code word for this message
-  MEASURE_FN(dx = encoder->encode((polynomial*)shares[nplayers], ltext));
+  dx = encoder->encode((polynomial*)shares[nplayers], ltext);
   if (!dx) goto failure;
 
   // generate all the mac keys up front
@@ -94,7 +94,7 @@ MiniMacsRep * minimacs_create_rep_from_plaintext_f(MiniMacsEnc encoder,
     current->ldx_codeword = codelength;
 
     // reed solomon code word
-    MEASURE_FN(current->codeword = (byte*)encoder->encode((polynomial*)shares[i], ltext));
+    current->codeword = (byte*)encoder->encode((polynomial*)shares[i], ltext);
     if (!current->codeword) goto failure;
     current->lcodeword= codelength;
 
@@ -378,7 +378,7 @@ MiniMacsRep minimacs_rep_xor(MiniMacsRep left, MiniMacsRep right) {
 
   //  CHECK_POINT_S("RepXor");
 
-  res->lval = left->lval;
+  res->lval = left->lval > right->lval ? left->lval : right->lval;
 
   // dx codeword
   res->dx_codeword = (byte*)malloc(left->ldx_codeword);
@@ -445,7 +445,7 @@ MiniMacsRep minimacs_create_rep_public_plaintext_fast(
   memset(res,0,sizeof(*res));
 
   res->lval = ltext;
-  MEASURE_FN(res->codeword = encoder->encode((polynomial*)text,ltext));
+  res->codeword = encoder->encode((polynomial*)text,ltext);
   if (!res->codeword) goto failure;
   res->lcodeword = codelength;
   
@@ -667,7 +667,7 @@ MiniMacsRep * minimacs_rep_mul(MiniMacsRep * left, MiniMacsRep * right, uint npl
   */
 
 MiniMacsRep minimacs_rep_add_const_fast(MiniMacsEnc encoder, 
-                                        MiniMacsRep rep, byte * c, uint lc ) {
+                                        MiniMacsRep rep, byte * c, uint lc) {
 
 
   MiniMacsRep r = 0;
@@ -691,38 +691,10 @@ MiniMacsRep minimacs_rep_add_const_fast(MiniMacsEnc encoder,
 
   //  CHECK_POINT_S("AddConstFast");
 
-  if (lc > rep->lval && lc != rep->lcodeword) {
+  if (lc > rep->lval && lc != rep->lcodeword && lc != rep->lval*2) {
     printf("ERROR: Invalid length to encode %u.\n",lc);
     goto failure;
   }
-  
-  if (lc <= rep->lval) {
-    // extend c to length of rep->lval
-    tmp = (byte*)malloc(rep->lval);
-    if (!tmp) goto failure;
-    memset(tmp,0,rep->lval);
-    
-    memcpy(tmp,c,lc);
-    
-    //    printf("CODEWORD add const lc=%u\n",lc);
-
-  // compute C(u), the constant as a codeword 
-    MEASURE_FN(encoded_c = encoder->encode(tmp,rep->lval));
-    free(tmp);tmp=0;
-    if (!encoded_c) { 
-      goto failure;
-    }
-  } else {
-    if (encoder->validate(c,rep->lval) != True) {
-      printf("ERROR: Add const given length of codeword but code is invalid. (lval=%u)\n", rep->lval);
-      goto failure;
-    }
-
-    encoded_c = malloc(rep->lcodeword);
-    memset(encoded_c, 0, rep->lcodeword);
-    memcpy(encoded_c, c, lc);
-  }
-  lencoded_c = rep->lcodeword;
 
   // Allocate the result
   r = (MiniMacsRep)malloc(sizeof(*r));
@@ -738,6 +710,231 @@ MiniMacsRep minimacs_rep_add_const_fast(MiniMacsEnc encoder,
   memset(r->dx_codeword,0,rep->ldx_codeword);
   r->ldx_codeword = rep->ldx_codeword;
   r->lval = rep->lval;
+  
+  
+  if (lc <= rep->lval) {
+    // extend c to length of rep->lval
+    tmp = (byte*)malloc(rep->lval);
+    if (!tmp) goto failure;
+    memset(tmp,0,rep->lval);
+    
+    memcpy(tmp,c,lc);
+    
+    //    printf("CODEWORD add const lc=%u\n",lc);
+    
+    // compute C(u), the constant as a codeword 
+    encoded_c = encoder->encode(tmp,rep->lval);
+    free(tmp);tmp=0;
+    if (!encoded_c) { 
+      goto failure;
+    }
+  }
+  
+  if (lc == rep->lcodeword) {
+    if (encoder->validate(c,rep->lval) != True) {
+      printf("ERROR: Add const given length of codeword but code is invalid. (lval=%u)\n", rep->lval);
+      goto failure;
+    }
+    
+    encoded_c = malloc(rep->lcodeword);
+    memset(encoded_c, 0, rep->lcodeword);
+    memcpy(encoded_c, c, lc);
+  }
+
+  if (lc == rep->lval*2) {
+    r->lval = lc;
+    encoded_c = encoder->encode(c,rep->lval);
+  }
+
+  if (!encoded_c) {
+    printf("ERROR: No way to encode message of length %u.\n",lc);
+    goto failure;
+  }
+  lencoded_c = rep->lcodeword;
+
+
+  // compute r->dx_codeword = rep->dx_codeword - C(u)
+  for(i = 0; i < lencoded_c;++i) {
+    r->dx_codeword[i] = rep->dx_codeword[i];
+  }
+
+  
+  // allocate codeword
+  r->codeword = (byte*)malloc(rep->lcodeword);
+  if (!r->codeword) {
+    goto failure;
+  }
+  memset(r->codeword,0,rep->lcodeword);
+  r->lcodeword = rep->lcodeword;
+
+  // allocate macs
+  r->mac = (bedoza_mac*)malloc(rep->lmac*sizeof(bedoza_mac));
+  if (!r->mac) {
+    goto failure;
+  }
+  memset(r->mac,0,rep->lmac);
+  r->lmac = rep->lmac;
+  
+  // allocate mey_keys
+  r->mac_keys_to_others = (bedoza_mac_key*)
+    malloc(rep->lmac_keys_to_others*sizeof(bedoza_mac_key));
+  if (!r->mac_keys_to_others) {
+    goto failure;
+  }
+  memset(r->mac_keys_to_others,
+	 0,
+	 rep->lmac_keys_to_others*sizeof(bedoza_mac_key)
+	 );
+  r->lmac_keys_to_others = rep->lmac_keys_to_others;
+
+  // if first share we also modify the codeword
+  // A player never holds a mac towards his own share because he need
+  // not convince him self it is correct. 
+  //
+  // Thus the mac map has a NULL entry for the index of him self. The
+  // first player has index 0 and so if mac[0] is null this
+  // representation is the first share !
+  //
+  if (rep->mac[0] == 0) {
+    for(i = 0; i < lencoded_c;++i) {
+      r->codeword[i] = add(encoded_c[i],rep->codeword[i]);
+    }
+  } else {
+    for(i = 0; i< rep->lcodeword;++i) {
+      r->codeword[i] = rep->codeword[i];
+    }
+  }
+
+  // the macs remain the same
+  for(i = 0; i < rep->lmac;++i) {
+    r->mac[i] = bedoza_mac_copy( rep->mac[i] );
+  }
+  
+  if (rep->mac[0] == 0) { // if first share
+    // mac keys are all the same for player 0
+    for(i = 0; i < rep->lmac_keys_to_others;++i) {
+      r->mac_keys_to_others[i] = 
+	bedoza_mac_key_copy( rep->mac_keys_to_others[i] );
+    }
+  } else {
+    // subtract alpha[i]*c(u)[i] from b[i] to form the new mac key
+    // towards player 0
+    for(i = 0; i < rep->lmac_keys_to_others;++i) {
+      bedoza_mac_key k = 0;
+      k = r->mac_keys_to_others[i] = bedoza_mac_key_copy( rep->mac_keys_to_others[i] );
+      if (i == 0) {
+        uint j = 0;
+        for(j = 0;j<rep->lcodeword;++j) {
+          polynomial new_beta_j = add(k->beta[j], multiply(k->alpha[j],encoded_c[j]));
+          k->beta[j] = new_beta_j;
+        }
+      }
+    }
+  }
+  
+  //  CHECK_POINT_E("AddConstFast");  
+  return r;
+ failure:
+  minimacs_rep_clean_up( &r );
+  return 0;
+
+  
+}
+
+
+
+
+
+MiniMacsRep minimacs_rep_add_const_fast_lval(MiniMacsEnc encoder, 
+                                        MiniMacsRep rep, 
+                                        uint lval,
+                                        byte * c, uint lc) {
+
+
+  MiniMacsRep r = 0;
+  byte * encoded_c = 0;
+  uint lencoded_c = 0;
+  uint i  = 0;
+  uint ltext = 0;
+  byte * tmp = 0;
+
+  if (!rep) {
+    goto failure;
+  }
+
+  if (!c) {
+    goto failure;
+  }
+
+  if (rep->ldx_codeword != rep->lcodeword) {
+    goto failure;
+  }
+
+  //  CHECK_POINT_S("AddConstFast");
+
+  if (lc > rep->lval && lc != rep->lcodeword && lc != rep->lval*2) {
+    printf("ERROR: Invalid length to encode %u.\n",lc);
+    goto failure;
+  }
+
+  // Allocate the result
+  r = (MiniMacsRep)malloc(sizeof(*r));
+  if (!r) {
+    goto failure;
+  }
+  memset(r,0,sizeof(*r));
+  // allocate dx_codeword
+  r->dx_codeword = (byte*)malloc(rep->ldx_codeword);
+  if (!r->dx_codeword) {
+    goto failure;
+  }
+  memset(r->dx_codeword,0,rep->ldx_codeword);
+  r->ldx_codeword = rep->ldx_codeword;
+  r->lval = rep->lval;
+  
+  
+  if (lc <= rep->lval) {
+    // extend c to length of rep->lval
+    tmp = (byte*)malloc(rep->lval);
+    if (!tmp) goto failure;
+    memset(tmp,0,rep->lval);
+    
+    memcpy(tmp,c,lc);
+    
+    //    printf("CODEWORD add const lc=%u\n",lc);
+    
+    // compute C(u), the constant as a codeword 
+    encoded_c = encoder->encode(tmp,lval);
+    free(tmp);tmp=0;
+    if (!encoded_c) { 
+      goto failure;
+    }
+  }
+  
+  if (lc == rep->lcodeword) {
+    /*
+    if (encoder->validate(c,rep->lval) != True) {
+      printf("ERROR: Add const given length of codeword but code is invalid. (lval=%u)\n", rep->lval);
+      goto failure;
+    }
+    */
+    
+    encoded_c = malloc(rep->lcodeword);
+    memset(encoded_c, 0, rep->lcodeword);
+    memcpy(encoded_c, c, lc);
+  }
+
+  if (lc == rep->lval*2) {
+    r->lval = lc;
+    encoded_c = encoder->encode(c,lval);
+  }
+
+  if (!encoded_c) {
+    printf("ERROR: No way to encode message of length %u.\n",lc);
+    goto failure;
+  }
+  lencoded_c = rep->lcodeword;
+
 
   // compute r->dx_codeword = rep->dx_codeword - C(u)
   for(i = 0; i < lencoded_c;++i) {
@@ -864,7 +1061,7 @@ MiniMacsRep minimacs_rep_mul_const_fast(MiniMacsEnc encoder,
   }
   */
 
-  if (lc > rep->lval && lc != rep->lcodeword) {
+  if (lc > rep->lval && lc != rep->lcodeword && lc != rep->lval*2) {
     printf("ERROR: Invalid length to encode %u.\n",lc);
     goto failure;
   }
@@ -883,11 +1080,13 @@ MiniMacsRep minimacs_rep_mul_const_fast(MiniMacsEnc encoder,
     memcpy(tmp,c,lc);
 
     // encoded c
-    MEASURE_FN(encoded_c = encoder->encode(tmp,rep->lval));
+    encoded_c = encoder->encode(tmp,rep->lval);
     if (!encoded_c) {
       goto failure;
     }
-  } else {
+  } 
+
+  if (lc == rep->lcodeword) {
     if (encoder->validate(c, rep->lval) != True) {
       printf("ERROR: Mul const given codeword length but invalid code. lval=%u\n",rep->lval);
       goto failure;
@@ -898,6 +1097,183 @@ MiniMacsRep minimacs_rep_mul_const_fast(MiniMacsEnc encoder,
     memcpy(encoded_c,c,lc);
   }
   
+
+  if (lc == rep->lval*2) {
+    // Okay this is only allowed if the polynomial in the codeword has degree zero
+    int i = 0;
+    byte v = c[0];
+    for(i = 1;i < lc;++i) {
+      if (c[i] != v) {
+        printf("ERROR: Double length given and non-zero polynomial degree. This will end bad, with a uncheckable codeword of length 480.\n");
+        goto failure;
+      }
+    }
+    encoded_c = encoder->encode(c,lc);
+  }
+
+  if (encoded_c == 0) {
+    printf("ERROR: Constant has invalid length %u.\n", lc);
+    goto failure;
+  }
+
+  // TODO(rwl): This might have been an early bug !
+  // 
+  r->lval = 2*rep->lval;
+  // r->lval = rep->lval;
+
+  // dx codeword 
+  r->dx_codeword = (byte*)malloc(rep->ldx_codeword);
+  if (!r->dx_codeword) {
+    goto failure;
+  }
+  memset(r->dx_codeword,0,rep->ldx_codeword);
+  r->ldx_codeword = rep->ldx_codeword;
+  for(i = 0; i < r->ldx_codeword;++i) {
+    r->dx_codeword[i] = multiply(encoded_c[i],rep->dx_codeword[i]);
+  }
+
+  // codeword
+  r->codeword = (byte*)malloc(rep->lcodeword);
+  if (!r->codeword) {
+    goto failure;
+  }
+  memset(r->codeword,0,rep->lcodeword);
+  r->lcodeword = rep->lcodeword;
+  for(i = 0; i < rep->lcodeword;++i) {
+    r->codeword[i] = multiply(rep->codeword[i],encoded_c[i]);
+  }
+
+  // macs
+  r->mac = (bedoza_mac*)malloc(rep->lmac*sizeof(bedoza_mac));
+  if (!r->mac) {
+    goto failure;
+  }
+  memset(r->mac,0,rep->lmac*sizeof(bedoza_mac));
+  r->lmac = rep->lmac;
+  for(i = 0; i < r->lmac;++i) {
+    if (rep->mac[i] == 0) continue;
+    r->mac[i] = bedoza_mac_mul_const( rep->mac[i], encoded_c, rep->lcodeword);
+    if (!r->mac[i]) {
+      goto failure;
+    }
+  }
+  
+  // mac keys
+  r->mac_keys_to_others = (bedoza_mac_key*)
+    malloc(rep->lmac_keys_to_others*sizeof(bedoza_mac_key));
+  if (!r->mac_keys_to_others) {
+    goto failure;
+  }
+  memset(r->mac_keys_to_others,0,sizeof(bedoza_mac_key)*rep->lmac_keys_to_others);
+  r->lmac_keys_to_others = rep->lmac_keys_to_others;
+  for(i = 0; i < r->lmac_keys_to_others;++i) {
+    if (rep->mac_keys_to_others[i]) {
+      r->mac_keys_to_others[i] = bedoza_mac_key_mul_const( rep->mac_keys_to_others[i], encoded_c, r->lcodeword);
+      if (!r->mac_keys_to_others[i]) {
+        goto failure;
+      }
+    }
+  }
+  //  CHECK_POINT_E("MulConstFast");  
+  return r;
+ failure:
+  minimacs_rep_clean_up(&r);
+  if (encoded_c) { 
+    encoded_c = (byte*)0;
+    free(encoded_c);
+  }
+  //  CHECK_POINT_E("MulConstFast");
+  return 0;
+  
+}
+
+
+
+
+
+
+MiniMacsRep minimacs_rep_mul_const_fast_lval(MiniMacsEnc encoder, 
+                                             uint lval,
+                                             MiniMacsRep rep, 
+                                             byte * c, uint lc) { 
+  uint i = 0, j = 0;
+  MiniMacsRep r = 0;
+  byte * encoded_c = 0;
+  byte * tmp = 0;
+
+  //  CHECK_POINT_S("MulConstFast");
+
+  if (!rep) {
+    goto failure;
+  }
+
+  if (!c) {
+    goto failure;
+  }
+
+  /*
+  if (rep->lval < lc) {
+    goto failure;
+  }
+  */
+
+  if (lc > rep->lval && lc != rep->lcodeword && lc != rep->lval*2) {
+    printf("ERROR: Invalid length to encode %u.\n",lc);
+    goto failure;
+  }
+
+
+  r = (MiniMacsRep)malloc(sizeof(*r));
+  if (!r) { 
+    goto failure;
+  }
+  memset(r,0,sizeof(*r));
+  
+  if (lc <= rep->lval) {
+    tmp =(byte*)malloc(lval);
+    if (!tmp) goto failure;
+    memset(tmp,0,lval);
+    memcpy(tmp,c,lc);
+
+    // encoded c
+    encoded_c = encoder->encode(tmp,lval);
+    if (!encoded_c) {
+      goto failure;
+    }
+  } 
+
+  if (lc == rep->lcodeword) {
+    /*
+    if (encoder->validate(c, rep->lval) != True) {
+      printf("ERROR: Mul const given codeword length but invalid code. lval=%u\n",rep->lval);
+      goto failure;
+    }
+    */
+
+    encoded_c = malloc(rep->lcodeword);
+    memset(encoded_c,0,rep->lcodeword);
+    memcpy(encoded_c,c,lc);
+  }
+  
+
+  if (lc == rep->lval*2) {
+    // Okay this is only allowed if the polynomial in the codeword has degree zero
+    int i = 0;
+    byte v = c[0];
+    for(i = 1;i < lc;++i) {
+      if (c[i] != v) {
+        printf("ERROR: Double length given and non-zero polynomial degree. This will end bad, with a uncheckable codeword of length 480.\n");
+        goto failure;
+      }
+    }
+    encoded_c = encoder->encode(c,lval);
+  }
+
+  if (encoded_c == 0) {
+    printf("ERROR: Constant has invalid length %u.\n", lc);
+    goto failure;
+  }
+
   // TODO(rwl): This might have been an early bug !
   // 
   r->lval = 2*rep->lval;
