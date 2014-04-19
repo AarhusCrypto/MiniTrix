@@ -38,6 +38,6 @@ release: clean up build
 	cp -r cminimacs/build/cminimacs/* ./$(REV_DIR)
 	cp -r caes/build/caes/* ./$(REV_DIR)
 	cp -r cinterp/build/cinterp/* ./$(REV_DIR)
-	cp -t tinyot/build/tinyot/* ./$(REV_DIR)
+	cp -r tinyot/build/tinyot/* ./$(REV_DIR)
 
 .PHONY=build all clean release depshape
