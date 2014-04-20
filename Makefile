@@ -1,13 +1,13 @@
 build:
-	cd osal && make depshape 
-	cd encoding && make  depshape
-	cd ds && make  depshape
-	cd carena && make  depshape
-	cd math && make  depshape
-	cd cminimacs && make clean depshape
-	cd caes && make depshape CFLAGS="-O0"
-	cd cinterp && make depshape
-	cd tinyot && make depshape
+	cd osal && make depshape CFLAGS="$(CFLAGS)"
+	cd encoding && make depshape CFLAGS="$(CFLAGS)"
+	cd ds && make  depshape CFLAGS="$(CFLAGS)"
+	cd carena && make  depshape CFLAGS="$(CFLAGS)"
+	cd math && make  depshape CFLAGS="$(CFLAGS)"
+	cd cminimacs && make depshape CFLAGS="$(CFLAGS)"
+	cd caes && make depshape CFLAGS="$(CFLAGS)" CFLAGS+="-O0"
+	cd cinterp && make depshape CFLAGS="$(CFLAGS)"
+	cd tinyot && make depshape CFLAGS="$(CFLAGS)"
 
 depshape: all
 all: clean build
@@ -28,7 +28,7 @@ up:
 	svn up 
 
 REV_DIR=parvusfortis_r`svnversion`
-release: clean up build
+release: up build
 	mkdir $(REV_DIR)
 	cp -r osal/build/osal/* ./$(REV_DIR)
 	cp -r ds/build/ds/* ./$(REV_DIR)
