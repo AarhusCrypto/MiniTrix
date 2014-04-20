@@ -1,4 +1,4 @@
-CFLAGS+="\"-DSTATS_ON=1 -O0\""
+CFLAGS+=-DSTATS_ON=1 -O0
 build:
 	cd osal && make depshape CFLAGS="$(CFLAGS)"
 	cd encoding && make depshape CFLAGS="$(CFLAGS)"
