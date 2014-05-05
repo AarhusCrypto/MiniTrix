@@ -81,7 +81,7 @@ void set_rbx();
   static  __attribute__((optimize("O0"))) RET stub_##CLZ##_##NAME(void) \
   {                                                                     \
   register void * ths = (void*)0xDEADBEEFDEADBEEFL;                     \
-  RET (* k)(void * t) = (void*)&CLZ##_##NAME;                           \
+  register RET (* k)(void * t) = (void*)&CLZ##_##NAME;                  \
   RET val = k((void*)ths);                                              \
   return val;                                                           \
   }                                                                     \
@@ -101,8 +101,8 @@ void set_rbx();
   static  __attribute__((optimize("O0")))  void stub_##CLZ##_##NAME(void) \
   {                                                                     \
     register void * ths = (void*)0xDEADBEEFDEADBEEFL;                   \
-  void (*k)(void * t) = (void*)&CLZ##_##NAME;                           \
-  k(ths);                                                               \
+    register void (*k)(void * t) = (void*)&CLZ##_##NAME;                \
+    k(ths);                                                             \
   }                                                                     \
   static void CLZ##_##NAME(void * t)                                    \
   {                                                                     \
@@ -118,10 +118,10 @@ void set_rbx();
 
 
 #define COO_DEF_NORET_ARGS(CLZ, NAME, TYPES, ...)	\
-  static  __attribute__((optimize("O0"))) void stub_##CLZ##_##NAME(__VA_ARGS__) TYPES		\
-  {							\
+  static  __attribute__((optimize("O0"))) void stub_##CLZ##_##NAME(__VA_ARGS__) TYPES \
+  {                                                                     \
     register void * ths = (void*)0xDEADBEEFDEADBEEFL;         \
-    void (*k)(void * t, ...) = (void*)&CLZ##_##NAME;          \
+    register void (*k)(void * t, ...) = (void*)&CLZ##_##NAME; \
     k(ths, __VA_ARGS__ );                                     \
     return;                                                   \
   }                                                           \
@@ -134,8 +134,8 @@ void set_rbx();
  * Remove member function and free up special rwx memory.
  */
 #define COO_DETACH(OBJ, NAME) {		\
-  byte * patch = (byte*)OBJ->NAME;\
-coo_depatch(patch);\
+    byte * patch = (byte*)OBJ->NAME;            \
+    coo_depatch(patch);                         \
 }
 
 /*
