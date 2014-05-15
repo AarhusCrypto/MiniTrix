@@ -20,7 +20,7 @@ static
 int run(char * material, char * ip, OE oe, MiniMacs mm) {
   uint no_players = mm->get_no_players();
   uint myid = mm->get_id();
-  uint id = 0;
+  int id = 0;
 
   printf("number of players: %u\n",no_players);
   printf("I am: %u\n",myid);
@@ -30,7 +30,7 @@ int run(char * material, char * ip, OE oe, MiniMacs mm) {
     mm->invite(no_players-(myid+1),2020+100*myid);
   }
 
-  for(id = 0;id < myid;++id) {
+  for(id = myid-1;id >= 0;--id) {
     printf("connecting to peer at %s:%u\n",ip,2020+100*id);
     mm->connect(ip,2020+100*id);
   }

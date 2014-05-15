@@ -1,4 +1,4 @@
-CFLAGS+=-DSTATS_ON=1 -O0
+CFLAGS+= -m64 -mtune=corei7 -march=corei7 -DSTATS_ON=1 -O2
 build:
 	cd osal && make depshape CFLAGS="$(CFLAGS)"
 	cd encoding && make depshape CFLAGS="$(CFLAGS)"

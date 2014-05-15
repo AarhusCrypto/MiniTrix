@@ -94,7 +94,7 @@ int main(int c, char **a) {
   if (c >= 5) {
     ip =a[4];
   }
-  mm=BitWiseMulPar2MiniMacs_DefaultLoadNew(oe, material, bdt_material);
+  mm=BitWiseMulPar2MiniMacs_DefaultLoadNew(oe, material, bdt_material, True);
 
   printf("Multirun CAES\n");
   printf("material taken from: %s\n",material);

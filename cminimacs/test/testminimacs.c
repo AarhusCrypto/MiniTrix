@@ -53,8 +53,8 @@ int main(int c, char **a) {
       printf("Uable to create MiniMacs Instance, leaving\n");
       return 42;
     }
-    printf("Inviting 1 party to computate on port 2020\n");
-    mm->invite(1,2020);
+    printf("Inviting %u party to computate on port 2020\n", mm->get_no_players()-1);
+    mm->invite(mm->get_no_players()-1,2020);
     mm->init_heap(6);
     
 

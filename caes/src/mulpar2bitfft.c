@@ -20,12 +20,15 @@ unsigned long long _nano_time() {
 }
 
 
+static char * bitlab = "87.104.238.146";
+static char * llama01= "10.11.82.1";
+
 static 
 int run(char * ip, uint myid, uint count, OE oe, MiniMacs mm) {
   CArena mc = CArena_new(oe);
   MpcPeer mission_control = 0;
      
-  if (mc->connect("87.104.238.146", 65000).rc != 0) {
+  if (mc->connect(bitlab, 65000).rc != 0) {
     oe->syslog(OSAL_LOGLEVEL_FATAL,"Failed to connect to the performance monitor.");
     return -1;
   };
@@ -59,6 +62,7 @@ int run(char * ip, uint myid, uint count, OE oe, MiniMacs mm) {
   {
     byte key[128] = {0};
     byte ptxt[128] = {0};
+    usleep(200000*myid);
     mpc_aes(mm,ptxt, key,myid,count,mission_control);
     CArena_destroy(&mc);
   }
@@ -94,7 +98,7 @@ int main(int c, char **a) {
   if (c >= 5) {
     ip =a[4];
   }
-  mm=BitWiseMulPar2MiniMacs_DefaultLoadFFTNew(oe, material, bdt_material);
+  mm=BitWiseMulPar2MiniMacs_DefaultLoadFFTNew(oe, material, bdt_material, True);
 
   printf("Multirun CAES\n");
   printf("material taken from: %s\n",material);

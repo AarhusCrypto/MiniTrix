@@ -52,16 +52,14 @@ void set_rbx();
  * look for an repleace this pointer when this stub-code is copied to
  * rwx memory and assignmed to a function pointer with COO_ATTACH.
  *
- *  is special GCC lingo for "do not
- * optimize this function at all". coo_patch will not be able to
- * function properly if any pointers or calls are optimized away.
- *
+ * The {regsiter} keyword is used to prohibit compiler optimizations !
  */
 #define COO_DEF_RET_ARGS(CLZ, RET, NAME, TYPES, ...)	\
-  static  __attribute__((optimize("O0"))) RET stub_##CLZ##_##NAME(__VA_ARGS__) TYPES \
-  {                                                                     \
+  static __attribute__((optimize("O0"))) RET stub_##CLZ##_##NAME(__VA_ARGS__) TYPES {                   \
+    asm("\n");                                                          \
     register void * ths = (void*)0xDEADBEEFDEADBEEFL;                   \
     register RET (*k)(void * t, ...) = (void*)&CLZ##_##NAME;            \
+    asm("\n");                                                          \
     RET val = k(ths, __VA_ARGS__ );                                     \
     return val;                                                         \
   }                                                                     \
@@ -78,11 +76,13 @@ void set_rbx();
  * Otherwise as COO_DEF_RET_ARGS above.
  */
 #define COO_DEF_RET_NOARGS(CLZ, RET, NAME)                              \
-  static  __attribute__((optimize("O0"))) RET stub_##CLZ##_##NAME(void) \
+  static __attribute__((optimize("O0"))) RET stub_##CLZ##_##NAME(void)  \
   {                                                                     \
-  register void * ths = (void*)0xDEADBEEFDEADBEEFL;                     \
-  register RET (* k)(void * t) = (void*)&CLZ##_##NAME;                  \
-  RET val = k((void*)ths);                                              \
+    asm("\n");                                                          \
+    volatile register void * ths = (void*)0xDEADBEEFDEADBEEFL;          \
+    register RET (* k)(void * t) = (void*)&CLZ##_##NAME;                \
+    asm("\n");                                                            \
+    RET val = k((void*)ths);                                            \
   return val;                                                           \
   }                                                                     \
   static RET CLZ##_##NAME(void * t)                                     \
@@ -98,10 +98,12 @@ void set_rbx();
  * Otherwise as COO_DEF_RET_ARGS above. 
  */
 #define COO_DEF_NORET_NOARGS(CLZ, NAME)                                 \
-  static  __attribute__((optimize("O0")))  void stub_##CLZ##_##NAME(void) \
+  static __attribute__((optimize("O0"))) void stub_##CLZ##_##NAME(void) \
   {                                                                     \
+    asm("\n");                                                          \
     register void * ths = (void*)0xDEADBEEFDEADBEEFL;                   \
     register void (*k)(void * t) = (void*)&CLZ##_##NAME;                \
+    asm("\n");                                                          \
     k(ths);                                                             \
   }                                                                     \
   static void CLZ##_##NAME(void * t)                                    \
@@ -118,10 +120,12 @@ void set_rbx();
 
 
 #define COO_DEF_NORET_ARGS(CLZ, NAME, TYPES, ...)	\
-  static  __attribute__((optimize("O0"))) void stub_##CLZ##_##NAME(__VA_ARGS__) TYPES \
-  {                                                                     \
+  static __attribute__((optimize("O0"))) void stub_##CLZ##_##NAME(__VA_ARGS__) TYPES \
+  {                                                           \
+    asm("\n");                                                \
     register void * ths = (void*)0xDEADBEEFDEADBEEFL;         \
     register void (*k)(void * t, ...) = (void*)&CLZ##_##NAME; \
+    asm("\n");                                                \
     k(ths, __VA_ARGS__ );                                     \
     return;                                                   \
   }                                                           \

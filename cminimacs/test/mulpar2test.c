@@ -12,7 +12,7 @@ int main(int c, char **a) {
   int i  =0;
   printf("MiniMacs Aarhus University (C)\n");
   init_polynomial();// GFeight intialization 
-  mm = BitWiseMulPar2MiniMacs_DefaultLoadNew(oe,a[1],a[2]);
+  mm = BitWiseMulPar2MiniMacs_DefaultLoadNew(oe,a[1],a[2], False);
   for(i = 0; i < sizeof(one);++i) {
     one[i] = 0xFF;
   }

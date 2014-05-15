@@ -7,18 +7,6 @@
 #endif
 
 
-void f() {
-
-}
-
-#define TEST(NAME) \
-  asm("mov $"#NAME", %rbx\n");
-
-inline
-void set_rbx() {
-  TEST(f);
-}
-
 static Memory mem;
 static byte * freelist;
 
@@ -79,36 +67,37 @@ static unsigned long long b2l(byte * in) {
   return res;
 }
 
-void coo_depatch( byte * stub )
-{
+void coo_depatch( byte * stub ){
   mem->free(stub);
 }
 
-void * coo_patch( byte * stub, uint lstub, void * this )
-{
+void * coo_patch( byte * stub, uint lstub, void * this ){
   uint i = 0;
   byte pattern[] = {0xEF, 0xBE, 0xAD, 0xDE, 0xEF, 0xBE, 0xAD, 0xDE};
   uint lpattern = sizeof(pattern);
   byte * fun = mem->alloc(lstub+1);
   byte found = 0;
   mcpy(fun, stub, lstub);
-  for(i = 0;i<lstub-lpattern;i++)
-    {
-      if (match(fun+i, pattern , lpattern))
-        {
-          byte serv[8] = {0};
-          unsigned long long v = (unsigned long long)this;
-          l2b(v, serv);
-          mcpy(fun+i, serv, sizeof(serv));
-          found =1; break;
-        }
+  for(i = 0;i<lstub-lpattern;i++){
+    if (match(fun+i, pattern , lpattern)) {
+      byte serv[8] = {0};
+      unsigned long long v = (unsigned long long)this;
+      l2b(v, serv);
+      mcpy(fun+i, serv, sizeof(serv));
+      found =1; break;
     }
-  if (!found)
-    {
-      return 0;
-      // __asm__("hlt\n");
-      //      __asm__("int $0x19\n");
+  }
+  if (!found) {
+    int i = 0;
+    printf("----------------------------------------------------------------\n");
+    for(i =0 ; i < lstub; ++i) {
+      if (i > 0 && i % 16 == 0) printf("\n");
+      printf("%2x ",*(fun+i));
     }
+    printf("\n----------------------------------------------------------------\n\n");
+    printf("[COO] FATAL ERROR, FAILED TO PATCH \n");
+    exit(-1);
+  }
   return fun;
 }
 

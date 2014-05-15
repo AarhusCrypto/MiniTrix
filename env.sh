@@ -25,7 +25,7 @@ pushd ${PVF_HOME} >/dev/null
 export PVF_HOME=${PWD}
 popd >/dev/null
 DEFAULT_MAKE="make clean depshape CFLAGS=\"-O0 -g3 -DSTATS_ON=1\""
-alias build="make clean all CFLAGS=\"-O0 -g3 -DSTATS_ON=1\""
+alias build="make clean all CFLAGS=\"-O3 -g3 -DSTATS_ON=1 -mtune=corei7 -march=corei7\""
 alias osalup="pushd ${PVF_HOME}/osal && ${DEFAULT_MAKE} && popd"
 alias dsup="pushd ${PVF_HOME}/ds && ${DEFAULT_MAKE} && popd"
 alias carenaup="pushd ${PVF_HOME}/carena && ${DEFAULT_MAKE} && popd"

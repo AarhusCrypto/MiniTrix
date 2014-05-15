@@ -2,6 +2,7 @@
     replica_public_input(0x11,33872,mm);	
 #define ONE 33872
     // load zeros for each player in each position from 0 to 127.
+    printf("Setting heap to zero\n");
     {
       uint player = 0;
       uint i = 0;
@@ -12,6 +13,7 @@
          }
        }
     }
+    printf("Private inputs\n");
     replica_private_input(key[0],0,mm);
     replica_private_input(key[1],1,mm);
     replica_private_input(key[2],2,mm);

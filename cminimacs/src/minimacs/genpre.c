@@ -53,7 +53,7 @@ int main(int c, char ** a) {
            "\tfft - preprocessing using Fast Fourier encoding.\n"       \
            "\n\n"                                                       \
            "\tbwa - generate bit decomposed triples with [a],[b]\n"     \
-           "        and [c]* with [a_i] and [b_i]."                     \
+           "        and [c]* with [a_i] and [b_i].\n"                   \
            "\tsba - smart bit decomposed triples saving one round of\n" \
            "        communication. A triple is not [a]*,[b]*,[c]* and\n"\
            "        [a_i], [b_i].\n");

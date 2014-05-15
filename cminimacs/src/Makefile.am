@@ -51,6 +51,7 @@ libcminimacs_a_SOURCES = minimacs/generic_minimacs.c\
 	reedsolomon/minimacs_enc_fft.c\
 	reedsolomon/minimacs_bit_encoder.c\
 	reedsolomon/minimacs_bitfft_encoder.c\
+	reedsolomon/minimacs_combi_encoder.c\
 	bedoza/bedoza_mac.c\
 	ass/ass.c \
 	minimacs/bitwiseandmulpar_minimacs.c \

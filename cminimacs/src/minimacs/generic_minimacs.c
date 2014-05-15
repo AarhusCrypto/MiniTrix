@@ -669,7 +669,7 @@ COO_DEF_RET_ARGS(MiniMacs,MR,open,hptr dst;,dst) {
   Data sharemac = 0;
   MiniMacsRep result = 0;
 
-  if (gmm->peer_map->size() > 1) MRRF(oe,"No peers connected.");
+  if (gmm->peer_map->size() < 1) MRRF(oe,"No peers connected.");
 
   if(!v) MRGF(oe,"Value at %u is not set",dst);
 
@@ -773,6 +773,7 @@ COO_DEF_RET_ARGS(MiniMacs,MiniMacsRep,heap_get,uint addr;,addr) {
  failure:
   return 0;
 }}
+
 
 
 COO_DCL(MiniMacs, MR, invite, uint count, uint port)
@@ -907,7 +908,7 @@ COO_DEF_RET_ARGS(MiniMacs, MR, connect,  char * ip; uint port;, ip, port) {
   arena->add_conn_listener(cl);
   car = arena->connect(ip,port);
   if (car.rc != 0) MR_RET_FAIL(oe,car.msg);
-
+  arena->rem_conn_listener(cl);
   MR_RET_OK;
 }}
 

@@ -1074,6 +1074,8 @@ COO_DEF_RET_ARGS(MiniMacs, MR, connect,  char * ip; uint port;, ip, port) {
   arena->add_conn_listener(cl);
   car = arena->connect(ip,port);
   if (car.rc != 0) MR_RET_FAIL(oe,car.msg);
+  oe->p("Removing conn listener again");
+  arena->rem_conn_listener(cl);
 
   MR_RET_OK;
 }}

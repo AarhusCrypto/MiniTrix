@@ -936,6 +936,7 @@ COO_DEF_NORET_ARGS(ConnectionListener, client_connected, MpcPeer peer;,peer) {
   }
   wcl->q->put(0);
   oe->p("New peer registered.");
+  
 }}
 
 COO_DCL(ConnectionListener, void, client_disconnected, MpcPeer peer)
@@ -988,7 +989,8 @@ COO_DEF_RET_ARGS(MiniMacs, MR, connect,  char * ip; uint port;, ip, port) {
   arena->add_conn_listener(cl);
   car = arena->connect(ip,port);
   if (car.rc != 0) MR_RET_FAIL(oe,car.msg);
-
+  oe->p("Removing conn listener again");
+  arena->rem_conn_listener(cl);
   MR_RET_OK;
 }}
 
@@ -1094,7 +1096,7 @@ COO_DEF_RET_ARGS(MiniMacs, MR, mulpar, uint count;, count) {
 MiniMacs BitWiseMulPar2MiniMacs_New(OE oe, CArena arena, MiniMacsEnc encoder,
                                     MiniMacsRep * singles, uint lsingles, 
                                     MiniMacsRep ** pairs, uint lpairs, 
-                                    BitDecomposedTriple * triples, uint ltriples) {
+                                    BitDecomposedTriple * triples, uint ltriples, bool do_bit_enc) {
   
   MiniMacs res = oe->getmem(sizeof(*res));
   if (!res) return 0;
@@ -1127,11 +1129,14 @@ MiniMacs BitWiseMulPar2MiniMacs_New(OE oe, CArena arena, MiniMacsEnc encoder,
 
     gres->lcode = singles[0]->lcodeword;
     gres->ltext = singles[0]->lval;
-    if (gres->ltext == 85) {
-      gres->bitenc = MiniMacsEnc_BitFFTNew(oe,gres->lcode,gres->ltext);
-    } else {
-      gres->bitenc = MiniMacsEnc_BitNew(oe,gres->lcode,gres->ltext);
+    if (do_bit_enc) {
+      if (gres->ltext == 85) {
+        gres->bitenc = MiniMacsEnc_BitFFTNew(oe,gres->lcode,gres->ltext);
+      } else {
+        gres->bitenc = MiniMacsEnc_BitNew(oe,gres->lcode,gres->ltext);
+      }
     }
+
     gres->constants = build_constants(oe,encoder,nplayers,
                                       gres->ltext,gres->lcode);
   } else {
@@ -1179,7 +1184,7 @@ MiniMacs BitWiseMulPar2MiniMacs_New(OE oe, CArena arena, MiniMacsEnc encoder,
 MiniMacs BitWiseMulPar2MiniMacs_DefaultNew(OE oe, CArena arena, 
                                     MiniMacsRep * singles, uint lsingles,
                                     MiniMacsRep ** pairs, uint lpairs,
-                                    BitDecomposedTriple * triples, uint ltriples) {
+                                           BitDecomposedTriple * triples, uint ltriples, bool do_bit_enc) {
   uint ltext = 0, lcode = 0;
   
   if (lsingles > 0) {
@@ -1192,16 +1197,16 @@ MiniMacs BitWiseMulPar2MiniMacs_DefaultNew(OE oe, CArena arena,
 
   MiniMacsEnc matrix_encoder = MiniMacsEnc_MatrixNew(oe, lcode, ltext );
   return BitWiseMulPar2MiniMacs_New(oe, arena, matrix_encoder,
-                             singles, lsingles,
-                             pairs, lpairs, 
-                             triples, ltriples );
+                                    singles, lsingles,
+                                    pairs, lpairs, 
+                                    triples, ltriples, do_bit_enc );
 }
 
 
 MiniMacs BitWiseMulPar2MiniMacs_DefaultFFTNew(OE oe, CArena arena, 
                                     MiniMacsRep * singles, uint lsingles,
                                     MiniMacsRep ** pairs, uint lpairs,
-                                    BitDecomposedTriple * triples, uint ltriples) {
+                                              BitDecomposedTriple * triples, uint ltriples, bool do_bit_enc) {
   uint ltext = 0, lcode = 0;
   
   if (lsingles > 0) {
@@ -1217,15 +1222,15 @@ MiniMacs BitWiseMulPar2MiniMacs_DefaultFFTNew(OE oe, CArena arena,
     return 0;
   }
 
-  MiniMacsEnc matrix_encoder = MiniMacsEnc_FFTNew(oe);
-  return BitWiseMulPar2MiniMacs_New(oe, arena, matrix_encoder,
-                             singles, lsingles,
-                             pairs, lpairs, 
-                             triples, ltriples );
+  MiniMacsEnc fft_encoder = MiniMacsEnc_FFTNew(oe);
+  return BitWiseMulPar2MiniMacs_New(oe, arena, fft_encoder,
+                                    singles, lsingles,
+                                    pairs, lpairs, 
+                                    triples, ltriples, do_bit_enc );
 }
 
 
-MiniMacs BitWiseMulPar2MiniMacs_DefaultLoadNew(OE oe, const char * filename, const char * bdt_filename) {
+MiniMacs BitWiseMulPar2MiniMacs_DefaultLoadNew(OE oe, const char * filename, const char * bdt_filename, bool do_bit_enc) {
   
   MiniMacsRep * singles = 0;
   MiniMacsRep ** pairs  = 0;
@@ -1252,12 +1257,12 @@ MiniMacs BitWiseMulPar2MiniMacs_DefaultLoadNew(OE oe, const char * filename, con
     return 0;
   }
 
-  return BitWiseMulPar2MiniMacs_DefaultNew(oe, arena,singles, lsingles, pairs,lpairs,  btriples, lbtriples );
+  return BitWiseMulPar2MiniMacs_DefaultNew(oe, arena,singles, lsingles, pairs,lpairs,  btriples, lbtriples, do_bit_enc);
   
 }
 
 
-MiniMacs BitWiseMulPar2MiniMacs_DefaultLoadFFTNew(OE oe, const char * filename, const char * bdt_filename) {
+MiniMacs BitWiseMulPar2MiniMacs_DefaultLoadFFTNew(OE oe, const char * filename, const char * bdt_filename, bool do_bit_enc) {
   MiniMacsRep * singles = 0;
   MiniMacsRep ** pairs  = 0;
   MiniMacsTripleRep * triples = 0;
@@ -1283,7 +1288,7 @@ MiniMacs BitWiseMulPar2MiniMacs_DefaultLoadFFTNew(OE oe, const char * filename, 
     return 0;
   }
 
-  return BitWiseMulPar2MiniMacs_DefaultFFTNew(oe, arena,singles, lsingles, pairs,lpairs,  btriples, lbtriples );
+  return BitWiseMulPar2MiniMacs_DefaultFFTNew(oe, arena,singles, lsingles, pairs,lpairs,  btriples, lbtriples, do_bit_enc );
   
 }
 
