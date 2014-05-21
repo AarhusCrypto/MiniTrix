@@ -24,16 +24,6 @@ static void mset(void * dest, byte val, uint l)
 }
 
 
-static void l2b(unsigned long long l, byte * out) {
-  out[0] = (l & 0x00000000000000FFL);
-  out[1] = (l & 0x000000000000FF00L) >> 8;
-  out[2] = (l & 0x0000000000FF0000L) >> 16;
-  out[3] = (l & 0x00000000FF000000L) >> 24;
-  out[4] = (l & 0x000000FF00000000L) >> 32;
-  out[5] = (l & 0x0000FF0000000000L) >> 40;
-  out[6] = (l & 0x00FF000000000000L) >> 48;
-  out[7] = (l & 0xFF00000000000000L) >> 56;
-}
 
 static void i2b(uint l, byte * out)
 {
@@ -54,23 +44,32 @@ static unsigned long b2i(byte * in)
   return res;
 }
 
-static unsigned long long b2l(byte * in) {
-  unsigned long long res = 0;
-  res += in[0];
-  res += in[1] << 8;
-  res += in[2] << 16;
-  res += in[3] << 24;
-  res += ((unsigned long long)in[4]) << 32;
-  res += ((unsigned long long)in[5]) << 40;
-  res += ((unsigned long long)in[6]) << 48;
-  res += ((unsigned long long)in[7]) << 56;
-  return res;
-}
 
 void coo_depatch( byte * stub ){
   mem->free(stub);
 }
 
+void * coo_patch2( byte * stub, uint lstub, void * ths) {
+  byte * fun = mem->alloc(lstub+1);
+  unsigned long long v = (unsigned long long)ths;
+  mcpy(fun, stub, lstub);
+  l2b(v,fun+10);
+  return fun;
+}
+
+
+void * coo_patch(byte * stub_fun, byte * fun, void * ths) {
+  byte * result = mem->alloc(STUB_SIZE);
+  mcpy(result+2*sizeof(void*),stub_fun,STUB_SIZE-2*sizeof(void*));
+
+  l2b((ull)fun,(byte*)result);
+  l2b((ull)ths,result+sizeof(void*));
+
+  printf("Patch Address %p @ %p\n",result,ths);
+  return result+2*sizeof(void*);
+}
+
+/*
 void * coo_patch( byte * stub, uint lstub, void * this ){
   uint i = 0;
   byte pattern[] = {0xEF, 0xBE, 0xAD, 0xDE, 0xEF, 0xBE, 0xAD, 0xDE};
@@ -79,7 +78,7 @@ void * coo_patch( byte * stub, uint lstub, void * this ){
   byte found = 0;
   mcpy(fun, stub, lstub);
   for(i = 0;i<lstub-lpattern;i++){
-    if (match(fun+i, pattern , lpattern)) {
+    if (match(fun+i, pattern, lpattern)) {
       byte serv[8] = {0};
       unsigned long long v = (unsigned long long)this;
       l2b(v, serv);
@@ -96,10 +95,11 @@ void * coo_patch( byte * stub, uint lstub, void * this ){
     }
     printf("\n----------------------------------------------------------------\n\n");
     printf("[COO] FATAL ERROR, FAILED TO PATCH \n");
-    exit(-1);
+    return 0;
   }
   return fun;
 }
+*/
 
 #ifdef LINUX
 static uint last_percentage;

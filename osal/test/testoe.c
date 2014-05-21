@@ -29,7 +29,7 @@ typedef struct _sobj_ {
 COO_DCL(SObj, int, magic ,int);
 COO_DEF_RET_ARGS(SObj, int, magic, int a;,a) {
   return a+0x42;
-}}
+}
 
 SObj SObj_new() {
   SObj r = (SObj)malloc(sizeof(*r));

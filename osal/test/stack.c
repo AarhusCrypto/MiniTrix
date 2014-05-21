@@ -14,7 +14,7 @@ COO_DEF_NORET_ARGS(MyCar, drive, uint km;, km) {
   if (this->fuel > 0.0) {
     this->fuel -= 0.5 + 0.2*km;
   }
-}}
+}
 
 MyCar MyCar_new(double fuel) {
   MyCar res = (MyCar)malloc(sizeof(*res));

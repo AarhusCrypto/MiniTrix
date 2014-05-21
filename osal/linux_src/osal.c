@@ -24,18 +24,20 @@
 #include <arpa/inet.h>
 //#include <syscall.h>
 #include <errno.h>
-#include "config.h"
+#include <config.h>
 #include <time.h>
 #include <netinet/tcp.h>
-#include <string.h>
 #include <pthread.h>
-
-
+#include <string.h>
+#include <netinet/in.h>
+#include <common.h>
 
 extern char *strerror (int __errnum);
 
+/*
 extern
 int memcmp(const char * s1, const char * s2, size_t l);
+*/
 
 MUTEX _static_lock;
 static uint no_osal_instance;
@@ -119,14 +121,14 @@ COO_DEF_RET_ARGS(OE, void *, getmem, uint i;,i) {
   if (!res) return 0;
   for(j=0;j<i;++j) res[j] = 0;
   return res;
-}}
+}
 
 COO_DCL( OE, void, putmem, void * p)
 COO_DEF_NORET_ARGS(OE, putmem, void * p;,p) {
   if (p != 0) {
     free(p); 
   }
-}}
+}
 
 COO_DCL(OE, RC, read, uint fd, byte * buf, uint * lbuf)
 COO_DEF_RET_ARGS(OE, RC, read, uint fd;byte *buf;uint * lbuf;, fd, buf, lbuf ) {
@@ -185,8 +187,9 @@ COO_DEF_RET_ARGS(OE, RC, read, uint fd;byte *buf;uint * lbuf;, fd, buf, lbuf ) {
   }
 
   return RC_OK;
-}}
+}
 
+/*
 static
 void force_os_to_send(int fd, int cork) {
   int cork_val = cork;
@@ -195,6 +198,7 @@ void force_os_to_send(int fd, int cork) {
     printf("Error: Failed to set cork %u\n",cork);
   }
 }
+*/
 
 COO_DCL(OE, RC, write, uint fd, byte * buf, uint lbuf)
 COO_DEF_RET_ARGS(OE, RC, write, uint fd; byte*buf;uint lbuf;,fd,buf,lbuf) {
@@ -243,7 +247,7 @@ COO_DEF_RET_ARGS(OE, RC, write, uint fd; byte*buf;uint lbuf;,fd,buf,lbuf) {
   }
   return writesofar;
 
-}}
+}
 
 /* proposal:
  *
@@ -265,7 +269,7 @@ COO_DEF_RET_ARGS(OE, int, open , const char * name;, name) {
   soe = (SimpleOE)this->impl;
   if (!soe) return -128;
   
-  if (lname > 5 && (memcmp("file ", name, 5) == 0)) {
+  if (lname > 5 && (mcmp((void*)"file ",(void*)name, 5) == 0)) {
     int fd = open(name+5, O_RDWR);
     if (fd < 0) goto failure;
     
@@ -277,7 +281,7 @@ COO_DEF_RET_ARGS(OE, int, open , const char * name;, name) {
   }
   
   // listen for incoming connections
-  if (lname > 7 && memcmp("listen ",name,7) == 0)   {
+  if (lname > 7 && mcmp(( void*)"listen ",( void *)name,7) == 0)   {
     int server_fd = socket(AF_INET, SOCK_STREAM, 0);
     char port[6] = {0};
     int reuse_addr_option = 1;
@@ -302,7 +306,8 @@ COO_DEF_RET_ARGS(OE, int, open , const char * name;, name) {
 		  lserv_addr) < 0) {
         close(server_fd);
         return 0;
-    }}
+      }
+    }
 
     {
       uint flags = fcntl(server_fd, F_GETFL, 0);
@@ -321,7 +326,7 @@ COO_DEF_RET_ARGS(OE, int, open , const char * name;, name) {
 
 
   // ip address
-  if (lname > 3 && memcmp("ip ", name, 3) == 0) {
+  if (lname > 3 && mcmp((void *) "ip ", (void*)name, 3) == 0) {
     int socket_fd = 0;
     char ip[20]={0},port[6]={0};
     struct sockaddr_in addr = {0};
@@ -359,7 +364,7 @@ COO_DEF_RET_ARGS(OE, int, open , const char * name;, name) {
     this->unlock(soe->lock);
   }
   return 0;
-}}
+}
 
 
 
@@ -426,10 +431,10 @@ COO_DEF_RET_ARGS(OE, int, accept, uint fd;,fd) {
   this->unlock(soe->lock);
 
   return res;
-}}
+}
 
-COO_DCL(OE, int, close, uint fd)
-COO_DEF_RET_ARGS(OE, int, close, uint fd;, fd) {
+COO_DCL(OE, int, close, uint _fd)
+COO_DEF_RET_ARGS(OE, int, close, uint _fd;, _fd) {
   int fd = 0;
   SimpleOE soe = (SimpleOE)this->impl;
   
@@ -437,11 +442,11 @@ COO_DEF_RET_ARGS(OE, int, close, uint fd;, fd) {
     return -1;
   }
 
-  fd = (int)(long long)soe->filedescriptors->get_element(fd);
+  fd = (int)(long long)soe->filedescriptors->get_element(_fd);
   //  soe->filedescriptors->rem_element(fd);
 
   return close(fd);
-}}
+}
 
 COO_DCL(OE, ThreadID, newthread, ThreadFunction tf, void * args)
 COO_DEF_RET_ARGS(OE, ThreadID, newthread, ThreadFunction tf; void * args;, tf, args) {
@@ -460,13 +465,13 @@ COO_DEF_RET_ARGS(OE, ThreadID, newthread, ThreadFunction tf; void * args;, tf, a
   }
   this->syslog(OSAL_LOGLEVEL_WARN, "newthread: failed to create thread");
   return 0;
-}}
+}
 
 COO_DCL(OE, void, yieldthread)
 COO_DEF_NORET_NOARGS(OE, yieldthread) {
   sched_yield();
   //  this->syslog(OSAL_LOGLEVEL_FATAL,"Yield thread is *NOT* implemented");
-}}
+}
 
 COO_DCL(OE, void *, jointhread, ThreadID tid)
 COO_DEF_RET_ARGS(OE, void *, jointhread, ThreadID tid;,tid) {
@@ -489,7 +494,7 @@ COO_DEF_RET_ARGS(OE, void *, jointhread, ThreadID tid;,tid) {
   }
   
   return p;
-}}
+}
 
 COO_DCL(OE, uint, number_of_threads);
 COO_DEF_RET_NOARGS(OE, uint, number_of_threads) {
@@ -499,17 +504,17 @@ COO_DEF_RET_NOARGS(OE, uint, number_of_threads) {
   answer = soe->threads->size()+1; // +1 is the main thread
   this->unlock(soe->lock);
   return answer;
-}}
+}
 
 COO_DCL(OE, MUTEX, newmutex )
 COO_DEF_RET_NOARGS(OE, MUTEX, newmutex) {
   return Mutex_new(MUTEX_FREE);
-}}
+}
 
 COO_DCL(OE, void, destroymutex, MUTEX * m)
 COO_DEF_NORET_ARGS(OE, destroymutex, MUTEX * m;,m) {
   Mutex_destroy(*m);
-}}
+}
 
 COO_DCL(OE, void, lock, MUTEX m)
 COO_DEF_NORET_ARGS(OE, lock,  MUTEX m;,m) {
@@ -519,7 +524,7 @@ COO_DEF_NORET_ARGS(OE, lock,  MUTEX m;,m) {
   //  sprintf(msg,"LOCK(%p) taken by THREAD(%d)",m,tid);
   //this->p(msg);
   Mutex_lock(m);
-}}
+}
 
 COO_DCL(OE, void, unlock,  MUTEX m) 
 COO_DEF_NORET_ARGS(OE, unlock, MUTEX m;,m) {
@@ -529,22 +534,22 @@ COO_DEF_NORET_ARGS(OE, unlock, MUTEX m;,m) {
   //sprintf(msg,"LOCK(%p) released by THREAD(%d)",m,tid);
   //this->p(msg);
   Mutex_unlock(m);  
-}}
+}
 
 COO_DCL(OE, Cmaphore, newsemaphore, uint count)
 COO_DEF_RET_ARGS(OE, Cmaphore, newsemaphore, uint count;,count) {
   return Cmaphore_new(this,count);
-}}
+}
 
 COO_DCL(OE, void, up, Cmaphore c)
 COO_DEF_NORET_ARGS(OE, up, Cmaphore c;,c) {
   Cmaphore_up(c);
-}}
+}
 
 COO_DCL(OE, void, down, Cmaphore c)
 COO_DEF_NORET_ARGS(OE, down, Cmaphore c;, c) {
   Cmaphore_down(c);
-}}
+}
 
 COO_DCL(OE, void, syslog, LogLevel level, const char * msg) 
 COO_DEF_NORET_ARGS(OE, syslog, LogLevel level; const char * msg;, level, msg) {
@@ -568,17 +573,17 @@ COO_DEF_NORET_ARGS(OE, syslog, LogLevel level; const char * msg;, level, msg) {
   } 
   
   printf("%s\n", msg);
-}}
+}
 
 COO_DCL(OE, void, p, const char * msg)
 COO_DEF_NORET_ARGS(OE, p, const char * msg;,msg) {
-  return this->syslog(OSAL_LOGLEVEL_WARN, msg);
-}}
+  this->syslog(OSAL_LOGLEVEL_WARN, msg);
+}
 
 COO_DCL(OE, void, destroysemaphore, Cmaphore * s)
 COO_DEF_NORET_ARGS(OE, destroysemaphore, Cmaphore * s;,s) {
   Cmaphore_destroy(s);
-}}
+}
 
 
 COO_DCL(OE, char *, get_version)
@@ -586,7 +591,7 @@ COO_DEF_RET_NOARGS(OE, char *, get_version) {
   static char version_str[256] = {0};
   osal_sprintf(version_str,"%s %s %s",PACKAGE_STRING, CODENAME, BUILD_TIME);
   return version_str;
-}}
+}
 
 COO_DCL(OE, ThreadID, get_thread_id);
 COO_DEF_RET_NOARGS(OE,ThreadID,get_thread_id) {
@@ -607,7 +612,7 @@ COO_DEF_RET_NOARGS(OE,ThreadID,get_thread_id) {
   }
   this->unlock(simpleOE->lock);
   return 0; // the main thread
-}}
+}
 
 
 OE OperatingEnvironment_LinuxNew() {

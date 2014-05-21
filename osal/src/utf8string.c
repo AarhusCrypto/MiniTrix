@@ -184,19 +184,19 @@ COO_DEF_RET_NOARGS(String, uint, length) {
   }
   
   return len;
-}}
+}
 
 
 COO_DCL(String, bool, endswith, String suffix)
 COO_DEF_RET_ARGS(String, bool, endswith, String suffix;,suffix) {
   
   return False;
-}}
+}
 
 COO_DCL(String, bool, startswith, String prefix)
 COO_DEF_RET_ARGS(String, bool, startswith, String prefix;,prefix) {
   return False;
-}}
+}
 
 COO_DCL(String, void, concat, String other)
 COO_DEF_NORET_ARGS(String, concat, String other;,other) {
@@ -221,17 +221,17 @@ COO_DEF_NORET_ARGS(String, concat, String other;,other) {
     }
   }
   return;
-}}
+}
 
 COO_DCL(String, String, substr, uint start, uint end)
 COO_DEF_RET_ARGS(String, String, substr, uint start; uint end;,start,end) {
   return 0;
-}}
+}
 
 COO_DCL(String, const char *, cstr)
 COO_DEF_RET_NOARGS(String, const char *, cstr) {
   return 0;
-}}
+}
 
 String UTF8_String_datanew(OE oe, Data data) {
   String s = (String)oe->getmem(sizeof(*s));

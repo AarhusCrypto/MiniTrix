@@ -48,7 +48,7 @@ COO_DEF_NORET_ARGS(List, add_element, void * e;, e) {
     ths->lasti = 0;
   }
 
-}}
+}
 
 
 COO_DCL(List, void *, get_element, uint i)
@@ -84,13 +84,13 @@ COO_DEF_RET_ARGS(List, void *, get_element, uint i;, i) {
     ths->lasti = i;
     return cur->element;
   }
-}}
+}
 
 COO_DCL(List, uint, size) 
 COO_DEF_RET_NOARGS(List, uint, size) {
   SingleLinkedList ths = (SingleLinkedList)this->impl;
   return ths->size;
-}}
+}
 
 COO_DCL(List, void *, rem_element, uint i)
 COO_DEF_RET_ARGS(List, void * , rem_element, uint i;,i)
@@ -119,7 +119,7 @@ COO_DEF_RET_ARGS(List, void * , rem_element, uint i;,i)
     ths->lasti = 0;
     return elm;
   }
-}}
+}
 
 
 

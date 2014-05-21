@@ -36,6 +36,26 @@ extern "C" {
    * [Deprecated] But necessary. We have not yet written a sprintf like function for String.h
    */
   int osal_sprintf(char * b, const char * fmt, ... );
+
+  /*
+   * Compare {a} and {b} as arrays of bytes. If a is "bigger" return
+   * 1, if {a} and {b} are equal return 0 otherwise return -1.
+   */
+  int mcmp(void * a, void * b, uint l);
+
+  /*
+   * Convert an unsigned long long to bytes in Big Endian byte order
+   * and store them in {out} which must be at least sizeof(l) in size.
+   */
+  void l2b(ull l, byte * out);
+
+  /*
+   * Convert a sequence of bytes in {data} to an unsigned long
+   * long. {data} must hold at least sizeof(ull) bytes with the wanted
+   * value stored as Big Endian byte order.
+   */
+  ull b2l(byte * data);
+
 #ifdef __cplusplus
 }
 #endif

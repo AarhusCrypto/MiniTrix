@@ -1,6 +1,6 @@
 # This Makefile defines a new part. Give it a name:
 PART_NAME=osal
-
+CURDIR=`pwd`
 
 # This is the directory is the build yard where all the mess generated
 # by automake, configure etc. is living. Also, the final binaries will

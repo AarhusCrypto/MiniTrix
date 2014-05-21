@@ -1,10 +1,10 @@
 #ifndef COO_H
 #define COO_H
 #include <memory.h>
+#include <common.h>
 #define STUB_SIZE 512
-#include<stdio.h>
-
 void set_rbx();
+
 /* COO ATTACH
  *
  *
@@ -22,9 +22,9 @@ void set_rbx();
  * printf("FATAL: Unable to attach %s\n", #NAME);
  */
 #define COO_ATTACH(CLZ,OBJ,NAME) {					\
-    OBJ->NAME = coo_patch((byte*)stub_##CLZ##_##NAME, STUB_SIZE, OBJ ); \
+    OBJ->NAME = coo_patch((byte*)stub_##CLZ##_##NAME, (byte*)CLZ##_##NAME, OBJ ); \
     if ( !( (OBJ->NAME) ) ) {                                           \
-                                                                        \
+									\
     }}
 
 
@@ -34,6 +34,7 @@ void set_rbx();
                                                                         \
     }}                                                                  
 
+
 /* COO_DCL
  *
  * Declare a member function for class {CLZ} returning {RET} having
@@ -41,32 +42,41 @@ void set_rbx();
  *
  */
 #define COO_DCL(CLZ, RET, NAME, ...)		\
-  static RET CLZ##_##NAME(void * t, ##__VA_ARGS__);
+  static RET CLZ##_##NAME(CLZ t, ##__VA_ARGS__);
 
 /* COO_DEF_RET_ARGS
  *
  * Define a member function that returns a value and takes arguments.
  *
- * First the stub "RET stub_{CLZ}_{NAME}"-function is defined having a
- * variable with the magic pointer 0xDEADBEEFDEADBEEF. coo_patch will
- * look for an repleace this pointer when this stub-code is copied to
- * rwx memory and assignmed to a function pointer with COO_ATTACH.
- *
- * The {regsiter} keyword is used to prohibit compiler optimizations !
  */
-#define COO_DEF_RET_ARGS(CLZ, RET, NAME, TYPES, ...)	\
-  static __attribute__((optimize("O0"))) RET stub_##CLZ##_##NAME(__VA_ARGS__) TYPES {                   \
-    asm("\n");                                                          \
-    register void * ths = (void*)0xDEADBEEFDEADBEEFL;                   \
-    register RET (*k)(void * t, ...) = (void*)&CLZ##_##NAME;            \
-    asm("\n");                                                          \
-    RET val = k(ths, __VA_ARGS__ );                                     \
-    return val;                                                         \
-  }                                                                     \
-                                                                        \
-  static RET CLZ##_##NAME(t, ##__VA_ARGS__) void * t; TYPES             \
-  {                                                                     \
-  register  CLZ this = (CLZ)t;
+#define COO_DEF_RET_ARGS(CLZ, RET, NAME, TYPES, ...)			\
+  static RET stub_##CLZ##_##NAME(__VA_ARGS__) TYPES {			\
+    byte * cur = 0, * dif = 0; CLZ ths = 0;				\
+    asm("call "#CLZ"_"#NAME"_jmp\n\t"					\
+	#CLZ"_"#NAME"_jmp: popq %%rax\n\t"				\
+	"movq %%rax, %0\n\tmovq $., %1\n"				\
+	: "=r" (cur), "=r" (dif) : : "%rax");				\
+    register RET (*k)(void *, ...) = 0;					\
+      cur = (byte*)(((ull)cur) - (((ull)dif) - ((ull)stub_##CLZ##_##NAME)) - 4); \
+      ths = (CLZ)(((ull)cur[0] << 0 )+ ((ull)cur[1] << 8) + ((ull)cur[2] << 16) + \
+	((ull)cur[3] << 24) + ((ull)cur[4] << 32) +			\
+	((ull)cur[5] << 40)+ ((ull)cur[6] << 48) + ((ull)cur[7] << 56)); \
+      k = (void*)(((ull)cur[-8] << 0 )+ ((ull)cur[-7] << 8) + ((ull)cur[-6] << 16) + \
+      ((ull)cur[-5] << 24) + ((ull)cur[-4] << 32) +			\
+      ((ull)cur[-3] << 40)+ ((ull)cur[-2] << 48) + ((ull)cur[-1] << 56));	\
+      return k(ths, __VA_ARGS__ ); }					\
+  static RET CLZ##_##NAME(this, ##__VA_ARGS__) CLZ this; TYPES 
+
+/* #define COO_DEF_RET_ARGS(CLZ, RET, NAME, TYPES, ...)			\ */
+/*   static RET stub_##CLZ##_##NAME(__VA_ARGS__) TYPES {                   \ */
+/*     register RET (*k)(void * t, ...) = (void*)&CLZ##_##NAME;            \ */
+/*       RET val = k(ths, __VA_ARGS__ );					\ */
+/*       return val;							\ */
+/*   }                                                                     \ */
+/*                                                                         \ */
+/*   static RET CLZ##_##NAME(t, ##__VA_ARGS__) void * t; TYPES             \ */
+/*   {                                                                     \ */
+/*   register  CLZ this = (CLZ)t; */
 
 /* COO_DEF_RET_NOARGS
  *
@@ -75,19 +85,37 @@ void set_rbx();
  *
  * Otherwise as COO_DEF_RET_ARGS above.
  */
+#define COO_DEF_RET_NOARGS(CLZ, RET, NAME)				\
+    static RET stub_##CLZ##_##NAME(void) {				\
+  byte * cur = 0, * dif = 0; CLZ ths = 0;				\
+  asm("call "#CLZ"_"#NAME"_jmp\n\t"					\
+    #CLZ"_"#NAME"_jmp: popq %%rax\n\t"					\
+    "movq %%rax, %0\n\tmovq $., %1\n"					\
+    : "=r" (cur), "=r" (dif) : : "%rax");				\
+  register RET (*k)(void *) = 0;					\
+      cur = (byte*)(((ull)cur) - (((ull)dif) - ((ull)stub_##CLZ##_##NAME)) - 4); \
+      ths = (CLZ)(((ull)cur[0] << 0 )+ ((ull)cur[1] << 8) + ((ull)cur[2] << 16) + \
+      ((ull)cur[3] << 24) + ((ull)cur[4] << 32) +			\
+      ((ull)cur[5] << 40)+ ((ull)cur[6] << 48) + ((ull)cur[7] << 56));	\
+      k = (void*)(((ull)cur[-8] << 0 )+ ((ull)cur[-7] << 8) + ((ull)cur[-6] << 16) + \
+      ((ull)cur[-5] << 24) + ((ull)cur[-4] << 32) +			\
+      ((ull)cur[-3] << 40)+ ((ull)cur[-2] << 48) + ((ull)cur[-1] << 56));	\
+      return k(ths); }							\
+      static RET CLZ##_##NAME(this) CLZ this; 
+    
+    /*
 #define COO_DEF_RET_NOARGS(CLZ, RET, NAME)                              \
-  static __attribute__((optimize("O0"))) RET stub_##CLZ##_##NAME(void)  \
+  static RET stub_##CLZ##_##NAME(void)					\
   {                                                                     \
-    asm("\n");                                                          \
-    volatile register void * ths = (void*)0xDEADBEEFDEADBEEFL;          \
+    register void * ths = (void*)0xDEADBEEFDEADBEEFL;          \
     register RET (* k)(void * t) = (void*)&CLZ##_##NAME;                \
-    asm("\n");                                                            \
     RET val = k((void*)ths);                                            \
-  return val;                                                           \
+    return val;								\
   }                                                                     \
   static RET CLZ##_##NAME(void * t)                                     \
   {                                                                     \
   register CLZ this = (CLZ)t;
+    */
 
 /* COO_DEF_NORET_NOARGS
  *
@@ -97,18 +125,35 @@ void set_rbx();
  *
  * Otherwise as COO_DEF_RET_ARGS above. 
  */
+#define COO_DEF_NORET_NOARGS(CLZ, NAME)				\
+    static void stub_##CLZ##_##NAME(void) {				\
+      byte * cur = 0, * dif = 0; CLZ ths = 0;				\
+  asm("call "#CLZ"_"#NAME"_jmp\n\t"					\
+    #CLZ"_"#NAME"_jmp: popq %%rax\n\t"					\
+    "movq %%rax, %0\n\tmovq $., %1\n"					\
+    : "=r" (cur), "=r" (dif) : : "%rax");				\
+  register void (*k)(void *) = 0;					\
+      cur = (byte*)(((ull)cur) - (((ull)dif) - ((ull)stub_##CLZ##_##NAME)) - 4); \
+      ths = (CLZ)(((ull)cur[0] << 0 )+ ((ull)cur[1] << 8) + ((ull)cur[2] << 16) + \
+      ((ull)cur[3] << 24) + ((ull)cur[4] << 32) +			\
+      ((ull)cur[5] << 40)+ ((ull)cur[6] << 48) + ((ull)cur[7] << 56));	\
+      k = (void*)(((ull)cur[-8] << 0 )+ ((ull)cur[-7] << 8) + ((ull)cur[-6] << 16) + \
+      ((ull)cur[-5] << 24) + ((ull)cur[-4] << 32) +			\
+      ((ull)cur[-3] << 40)+ ((ull)cur[-2] << 48) + ((ull)cur[-1] << 56));	\
+      k(ths); }								\
+      static void CLZ##_##NAME(this) CLZ this; 
+    /*
 #define COO_DEF_NORET_NOARGS(CLZ, NAME)                                 \
-  static __attribute__((optimize("O0"))) void stub_##CLZ##_##NAME(void) \
+  static void stub_##CLZ##_##NAME(void)					\
   {                                                                     \
-    asm("\n");                                                          \
     register void * ths = (void*)0xDEADBEEFDEADBEEFL;                   \
     register void (*k)(void * t) = (void*)&CLZ##_##NAME;                \
-    asm("\n");                                                          \
     k(ths);                                                             \
   }                                                                     \
   static void CLZ##_##NAME(void * t)                                    \
   {                                                                     \
   register CLZ this = (CLZ)t;
+  */
 
 /* COO_DEF_NORET_ARGS
  *
@@ -117,21 +162,37 @@ void set_rbx();
  *
  * Otherwise as COO_DEF_RET_ARGS above.
  */
+#define COO_DEF_NORET_ARGS(CLZ, NAME, TYPES, ...)			\
+  static void stub_##CLZ##_##NAME(__VA_ARGS__) TYPES {			\
+    byte * cur = 0, * dif = 0; CLZ ths = 0;				\
+    asm("call "#CLZ"_"#NAME"_jmp\n\t"					\
+	#CLZ"_"#NAME"_jmp: popq %%rax\n\t"				\
+	"movq %%rax, %0\n\tmovq $., %1\n"				\
+	: "=r" (cur), "=r" (dif) : : "%rax");				\
+    register void (*k)(void *, ...) = 0;				\
+      cur = (byte*)(((ull)cur) - (((ull)dif) - ((ull)stub_##CLZ##_##NAME)) - 4); \
+      ths = (CLZ)(((ull)cur[0] << 0 )+ ((ull)cur[1] << 8) + ((ull)cur[2] << 16) + \
+      ((ull)cur[3] << 24) + ((ull)cur[4] << 32) +			\
+      ((ull)cur[5] << 40)+ ((ull)cur[6] << 48) + ((ull)cur[7] << 56));	\
+      k = (void*)(((ull)cur[-8] << 0 )+ ((ull)cur[-7] << 8) + ((ull)cur[-6] << 16) + \
+      ((ull)cur[-5] << 24) + ((ull)cur[-4] << 32) +			\
+      ((ull)cur[-3] << 40)+ ((ull)cur[-2] << 48) + ((ull)cur[-1] << 56));	\
+      k(ths, __VA_ARGS__ ); }					\
+  static void CLZ##_##NAME(this, ##__VA_ARGS__) CLZ this; TYPES 
 
 
+    /*
 #define COO_DEF_NORET_ARGS(CLZ, NAME, TYPES, ...)	\
-  static __attribute__((optimize("O0"))) void stub_##CLZ##_##NAME(__VA_ARGS__) TYPES \
+  static void stub_##CLZ##_##NAME(__VA_ARGS__) TYPES \
   {                                                           \
-    asm("\n");                                                \
     register void * ths = (void*)0xDEADBEEFDEADBEEFL;         \
-    register void (*k)(void * t, ...) = (void*)&CLZ##_##NAME; \
-    asm("\n");                                                \
+    register void (*k)(void * t, ...) = (void*)CLZ##_##NAME;  \
     k(ths, __VA_ARGS__ );                                     \
-    return;                                                   \
   }                                                           \
   static void CLZ##_##NAME(t, ##__VA_ARGS__) void * t; TYPES	\
   {							\
   register CLZ this = (CLZ)t;
+    */
 
 /* COO_DETACH
  *
@@ -157,8 +218,8 @@ void coo_end();
  * searches for the pattern 0xDEADBEEFDEADBEEF and replaces that with
  * the value stored in this in little endian.
  */ 
-void * coo_patch(byte * stub, uint lstub, void * this );
-
+ void * coo_patch(byte * stub, byte * fun, void * this );
+void * coo_patch2(byte * stub, uint lstub, void * this );
 /*
  * Free stub function from (special) rwx memory.
  */
