@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <common.h>
+#include <string.h>
 
 typedef unsigned char gf8;
 gf8 read_number(char * s, int * index);

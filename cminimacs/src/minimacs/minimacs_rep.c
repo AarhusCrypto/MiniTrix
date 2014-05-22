@@ -7,6 +7,8 @@
 #include <stdarg.h>
 #include <encoding/der.h>
 #include <stats.h>
+#include <fs.h>
+
 // forward
 void minimacs_rep_clean_up( MiniMacsRep * rep );
 
@@ -1461,7 +1463,7 @@ MiniMacsRep minimacs_rep_load( byte * data, uint ldata) {
   if (rc != DER_OK) return 0;
 
   otmp = 0;
-  rc = der_decode_integer(&res->lval,tmp, &otmp, ltmp);
+  rc = der_decode_integer((int*)&res->lval,tmp, &otmp, ltmp);
   if (rc != DER_OK) return 0;
 
 
@@ -1504,7 +1506,7 @@ MiniMacsRep minimacs_rep_load( byte * data, uint ldata) {
   if (rc != DER_OK) goto failure;
 
   otmp = 0;
-  rc = der_decode_integer( &res->lmac, tmp, &otmp, ltmp );
+  rc = der_decode_integer( (int*)&res->lmac, tmp, &otmp, ltmp );
   if (rc != DER_OK) goto failure;
   res->mac = (bedoza_mac*)malloc(sizeof(*(res->mac))*(res->lmac+1));
   if (!res->mac) goto failure;
@@ -1769,7 +1771,7 @@ void load_shares( const char * filename,
 
     (*triples)[i] = (MiniMacsTripleRep)malloc(sizeof( *((*triples)[i]) )  );
     if (!(*triples)[i]) return;
-    memset( (*triples)[i],0,sizeof(MiniMacsTripleRep));
+    memset( (*triples)[i],0,sizeof(*((*triples)[i])));
    
     rc = der_decode_seq(ptriples,lptriples,i,0,&prep,&lprep);
     if (rc != DER_OK) goto failure;

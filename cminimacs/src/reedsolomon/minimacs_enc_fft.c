@@ -233,7 +233,7 @@ COO_DEF_RET_ARGS(MiniMacsEnc, byte *, encode, byte * msg; uint lmsg;, msg, lmsg)
  failure:
   oe->putmem(r);
   return 0;
- }} 
+ } 
 
 /*
  * if a == b return true else false
@@ -308,7 +308,7 @@ COO_DEF_RET_ARGS(MiniMacsEnc, bool, validate, byte * code; uint lmsg;, code, lms
   oe->putmem(f);
   oe->putmem(r);
   return res;
-}}
+}
 
 void   MiniMacsEnc_FFTDestroy( MiniMacsEnc * enc) {
 

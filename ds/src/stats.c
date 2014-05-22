@@ -86,13 +86,13 @@ COO_DEF_NORET_NOARGS(Measurement, set_start) {
   _oe_->lock(impl->l);
   impl->start = _nano_time();
   _oe_->unlock(impl->l);
-}}
+}
 
 COO_DCL(Measurement, char *, get_name)
 COO_DEF_RET_NOARGS(Measurement, char *, get_name) {
   MeasurementImpl impl = (MeasurementImpl)this->impl;
   return impl->name;
-}}
+}
 
 
 COO_DCL(Measurement, void, measure);
@@ -110,7 +110,7 @@ COO_DEF_NORET_NOARGS(Measurement, measure) {
   impl->count += 1;
   impl->start = 0;
   _oe_->unlock(impl->l);
-}}
+}
 
 Measurement Measurements_get(char * name) {
   MeasurementImpl topi = 0 ;

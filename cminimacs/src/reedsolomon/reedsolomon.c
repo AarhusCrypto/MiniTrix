@@ -388,7 +388,7 @@ polynomial * minimacs_encode(polynomial * msg, uint lmsg, uint lcode) {
       CHECK_POINT_E("[RSCODE] Encoding Matrix Schur Transform");
       return r;
     }
-  }}
+  }
 
   COO_DCL(MiniMacsEnc, bool, validate, byte * code, uint lmsg)
   COO_DEF_RET_ARGS(MiniMacsEnc, bool, validate, byte * code; uint lmsg;, code, lmsg) {
@@ -405,7 +405,7 @@ polynomial * minimacs_encode(polynomial * msg, uint lmsg, uint lcode) {
       CHECK_POINT_E("[RSCODE] Validation Matrix Schur Transform");
       return r;
     }
-  }}
+  }
 
 void MiniMacsEnc_MatrixDestroy(MiniMacsEnc * mme) {
   MatrixMiniMacsEnc mmme = 0;

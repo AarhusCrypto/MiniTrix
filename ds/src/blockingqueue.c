@@ -5,12 +5,12 @@
 COO_DCL(BlkQueue, void *, get)
 COO_DEF_RET_NOARGS(BlkQueue, void * , get) {
   return BlkQueue_take(this);
-}}
+}
 
 COO_DCL(BlkQueue, void, put, void * elm)
 COO_DEF_NORET_ARGS(BlkQueue, put, void * elm;,elm) {
    BlkQueue_push(this, elm);
-}}
+}
 
 COO_DCL(BlkQueue, uint, size) 
 COO_DEF_RET_NOARGS(BlkQueue, uint, size) {
@@ -18,7 +18,7 @@ COO_DEF_RET_NOARGS(BlkQueue, uint, size) {
   uint back = this->back;
   uint cap = this->lelements;
   return  (back - front + cap) % (cap);
-}}
+}
 
 BlkQueue BlkQueue_new(OE oe, uint size) {
   BlkQueue q = 0;

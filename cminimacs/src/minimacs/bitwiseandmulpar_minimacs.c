@@ -20,7 +20,7 @@ COO_DEF_RET_NOARGS(MiniMacs, uint, get_id) {
   }
 
   return 0;
-}}
+}
 
 COO_DCL(BitWiseANDMiniMacsMulPar, BitDecomposedTriple, next_triple)
 COO_DEF_RET_NOARGS(BitWiseANDMiniMacsMulPar, BitDecomposedTriple, next_triple) {
@@ -28,7 +28,7 @@ COO_DEF_RET_NOARGS(BitWiseANDMiniMacsMulPar, BitDecomposedTriple, next_triple) {
     return this->triples[this->idx_triple++];
   }
   return 0;
-}}
+}
 
 COO_DCL(BitWiseANDMiniMacsMulPar, MiniMacsRep, next_single)
 COO_DEF_RET_NOARGS(BitWiseANDMiniMacsMulPar, MiniMacsRep, next_single) {
@@ -36,7 +36,7 @@ COO_DEF_RET_NOARGS(BitWiseANDMiniMacsMulPar, MiniMacsRep, next_single) {
     return this->singles[this->idx_single++];
   }
   return 0;
-}}
+}
 
 COO_DCL(BitWiseANDMiniMacsMulPar, MiniMacsRep *, next_pair) 
 COO_DEF_RET_NOARGS(BitWiseANDMiniMacsMulPar, MiniMacsRep *, next_pair) {
@@ -44,7 +44,7 @@ COO_DEF_RET_NOARGS(BitWiseANDMiniMacsMulPar, MiniMacsRep *, next_pair) {
     return this->pairs[this->idx_pair++];
   }
   return 0;
-}}
+}
 
 COO_DCL(MiniMacs,MR,add,uint dst, uint l, uint r)
 COO_DEF_RET_ARGS(MiniMacs, MR, add, uint dst; uint l; uint r;,dst,l,r) {
@@ -65,7 +65,7 @@ COO_DEF_RET_ARGS(MiniMacs, MR, add, uint dst; uint l; uint r;,dst,l,r) {
   if (mr != 0) return mr;
   this->heap_set(dst,res);
   return mr;
-}}
+}
 
 COO_DCL(BitWiseANDMiniMacsMulPar, MR, __add__, MiniMacsRep * res_out, MiniMacsRep left, MiniMacsRep right)
 COO_DEF_RET_ARGS(BitWiseANDMiniMacsMulPar, MR, __add__,MiniMacsRep * res_out; MiniMacsRep left; MiniMacsRep right;,res_out, left, right) {
@@ -120,7 +120,7 @@ COO_DEF_RET_ARGS(BitWiseANDMiniMacsMulPar, MR, __add__,MiniMacsRep * res_out; Mi
 
   *res_out = result;
   MR_RET_OK;
-}}
+}
 
 
 typedef struct _mulpar_entry_ {
@@ -644,7 +644,7 @@ COO_DEF_RET_ARGS(MiniMacs,MR, mul, uint dst; uint l; uint r;,dst,l,r) {
   failure:
   printf("Failure \n");
     return mr;
-}}
+}
 
 
 
@@ -808,7 +808,7 @@ COO_DEF_RET_ARGS(MiniMacs,MR,secret_input, uint pid; hptr dst; Data plain_val;, 
   minimacs_rep_clean_up(&result);
 
   return mr;
-}}
+}
 
 COO_DCL(MiniMacs,MR,public_input, hptr dst, Data pub_val)
 COO_DEF_RET_ARGS(MiniMacs,MR,public_input, hptr dst; Data pub_val;,dst,pub_val) {
@@ -820,7 +820,7 @@ COO_DEF_RET_ARGS(MiniMacs,MR,public_input, hptr dst; Data pub_val;,dst,pub_val) 
   MR_RET_OK;
  failure:
   MR_RET_OK;
-}}
+}
 
 COO_DCL(MiniMacs,MR,open, hptr dst)
 COO_DEF_RET_ARGS(MiniMacs,MR,open,hptr dst;,dst) {
@@ -892,7 +892,7 @@ COO_DEF_RET_ARGS(MiniMacs,MR,open,hptr dst;,dst) {
   Data_destroy(oe,&sharemac);
   Data_destroy(oe,&clear);
   return mr;
-}}
+}
 
 COO_DCL(MiniMacs, MR, init_heap, uint size)
 COO_DEF_RET_ARGS(MiniMacs, MR, init_heap, uint size;,size) {
@@ -906,7 +906,7 @@ COO_DEF_RET_ARGS(MiniMacs, MR, init_heap, uint size;,size) {
   return mr;
  failure:
   return mr;
-}}
+}
 
 COO_DCL(MiniMacs, MR, heap_set, hptr addr, MiniMacsRep rep)
 COO_DEF_RET_ARGS(MiniMacs, MR, heap_set ,hptr addr; MiniMacsRep rep;, addr, rep) {
@@ -926,7 +926,7 @@ COO_DEF_RET_ARGS(MiniMacs, MR, heap_set ,hptr addr; MiniMacsRep rep;, addr, rep)
   return mr;
  failure:
   return mr;
-}}
+}
 
 COO_DCL(MiniMacs, MiniMacsRep, heap_get, uint addr)
 COO_DEF_RET_ARGS(MiniMacs,MiniMacsRep,heap_get,uint addr;,addr) {
@@ -939,7 +939,7 @@ COO_DEF_RET_ARGS(MiniMacs,MiniMacsRep,heap_get,uint addr;,addr) {
   
  failure:
   return 0;
-}}
+}
 
 
 COO_DCL(MiniMacs, MR, invite, uint count, uint port)
@@ -977,7 +977,7 @@ COO_DEF_RET_ARGS(MiniMacs, MR, invite, uint count; uint port;, count, port) {
     gmm->peer_map->put( ((void*)(ull)peer_id), peer);
   }
   MR_RET_OK;
-}}
+}
 
 typedef struct _waiting_connecting_listener_ {
   BitWiseANDMiniMacsMulPar gmm;
@@ -1022,19 +1022,19 @@ COO_DEF_NORET_ARGS(ConnectionListener, client_connected, MpcPeer peer;,peer) {
   }
   wcl->q->put(0);
   oe->p("New peer registered.");
-}}
+}
 
 COO_DCL(ConnectionListener, void, client_disconnected, MpcPeer peer)
 COO_DEF_NORET_ARGS(ConnectionListener, client_disconnected, MpcPeer peer;,peer) {
   return;
-}}
+}
 
 COO_DCL(WaitingConnectionListener, void, wait_for, uint count)
 COO_DEF_NORET_ARGS(WaitingConnectionListener, wait_for, uint count;,count) {
   while(count--) {
     this->q->get();
   }
-}}
+}
 
 
 
@@ -1078,7 +1078,7 @@ COO_DEF_RET_ARGS(MiniMacs, MR, connect,  char * ip; uint port;, ip, port) {
   arena->rem_conn_listener(cl);
 
   MR_RET_OK;
-}}
+}
 
 
 
@@ -1086,7 +1086,7 @@ COO_DCL(MiniMacs, uint, get_no_peers)
 COO_DEF_RET_NOARGS(MiniMacs, uint, get_no_peers) {
   BitWiseANDMiniMacsMulPar gmm = (BitWiseANDMiniMacsMulPar)this->impl;
   return gmm->peer_map->size();
-}}
+}
 
 
 COO_DCL(MiniMacs, uint, get_ltext)
@@ -1096,7 +1096,7 @@ COO_DEF_RET_NOARGS(MiniMacs, uint, get_ltext) {
     return gmm->ltext;
   }
   return 0;
-}}
+}
 
 
 COO_DCL(MiniMacs, uint, get_lcode)
@@ -1106,7 +1106,7 @@ COO_DEF_RET_NOARGS(MiniMacs, uint, get_lcode) {
     return gmm->lcode;
   }
   return 0;
-}}
+}
 
 
 
@@ -1117,7 +1117,7 @@ COO_DEF_RET_NOARGS(MiniMacs, uint, get_no_players) {
     return gmm->singles[0]->lmac;
   }
   return 0;
-}}
+}
 
 
 
@@ -1177,7 +1177,7 @@ COO_DEF_RET_ARGS(MiniMacs, MR, mulpar, uint count;, count) {
   OE oe = gmm->oe;
   
   gmm->mulpar = count;
-}}
+}
 
 MiniMacs BitWiseANDMiniMacsMulPar_New(OE oe, CArena arena, MiniMacsEnc encoder,
                              MiniMacsRep * singles, uint lsingles, 

@@ -73,7 +73,7 @@ COO_DEF_RET_ARGS(MiniMacsEnc, polynomial *, encode, byte *msg;uint lmsg;,msg,lms
   
   CHECK_POINT_E("[RSCODE] Bit Encode");
   return r;
-}}
+}
 
 
 COO_DCL(MiniMacsEnc, bool, validate, byte * code, uint lmsg);
@@ -89,7 +89,7 @@ COO_DEF_RET_ARGS(MiniMacsEnc, bool, validate, byte * code; uint lmsg;,code,lmsg)
   impl->oe->putmem(expected);
 
   return True;
-}}
+}
 
 
 

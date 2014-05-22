@@ -98,7 +98,6 @@ void initialize_polynomial_dividetable()
 {
 #ifdef DEBUG
   printf("DEBUG: polynomial.c initializing divide table \n ");
-
 #endif
   int n, i, j;
   dividetable =  (polynomial *)malloc(sizeof(polynomial)*numberOfElements);
@@ -118,8 +117,8 @@ void initialize_polynomial_dividetable()
 	    }
 	  if (product == 0 && p1 != 0 && p2 != 0)
 	    {
-	      printf("FATAL ERROR: invalid field. Multiplication of %2x and %2x is zero. \n",p1,p2);
-	      exit(0);
+	      //printf("FATAL ERROR: invalid field. Multiplication of %2x and %2x is zero. \n",p1,p2);
+	      exit(-1);
 	    }
 	}
     }
@@ -152,6 +151,7 @@ void init_polynomial()
     }
 }
 
+  /*
 void print_polynomial(polynomial p)
 {
   int i = 0;
@@ -168,7 +168,7 @@ void print_polynomial(polynomial p)
 	  printf("+x^(%i)",i);
       }
 }
-
+  */
 
 inline polynomial add(polynomial p1, polynomial p2)
 {
@@ -185,8 +185,9 @@ inline polynomial multiply(polynomial p1, polynomial p2)
 #ifdef DEBUG
   if (multiplicationtable != (void *)0)
     return multiplicationtable[p1][p2];
-  else
-    printf("\n\n\n\t\t WARNING \n \t\t Multiplication table not initialized \n\n");
+  else {
+    // printf("\n\n\n\t\t WARNING \n \t\t Multiplication table not initialized \n\n");
+  }
   return 0;
 #else
     return multiplicationtable[p1][p2];
@@ -211,7 +212,7 @@ polynomial pol_pow(polynomial p, int exponent)
   if (exponent == 0) return (polynomial)1;
   if (exponent < 0 ) 
     {
-      printf("polynomial.c::pol_pow: Negative exponent not allowed. Used inverse followed by multiply.\n");
+      //printf("polynomial.c::pol_pow: Negative exponent not allowed. Used inverse followed by multiply.\n");
       return (polynomial)1;
     }
   res = p;

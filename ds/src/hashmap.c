@@ -38,7 +38,7 @@ COO_DEF_NORET_ARGS(Map, put, void * key; void * elm;,key,elm) {
   return;
  failure:
   MapEntry_destroy ( &ent );
-}}
+}
 
 COO_DCL(Map, void *, get, void * key) 
 COO_DEF_RET_ARGS(Map, void *, get, void * key;,key) {
@@ -57,7 +57,7 @@ COO_DEF_RET_ARGS(Map, void *, get, void * key;,key) {
     }
   }
   return 0;
-}}
+}
 
 COO_DCL(Map, bool, contains, void * key)
 COO_DEF_RET_ARGS(Map, bool, contains, void * key;,key) {
@@ -77,7 +77,7 @@ COO_DEF_RET_ARGS(Map, bool, contains, void * key;,key) {
   }
   
   return False;
-}}
+}
 
 COO_DCL(Map, uint, size )
 COO_DEF_RET_NOARGS(Map, uint, size) {
@@ -91,7 +91,7 @@ COO_DEF_RET_NOARGS(Map, uint, size) {
     }
   }
   return res;
-}}
+}
 
 COO_DCL(Map, List, get_keys);
 COO_DEF_RET_NOARGS(Map, List, get_keys) {
@@ -109,7 +109,7 @@ COO_DEF_RET_NOARGS(Map, List, get_keys) {
     }
   }
   return res;
-}}
+}
 
 COO_DCL(Map, void *, rem, void * key) 
 COO_DEF_RET_ARGS(Map, void *, rem, void * key;,key) {
@@ -132,7 +132,7 @@ COO_DEF_RET_ARGS(Map, void *, rem, void * key;,key) {
     }
   }
   return 0;
-}}
+}
 
 Map HashMap_new(OE oe, HashFN hfn, CompareFN cfn, uint buckets ) {
   Map map = 0;

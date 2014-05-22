@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include "minimacs/minimacs_rep.h"
 #include <encoding/der.h>
+#include <encoding/int.h>
+
 
 #define FAILURE(A,B) { printf("Error: %s\n",A);return 0;}
 
@@ -712,7 +714,7 @@ void minimacs_store_pre(uint nplayers,
 			MiniMacsRep ** pairs, uint lpairs,
 			byte ** data_out, uint * ldata_out) {
   
-  /*
+
     PRE = SEQUENCE ( 
             nplayers ::= INTEGER,
 	    nTriples ::= INTEGER,

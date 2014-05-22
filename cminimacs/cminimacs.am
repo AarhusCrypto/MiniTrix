@@ -49,7 +49,7 @@
 BUILDDIR=$(top_srcdir)/build
 DEPS_INCLUDE=-I$(top_srcdir)/headers -I$(top_srcdir)/deps/headers
 
-CMINIMACS_LIB=$(top_srcdir)/build/src/libcminimacs.a -L$(top_srcdir)/deps -losal -lencoding -lmath -lcarena -lds -lencoding -lpthread -lrt 
+CMINIMACS_LIB=$(top_srcdir)/build/src/libcminimacs.a -L$(top_srcdir)/deps -losal -lcarena -lds -lencoding -lpthread -lrt $(top_srcdir)/deps/libmath.a
 
-AM_CFLAGS=$(DEPS_INCLUDE) -Werror
+AM_CFLAGS=$(DEPS_INCLUDE)
 
