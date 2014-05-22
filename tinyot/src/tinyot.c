@@ -159,7 +159,7 @@ COO_DEF_NORET_ARGS(TinyOT, init_heap, uint size;, size) {
     impl->sizeHeap = size;
   else
     impl->oe->p("Unable to initialize heap.");
-}}
+}
 
 COO_DCL(TinyOT, tinyotshare *, heap_get, hptr addr);
 COO_DEF_RET_ARGS(TinyOT, tinyotshare *, heap_get, hptr addr;,addr) {
@@ -171,7 +171,7 @@ COO_DEF_RET_ARGS(TinyOT, tinyotshare *, heap_get, hptr addr;,addr) {
     impl->oe->p(m);
     return 0;
   }
-}}
+}
 
 COO_DCL(TinyOT, void, heap_set, hptr addr, tinyotshare*share);
 COO_DEF_NORET_ARGS(TinyOT, heap_set, hptr addr; tinyotshare*share;,addr,share) {
@@ -188,7 +188,7 @@ COO_DEF_NORET_ARGS(TinyOT, heap_set, hptr addr; tinyotshare*share;,addr,share) {
     osal_sprintf(m,"Address %u is out of range [0-%u]",addr, impl->sizeHeap-1);
     impl->oe->p(m);
   }
-}}
+}
 
 
 COO_DCL(TinyOT, void, ZERO, hptr addr);
@@ -207,7 +207,7 @@ COO_DEF_NORET_ARGS(TinyOT, ZERO, hptr addr;,addr) {
   }
   impl->AliceShare(impl->heap[addr],0);
   impl->BobShare(impl->heap[addr],0);
-}}
+}
 
 
 COO_DCL(TinyOTImpl, void, AliceShare, tinyotshare * res, char s);
@@ -223,7 +223,7 @@ COO_DEF_NORET_ARGS(TinyOTImpl, AliceShare, tinyotshare* res; char s;,res,s) {
   } else {
     res->key = s*this->delta;
   }
-}}
+}
 
 COO_DCL(TinyOTImpl, void, BobShare, tinyotshare * res, char s);
 COO_DEF_NORET_ARGS(TinyOTImpl, BobShare, tinyotshare * res; char s;,res,s) {
@@ -238,7 +238,7 @@ COO_DEF_NORET_ARGS(TinyOTImpl, BobShare, tinyotshare * res; char s;,res,s) {
   } else {
     res->key = s*this->delta;
   }
-}}
+}
 
 COO_DCL(TinyOT, void, ONE, hptr addr);
 COO_DEF_NORET_ARGS(TinyOT, ONE, hptr addr;,addr) {
@@ -254,7 +254,7 @@ COO_DEF_NORET_ARGS(TinyOT, ONE, hptr addr;,addr) {
 
   impl->AliceShare(impl->heap[addr],0);
   impl->BobShare(impl->heap[addr],1);
-}}
+}
 
 
 static 
@@ -297,7 +297,7 @@ COO_DEF_NORET_ARGS(TinyOT, XOR, hptr dst; hptr left; hptr right; uint _;, dst, l
   _XOR(res,impl->heap[left],impl->heap[right]);
   impl->heap[dst] = res;
 
-}}
+}
 
 
 COO_DCL(TinyOT, void, AND, hptr dst, hptr left, hptr right, uint pos, uint no);
@@ -348,7 +348,7 @@ COO_DEF_NORET_ARGS(TinyOT, AND, hptr dst; hptr left; hptr right; uint pos; uint 
     impl->andBuffer[pos].ab = &pre->ab;
   }
   // TODO(rwl): The end_and_layer is needed
-}}
+}
 
 COO_DCL(TinyOT, void, INV, hptr dst, hptr op, uint _);
 COO_DEF_NORET_ARGS(TinyOT, INV, hptr dst; hptr op; uint _;,dst,op,_) {
@@ -386,7 +386,7 @@ COO_DEF_NORET_ARGS(TinyOT, INV, hptr dst; hptr op; uint _;,dst,op,_) {
     impl->heap[dst]->key = impl->heap[op]->key;
   }
 
-}}
+}
 
 COO_DCL(TinyOTImpl, void, swapBits, int len);
 COO_DEF_NORET_ARGS(TinyOTImpl, swapBits, int len;,len){ 
@@ -408,7 +408,7 @@ COO_DEF_NORET_ARGS(TinyOTImpl, swapBits, int len;,len){
     this->tmpBuf = this->buf;
     this->buf = tmp;
   }
-}}
+}
 
 
 COO_DCL(TinyOT, void, end_layer_AND, uint width);
@@ -444,7 +444,7 @@ COO_DEF_NORET_ARGS(TinyOT, end_layer_AND, uint width;, width) {
 
 
   
-}}
+}
 
 COO_DCL(TinyOT, void, begin_layer_public_common_store, uint len);
 COO_DEF_NORET_ARGS(TinyOT, begin_layer_public_common_store, uint len;, len) {
@@ -452,7 +452,7 @@ COO_DEF_NORET_ARGS(TinyOT, begin_layer_public_common_store, uint len;, len) {
   
   impl->verify();
  
-}}
+}
 
 
 COO_DCL(TinyOT, void, end_layer_public_common_store, uint len);
@@ -472,7 +472,7 @@ COO_DEF_NORET_ARGS(TinyOT, end_layer_public_common_store, uint len;, len) {
   for(pos = 0;pos < len;++pos) {
     *impl->pcsBuf[pos] = impl->heap[impl->outBuf[pos]]->shr ^ (impl->buf[pos]);
   }
-}}
+}
 
 COO_DCL(TinyOTImpl, void, alloc_comm_buf, uint size);
 COO_DEF_NORET_ARGS(TinyOTImpl, alloc_comm_buf, uint size;,size) {
@@ -487,7 +487,7 @@ COO_DEF_NORET_ARGS(TinyOTImpl, alloc_comm_buf, uint size;,size) {
     this->tmpBuf = this->oe->getmem(size);
     this->wordBuf = this->oe->getmem(size*sizeof(unsigned long int));
   }
-}}
+}
 
 
 COO_DCL(TinyOT, void, public_common_store, byte*s, uint out, uint pos);
@@ -505,7 +505,7 @@ COO_DEF_NORET_ARGS(TinyOT, public_common_store, byte * s; uint out; uint pos;,
   impl->noToVerify++;
   
 
-}}
+}
 
 COO_DCL(TinyOT, void, no_of_ands, uint size);
 COO_DEF_NORET_ARGS(TinyOT, no_of_ands, uint size;, size) {
@@ -540,7 +540,7 @@ COO_DEF_NORET_ARGS(TinyOT, no_of_ands, uint size;, size) {
     impl->hisMacsFolded = impl->oe->getmem(sizeof(unsigned long)*(longFoldLen(2*size)));
   }
 
-}}
+}
 
 COO_DCL(TinyOT, void, max_width_AND, uint size);
 COO_DEF_NORET_ARGS(TinyOT, max_width_AND, uint size;, size) {
@@ -549,7 +549,7 @@ COO_DEF_NORET_ARGS(TinyOT, max_width_AND, uint size;, size) {
     impl->andBuffer = impl->oe->getmem(sizeof(opbuffer)*size);
     impl->alloc_comm_buf(2*size);
   }
-}}
+}
 
 
 COO_DCL(TinyOT, void, max_width_public_common_store, uint len);
@@ -560,7 +560,7 @@ COO_DEF_NORET_ARGS(TinyOT, max_width_public_common_store, uint len;, len) {
   impl->pcsBuf = impl->oe->getmem(sizeof(byte*)*len);
   impl->outBuf = impl->oe->getmem(len*sizeof(int));
 
-}}
+}
 
 COO_DCL(TinyOT, void, private_common_load, tinyotshare * in, uint res, uint _);
 COO_DEF_NORET_ARGS(TinyOT, private_common_load, 
@@ -574,7 +574,7 @@ COO_DEF_NORET_ARGS(TinyOT, private_common_load,
   
   impl->heap[res] = tshr_new(impl->oe);
   *(impl->heap[res]) = *in;
-}}
+}
 
 COO_DCL(TinyOT, void, public_common_load, byte val, uint res, uint _);
 COO_DEF_NORET_ARGS(TinyOT, public_common_load, 
@@ -584,7 +584,7 @@ COO_DEF_NORET_ARGS(TinyOT, public_common_load,
   impl->AliceShare(ress, 0);
   impl->BobShare(ress,val);
   impl->heap[res] = ress;
-}}
+}
 
 /*
 COO_DCL(TinyOT, void, end_layer_AND, uint width);
@@ -625,7 +625,7 @@ COO_DCL(TinyOTImpl, void, verify);
 COO_DEF_NORET_NOARGS(TinyOTImpl, verify) {
   this->checkMACs(this->noToVerify);
   this->noToVerify = 0;
-}}
+}
 
 
 COO_DCL(TinyOTImpl, void, checkMACs,uint len);
@@ -657,7 +657,7 @@ COO_DEF_NORET_ARGS(TinyOTImpl, checkMACs, uint len;, len) {
       this->oe->p("Cheating detected !!!!");
     }
   }
-}}
+}
 
 
 
@@ -665,26 +665,26 @@ COO_DCL(TinyOT, uint, invite, uint port);
 COO_DEF_RET_ARGS(TinyOT, uint, invite, uint port;, port) {
   TinyOTImpl impl = (TinyOTImpl)this->impl;
   return impl->arena->listen_wait(1,port).rc;
-}}
+}
 
 COO_DCL(TinyOT, uint, connect, char * ip, uint port);
 COO_DEF_RET_ARGS(TinyOT, uint, connect, char * ip; uint port;, ip, port) {
   TinyOTImpl impl = (TinyOTImpl)this->impl;
   return impl->arena->connect(ip,port).rc;
-}}
+}
 
 COO_DCL(TinyOT, void, dummy, uint w);
 COO_DEF_NORET_ARGS(TinyOT, dummy, uint w;, w) {
   TinyOTImpl impl = (TinyOTImpl)this->impl;
   impl->oe->p("");
-}}
+}
 
 
 COO_DCL(TinyOT, bool, isAlice);
 COO_DEF_RET_NOARGS(TinyOT, bool, isAlice) {
   TinyOTImpl impl = (TinyOTImpl)this->impl;
   return impl->isAlice;
-}}
+}
 
 #include <config.h>
 TinyOT TinyOT_new(OE oe, bool isAlice) {
