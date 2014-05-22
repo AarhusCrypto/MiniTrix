@@ -28,10 +28,13 @@ COO_DEF_NORET_ARGS(Map, put, void * key; void * elm;,key,elm) {
     hmap->buckets[bucket] = SingleLinkedList_new(hmap->oe);
     if (!hmap->buckets[bucket]) goto failure;
   }
+
   for(i = 0;i < hmap->buckets[bucket]->size(); ++i) {
     MapEntry e = hmap->buckets[bucket]->get_element(i);
     if (ent) {
-      if ( hmap->cfn(e->key,key) == 0) goto failure;
+      if ( hmap->cfn(e->key,key) == 0) {
+        e->elm = elm;
+      }
     }
   }
   hmap->buckets[bucket]->add_element(ent);
@@ -103,8 +106,8 @@ COO_DEF_RET_NOARGS(Map, List, get_keys) {
       List bucket = hmap->buckets[bi];
       uint ei = 0;
       for(ei = 0; ei < bucket->size();++ei) {
-	MapEntry e = (MapEntry)bucket->get_element(ei);
-	res->add_element(e->key);
+        MapEntry e = (MapEntry)bucket->get_element(ei);
+        res->add_element(e->key);
       }
     }
   }
@@ -189,6 +192,13 @@ void HashMap_destroy( Map * map ) {
 
   for(i = 0;i < hmap->lbuckets;++i) {
     if (hmap->buckets[i]) {
+      int k = 0;
+      for(k = 0;k < hmap->buckets[i]->size();++k) {
+        MapEntry ent = (MapEntry)hmap->buckets[i]->get_element(k);
+        if (ent) {
+          MapEntry_destroy(&ent);
+        }
+      }
       SingleLinkedList_destroy ( &hmap->buckets[i] ); 
     }
   }
