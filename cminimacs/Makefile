@@ -29,6 +29,7 @@ DEV_OSAL="../osal/build/osal"
 DEV_DS="../ds/build/ds"
 DEV_ENCODING="../encoding/build/encoding"
 DEV_CARENA="../carena/build/carena"
+DEV_MATH="../math/build/math"
 
 # This "all" target builds the whole project every time. To re-compile
 # the project without rebuilding the whole thing do "cd build && make
@@ -73,6 +74,7 @@ $(DEPS)libosal.a:
 	-@ ( [ -d $(DEV_DS) ] && ( cp -r $(DEV_DS)/* ./deps )) || echo "NO LOCAL DS"
 	-@ ( [ -d $(DEV_ENCODING) ] && (cp -r $(DEV_ENCODING)/* ./deps ) ) || echo "NO ENC"
 	-@ ( [ -d $(DEV_CARENA) ] && (cp -r $(DEV_CARENA)/* ./deps ) ) || echo "NO ARENA"
+	-@ ( [ -d $(DEV_MATH) ] && (cp -r $(DEV_MATH)/* ./deps ) ) || echo "NO MATH"
 
 
 # Go Nuke it all. The wipe.sh script deletes Makefile.in and m4 stuff

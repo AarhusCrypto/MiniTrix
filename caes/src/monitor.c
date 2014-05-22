@@ -12,7 +12,7 @@
 MUTEX lock;
 List measures;
 CArena arena;
-FILE * log;
+FILE * _log;
 uint no_connected;
 
 typedef struct _c_arg_ {
@@ -89,11 +89,11 @@ static
 void writeln(const char * fmt, ... ) {
   va_list l = {{0}};
   byte buf[256] = {0};
-  if (!log) return;
+  if (!_log) return;
   va_start(l,fmt);
-  vfprintf(log,fmt,l);
+  vfprintf(_log,fmt,l);
   va_end(l);
-  fflush(log);
+  fflush(_log);
 }
 
 static 
@@ -159,7 +159,7 @@ COO_DEF_NORET_ARGS(ConnectionListener, client_connected, MpcPeer peer;, peer) {
   arg->oe = this->oe;
   arg->peer = peer;
   this->oe->newthread(handle_client, arg);
-}}
+}
 
 
 COO_DCL(ConnectionListener, void, client_disconnected, MpcPeer peer);
@@ -167,7 +167,7 @@ COO_DEF_NORET_ARGS(ConnectionListener, client_disconnected, MpcPeer peer;, peer)
   
   // nothing !
   
-}}
+}
 
 ConnectionListener CL_new(OE oe) {
   ConnectionListener cl = (ConnectionListener)oe->getmem(sizeof(*cl));
@@ -181,7 +181,7 @@ int main(int c, char **a) {
   uint i  =0;
   OE oe = OperatingEnvironment_LinuxNew();
   ConnectionListener cl = CL_new(oe);
-  log = fopen("mission_control.log","a+");
+  _log = fopen("mission_control.log","a+");
   measures = SingleLinkedList_new(oe);
   arena = CArena_new(oe);  
   lock = oe->newmutex();
@@ -197,7 +197,7 @@ int main(int c, char **a) {
   while(1) {
     char c = getchar();
     if (c == 'q') {
-      fclose(log);
+      fclose(_log);
       return 0;
     }
     oe->lock(lock);

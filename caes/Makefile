@@ -32,6 +32,7 @@ DEV_DS="../ds/build/ds/"
 DEV_CMINIMACS="../cminimacs/build/cminimacs/"
 DEV_CARENA="../carena/build/carena"
 DEV_ENCODING="../encoding/build/encoding/"
+DEV_MATH="../math/build/math"
 DEV_UTILS="../utils/build/utils/"
 
 # This "all" target builds the whole project every time. To re-compile
@@ -79,10 +80,8 @@ $(DEPS)/libosal.a:
 	-@[ -d $(DEV_CMINIMACS) ]&&( cp -r $(DEV_CMINIMACS)/* ./deps && echo "CMiniMacs Updated to DEV Version")
 	-@[ -d $(DEV_CARENA) ]&&( cp -r $(DEV_CARENA)/* ./deps && echo "CArena Updated to DEV Version")
 	-@[ -d $(DEV_ENCODING) ] && ( cp -r $(DEV_ENCODING)/* ./deps && echo "ENCODING Updated to DEV Version")
+	-@[ -d $(DEV_MATH) ]&&( cp -r $(DEV_MATH)/* ./deps && echo "Math Updated to DEV Version")
 	-@[ -d $(DEV_UTILS) ] && ( cp -r $(DEV_UTILS)/* ./deps && echo "Utils Updated to DEV Version")
-
-
-
 
 # Go Nuke it all. The wipe.sh script deletes Makefile.in and m4 stuff
 # created by aclocal, autoconf and automake. 
