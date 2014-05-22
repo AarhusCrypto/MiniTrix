@@ -38,5 +38,5 @@
 include $(top_srcdir)/osal.am
 
 lib_LIBRARIES = libosallinux.a
-libosallinux_a_SOURCES = fs.c osal.c mutex3.c coo.c
+libosallinux_a_SOURCES = fs.c osal.c mutex2.c coo.c
 

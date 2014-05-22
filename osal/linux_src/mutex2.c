@@ -17,7 +17,7 @@ MUTEX Mutex_new( unsigned long long initval ) {
 }
 
 
-void __attribute__((optimize("O0"))) Mutex_lock( MUTEX m )
+void Mutex_lock( MUTEX m )
 {
   register unsigned int v = 0;
   do {

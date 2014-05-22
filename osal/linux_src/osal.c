@@ -334,7 +334,7 @@ COO_DEF_RET_ARGS(OE, int, open , const char * name;, name) {
     socket_fd = socket(AF_INET, SOCK_STREAM, 0);
     if (socket_fd < 0) return 0;
 
-    addr.sin_family = AF_INET;
+    addr.sin_family = PF_INET;
     addr.sin_addr.s_addr = inet_addr(ip);
     addr.sin_port = htons(atoi(port));
 

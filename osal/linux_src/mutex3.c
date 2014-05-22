@@ -6,6 +6,9 @@
 #include "sched.h"
 #include "common.h"
 #include <pthread.h>
+#include <errno.h>
+
+extern char * strerror(int);
 
 MUTEX Mutex_new( unsigned long long initval ) {
   MUTEX m = (MUTEX)malloc(sizeof(*m));
@@ -13,7 +16,11 @@ MUTEX Mutex_new( unsigned long long initval ) {
   if (!m) return 0;
   zeromem(m,sizeof(*m));
 
-  pthread_mutex_init( mutex, 0 );
+  if (pthread_mutex_init( mutex, 0 ) != 0) {
+
+    printf("FATAL ERROR: Mutex init failed %s.\n",strerror(errno));
+    exit(-1);
+  }
 
   (*m) = (unsigned long long)mutex;
 
@@ -23,14 +30,22 @@ MUTEX Mutex_new( unsigned long long initval ) {
 
 inline
 void Mutex_lock( MUTEX m ) {
+  int e = 0;
   if (!m) return;
-  pthread_mutex_lock( (pthread_mutex_t*)*m );
+  if ((e = pthread_mutex_lock( (pthread_mutex_t*)*m )) != 0) {
+    printf("FATAL ERROR: Mutex lock failed %s. (%d)\n",strerror(e),e);
+    exit(-1);
+  }
 }
 
 inline
-void Mutex_unlock (MUTEX m ) {
+void Mutex_unlock (MUTEX m) {
+  int e = 0;
   if (!m) return;
-  pthread_mutex_unlock( (pthread_mutex_t*)*m );
+  if ((e=pthread_mutex_unlock( (pthread_mutex_t*)*m )) != 0) {
+    printf("FATAL ERROR: Mutex unlock failed %s. (%d)\n",strerror(e),e);
+    exit(-1);
+  }
 }
 
 void Mutex_destroy( MUTEX m ) {

@@ -666,8 +666,8 @@ static void * carena_listener_thread(void * a) {
 
     if (peer_id < 1024) {
       MpcPeerImpl peer_i = 0;
-      //      osal_sprintf(mm,"incoming id was %u",peer_id);
-      //oe->p(mm);
+      osal_sprintf(mm,"incoming id was %u",peer_id);
+      oe->p(mm);
       oe->lock(arena_i->lock);
       peer = arena_i->peers->get_element(peer_id);
       oe->unlock(arena_i->lock);
@@ -715,7 +715,10 @@ COO_DEF_NORET_ARGS(ConnectionListener, client_connected, MpcPeer peer;,peer) {
   c = (dcl->count = dcl->count - 1);
   oe->unlock(dcl->lock);
   
-  if (c <= 0) oe->unlock(dcl->hold);
+  if (c <= 0) { 
+    oe->p("Threads hold is reached releasing lock");
+    oe->unlock(dcl->hold);
+  }
   
   return;
 }
@@ -730,7 +733,9 @@ COO_DEF_NORET_ARGS(ConnectionListener, client_disconnected, MpcPeer peer;,peer) 
 COO_DCL(DefaultConnectionListener, void, wait);
 COO_DEF_NORET_NOARGS(DefaultConnectionListener, wait) {
   OE oe = this->oe;
+  oe->syslog(OSAL_LOGLEVEL_DEBUG,"Waiting for peer");
   oe->lock(this->hold);
+  oe->syslog(OSAL_LOGLEVEL_DEBUG,"Peer connected");
 }
 
 ConnectionListener DefaultConnectionListener_new(OE oe, uint count) {
