@@ -77,7 +77,6 @@ int main(int c, char **a) {
     if (c >= 4) {
       port = atoi(a[3]);
     }
-
       comp->connect(ipaddr,port);
     }
     
