@@ -36,7 +36,7 @@ COO_DEF_NORET_ARGS(ConnectionListener, client_connected, MpcPeer peer;,peer) {
   oe->unlock(m);
   oe->p("Client unlocking");
   return;
-}}
+}
 
 COO_DCL(ConnectionListener, void, client_disconnected, MpcPeer peer)
 COO_DEF_NORET_ARGS(ConnectionListener, client_disconnected, MpcPeer peer;,peer) {
@@ -44,7 +44,7 @@ COO_DEF_NORET_ARGS(ConnectionListener, client_disconnected, MpcPeer peer;,peer) 
   OE oe = l->oe;
   oe->p("Peer disconnected");
   return ;
-}}
+}
 
 ConnectionListener MyCL_new(OE oe) {
   ConnectionListener l = oe->getmem(sizeof(*l));

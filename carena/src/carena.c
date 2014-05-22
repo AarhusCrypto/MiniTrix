@@ -156,7 +156,7 @@ COO_DEF_RET_ARGS(MpcPeer, CAR, send, Data data;, data) {
   CHECK_POINT_E(__FUNCTION__);
   c.rc = rc;
   return c;
-}}
+}
 
 static
 void local_read(OE oe, int fd, byte * buf, uint lbuf) {
@@ -177,12 +177,14 @@ void local_read(OE oe, int fd, byte * buf, uint lbuf) {
 
 COO_DCL(MpcPeer, CAR, receive2, Data data);
 COO_DEF_RET_ARGS(MpcPeer, CAR, receive2, Data data;, data) {
+  CAR r = {{0}};
     MpcPeerImpl peer_i = (MpcPeerImpl)this->impl;
     OE oe = peer_i->oe;
     byte len[4] = {0};
     uint to_read = 0;
     local_read(oe,peer_i->fd_in, data->data, data->ldata);
-}}
+    return r;
+}
 
 COO_DCL(MpcPeer, CAR, receive, Data data)
 COO_DEF_RET_ARGS(MpcPeer, CAR, receive, Data data;, data) {
@@ -245,19 +247,19 @@ COO_DEF_RET_ARGS(MpcPeer, CAR, receive, Data data;, data) {
   CHECK_POINT_E(__FUNCTION__);
 
   return c;
-}}
+}
 
 COO_DCL(MpcPeer, char *, get_ip)
 COO_DEF_RET_NOARGS(MpcPeer, char *, get_ip) {
   MpcPeerImpl peer_i = (MpcPeerImpl)this->impl;
   return peer_i->ip;
-}}
+}
 
 COO_DCL(MpcPeer, uint, get_port)
 COO_DEF_RET_NOARGS(MpcPeer, uint, get_port) {
   MpcPeerImpl peer_i = (MpcPeerImpl)this->impl;
   return peer_i->port;
-}}
+}
 
 static void * peer_rec_function(void * a) {
   MpcPeer me = (MpcPeer)a;
@@ -478,7 +480,7 @@ COO_DEF_RET_NOARGS(MpcPeer, bool, has_data) {
   mei = (MpcPeerImpl)this->impl;
 
   return mei->incoming->size() > 0 || mei->drem;
-}} 
+} 
 
 COO_DCL(CArena, void, add_conn_listener, ConnectionListener l);
 COO_DEF_NORET_ARGS(CArena, add_conn_listener, ConnectionListener l;,l) {
@@ -490,7 +492,7 @@ COO_DEF_NORET_ARGS(CArena, add_conn_listener, ConnectionListener l;,l) {
     oe->unlock(arena_i->lock);
   }
   return;
-}}
+}
 
 
 COO_DCL(CArena, void, rem_conn_listener, ConnectionListener l);
@@ -512,7 +514,7 @@ COO_DEF_NORET_ARGS(CArena, rem_conn_listener, ConnectionListener l;,l) {
   }
   return;
   
-}}
+}
 
 static MpcPeer MpcPeerImpl_new(OE oe, uint fd_in, char * ip, uint port) {
   MpcPeer peer = (MpcPeer)oe->getmem(sizeof(*peer));
@@ -626,7 +628,7 @@ COO_DEF_RET_ARGS(CArena, CAR, connect,  char * hostname; uint port;, hostname, p
   }
 
   return c;
-}}
+}
 
 
 static void * carena_listener_thread(void * a) {
@@ -716,20 +718,20 @@ COO_DEF_NORET_ARGS(ConnectionListener, client_connected, MpcPeer peer;,peer) {
   if (c <= 0) oe->unlock(dcl->hold);
   
   return;
-}}
+}
 
 COO_DCL(ConnectionListener, void, client_disconnected, MpcPeer peer)
 COO_DEF_NORET_ARGS(ConnectionListener, client_disconnected, MpcPeer peer;,peer) {
   ConnectionListener l = (ConnectionListener)this;
   OE oe = l->oe;
   return ;
-}}
+}
 
 COO_DCL(DefaultConnectionListener, void, wait);
 COO_DEF_NORET_NOARGS(DefaultConnectionListener, wait) {
   OE oe = this->oe;
   oe->lock(this->hold);
-}}
+}
 
 ConnectionListener DefaultConnectionListener_new(OE oe, uint count) {
   ConnectionListener l = oe->getmem(sizeof(*l));
@@ -794,7 +796,7 @@ COO_DEF_RET_ARGS(CArena, CAR, listen_wait, uint no; uint port;, no, port) {
  failure:
   DefaultConnectionListener_destroy(&cl);
   return c;
-}}
+}
 
 COO_DCL(CArena, CAR,listen, uint port)
 COO_DEF_RET_ARGS(CArena, CAR, listen, uint port;, port) {
@@ -821,7 +823,7 @@ COO_DEF_RET_ARGS(CArena, CAR, listen, uint port;, port) {
   arena_i->oe->lock(arena_i->listen_ready);
  
   return c;
-}}
+}
 
 
 COO_DCL(CArena, MpcPeer, get_peer, uint pid)
@@ -837,7 +839,7 @@ COO_DEF_RET_ARGS(CArena, MpcPeer, get_peer, uint pid;,pid) {
   }
 
   return 0;
-}}
+}
 
 COO_DCL(CArena, uint, get_no_peers)
 COO_DEF_RET_NOARGS(CArena, uint, get_no_peers) {
@@ -848,7 +850,7 @@ COO_DEF_RET_NOARGS(CArena, uint, get_no_peers) {
   arena_i->oe->unlock(arena_i->lock);
   return res;
   
-}}
+}
 
 void CArena_destroy( CArena * arena) {
   CArenaImpl arena_i = 0;
@@ -925,7 +927,7 @@ COO_DEF_NORET_ARGS(CArena, disconnect, uint peerid;, peerid) {
     peer_i->oe->close(peer_i->fd_out);
   }
 
-}}
+}
 
 
 #include "config.h"
