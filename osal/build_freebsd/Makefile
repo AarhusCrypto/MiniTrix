@@ -9,7 +9,7 @@ CURDIR ?= ${.CURDIR}
 # well. The intention is that deleting build will clean "rm -rf build"
 # almost everything (except with m4 scripts etc. generated for
 # configure, aclocal.m4 and Makefile.in etc.)
-BUILDDIR=$(CURDIR)/build
+BUILDDIR=$(CURDIR)/../build
 
 # The depshapedir is the directory this part will produce for others
 # parts that depend on it to copy.
