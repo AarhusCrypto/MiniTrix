@@ -3,7 +3,8 @@
 #include <memory.h>
 #include <common.h>
 #define STUB_SIZE 512
-void set_rbx();
+
+void * __get_rip__();
 
 /* COO ATTACH
  *

@@ -34,5 +34,5 @@
 
 # Changes: 
 # 2013-07-25 11:57: Initial version created
-SUBDIRS = linux_src src test headers
+SUBDIRS = posix_src src test headers
 CC=icc

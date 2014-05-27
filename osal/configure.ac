@@ -1,6 +1,6 @@
 define([svnversion], esyscmd([sh -c "svnversion|tr -d '\n'"]))dnl
 define([buildtime], esyscmd([sh -c "date +\"build:%Y-%m-%d %H:%M:%S\"|tr -d '\n'"]))dnl
-AC_INIT([Operating Environment for Linux],[0.1.svnversion])
+AC_INIT([Operating System Abstraction Layer],[0.1.svnversion])
 AC_DEFINE(SVN_REVISION, "svnversion", [SVN Revision])
 AC_DEFINE(BUILD_TIME,"buildtime",[Build Time])dnl
 AC_DEFINE(CODENAME, "Asgard", [CODE Name])
@@ -22,7 +22,7 @@ AC_FUNC_MALLOC
 AC_OUTPUT([Makefile 
            headers/Makefile
            src/Makefile
-           linux_src/Makefile
+           posix_src/Makefile
            test/Makefile
           ])
 

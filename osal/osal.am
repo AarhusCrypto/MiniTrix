@@ -49,4 +49,4 @@
 #
 BUILDDIR=$(top_srcdir)/build
 AM_CFLAGS=-g -I$(top_srcdir)/build -I$(top_srcdir)/headers -DLINUX=1 -Werror -fno-omit-frame-pointer
-LIB_OSAL = $(top_srcdir)/build/linux_src/libosallinux.a $(top_srcdir)/build/src/libosal.a  -lpthread
+LIB_OSAL = $(top_srcdir)/build/posix_src/libosalposix.a $(top_srcdir)/build/src/libosal.a  -lpthread

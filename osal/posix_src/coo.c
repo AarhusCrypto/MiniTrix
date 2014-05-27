@@ -10,6 +10,17 @@
 static Memory mem;
 static byte * freelist;
 
+void * get_rip() {
+  void * result = 0;
+  asm("movq (%%ebp), %%rax\n"
+      "movq %%rax, %0\n"
+      :"=r" (result)
+      :
+      : "%rax"
+      );
+  return result;
+}
+
 static byte match( byte * data, byte * pattern, uint lpattern )
 {
   uint j = 0;

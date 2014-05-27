@@ -37,6 +37,6 @@
 # 2013-07-25 12:28: Initial version created
 include $(top_srcdir)/osal.am
 
-lib_LIBRARIES = libosallinux.a
-libosallinux_a_SOURCES = fs.c osal.c mutex2.c coo.c
+lib_LIBRARIES = libosalposix.a
+libosalposix_a_SOURCES = fs.c osal.c mutex2.c coo.c
 

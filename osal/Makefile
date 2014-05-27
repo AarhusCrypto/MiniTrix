@@ -45,7 +45,7 @@ $(BUILDDIR)/stamp-h1: $(BUILDDIR) configure.ac Makefile.am
 
 
 depshape: $(BUILDDIR)/stamp-h1 $(depshapedir)
-	cd $(BUILDDIR)/lib && ar x libosal.a && ar x libosallinux.a && ar crs libosal.a *.o && rm *.o libosallinux.a 
+	cd $(BUILDDIR)/lib && ar x libosal.a && ar x libosalposix.a && ar crs libosal.a *.o && rm *.o libosalposix.a 
 	-[ -d $(BUILDDIR)/lib ] && cp -r $(BUILDDIR)/lib/* $(depshapedir)
 	-[ -d $(BUILDDIR)/bin ] && cp -rf $(BUILDDIR)/bin/* $(depshapedir)
 	-[ -d $(BUILDDIR)/include ] && cp -rf $(BUILDDIR)/include/* $(depshapedir)/headers
