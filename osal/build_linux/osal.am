@@ -33,5 +33,20 @@
 # Author: Rasmus Winther Lauritsen, rwl@cs.au.dk
 
 # Changes: 
-# 2013-07-25 11:57: Initial version created
-SUBDIRS=posix_src src test headers
+# 2013-12-19 11:33: Create OSal component.
+# 2013-07-25 11:54: Initial version created
+#
+############################################################
+
+# Global definitions that can be included with
+# include $(top_srcdir)/part_template.am
+#
+# Replace part_template.am with <your_part_name>.am if you like :)
+# Notice now we are in the world of AUTOMAKE and thus this file will
+# have to redefine variables that are also present in Makefile, the
+# hope is only a few variables needs to be redefined.
+#
+#
+BUILDDIR=$(top_srcdir)/build
+AM_CFLAGS=-g -I$(top_srcdir)/build -I$(top_srcdir)/headers -DLINUX=1 -Werror -fno-omit-frame-pointer
+LIB_OSAL = $(top_srcdir)/build/posix_src/libosalposix.a $(top_srcdir)/build/src/libosal.a  -lpthread

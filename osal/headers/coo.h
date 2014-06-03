@@ -6,6 +6,17 @@
 
 void * __get_rip__();
 
+/*
+
+ | func | this | stub |
+
+ movq $func, %%rax
+ push $this
+ call %%rax
+
+
+ */
+
 /* COO ATTACH
  *
  *

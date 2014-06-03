@@ -19,11 +19,11 @@ AC_PROG_RANLIB
 AC_C_INLINE
 AC_FUNC_MALLOC
 
-AC_OUTPUT([Makefile 
-           headers/Makefile
+AC_OUTPUT([headers/Makefile
            src/Makefile
            posix_src/Makefile
            test/Makefile
+           Makefile
           ])
 
 

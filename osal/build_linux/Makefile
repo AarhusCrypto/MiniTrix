@@ -32,6 +32,10 @@ all:  $(BUILDDIR)/stamp-h1
 # create the "build" directory
 $(BUILDDIR):
 	mkdir -p $(BUILDDIR)
+	[ -d ./src ] || ln -s ../src .
+	[ -d ./posix_src ] || ln -s ../posix_src .
+	[ -d ./test ] || ln -s ../test .
+	[ -d ./headers ] || ln -s ../headers .
 
 # create the configure scripts in BUILDDIR invoking Autotools and then
 # configure and build the whole thing.
@@ -49,6 +53,15 @@ depshape: $(BUILDDIR)/stamp-h1 $(depshapedir)
 	-[ -d $(BUILDDIR)/lib ] && cp -r $(BUILDDIR)/lib/* $(depshapedir)
 	-[ -d $(BUILDDIR)/bin ] && cp -rf $(BUILDDIR)/bin/* $(depshapedir)
 	-[ -d $(BUILDDIR)/include ] && cp -rf $(BUILDDIR)/include/* $(depshapedir)/headers
+	-@echo
+	-@echo
+	-@echo
+	-@echo "Everything build correctly, you will find the library in "
+	-@echo "build/osal."
+	-@echo
+	-@echo
+	cd ../ && ln -s build_linux/build .
+
 
 # create the build/part_name where other parts can copy from to depend
 # on this part.
@@ -70,6 +83,8 @@ $(depshapedir):
 clean:
 	rm -rf deps
 	rm -rf build
+	rm -f src posix_src test headers
+	find -L . -iname Makefile.in | xargs rm -f 
 	./wipe.sh
 
 .PHONY=all clean depshape
