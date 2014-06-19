@@ -60,7 +60,7 @@ depshape: $(BUILDDIR)/stamp-h1 $(depshapedir)
 	-@echo "build/osal."
 	-@echo
 	-@echo
-	cd ../ && ln -s build_linux/build .
+	cd ../ && ( [ -d build ] || ln -s build_linux/build . )
 
 
 # create the build/part_name where other parts can copy from to depend

@@ -76,7 +76,7 @@ void * coo_patch(byte * stub_fun, byte * fun, void * ths) {
   l2b((ull)fun,(byte*)result);
   l2b((ull)ths,result+sizeof(void*));
 
-  printf("Patch Address %p @ %p\n",result,ths);
+  //  printf("Patch Address %p @ %p\n",result,ths);
   return result+2*sizeof(void*);
 }
 

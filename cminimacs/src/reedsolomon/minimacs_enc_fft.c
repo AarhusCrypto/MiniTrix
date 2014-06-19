@@ -55,7 +55,8 @@ static void swap(byte * s, uint i, uint j) {
 /*!
  *
  * The FFT-form is where entry clear text byte {o[i]} is stored
- * {s[(198*i)%255]} because the way of the Fast fourier transform.
+ * {s[(198*i)%255]} because of the way of the Fast fourier transform
+ * works.
  *
  * The outout {o} will have the same codeword however now in front
  * form where the clear text bytes are the first k bytes.
@@ -114,7 +115,6 @@ static MATRIX * load(byte * s, uint ls) {
 
 static
 MATRIX * build_big_encoder() {
-
   byte nroot = 0x03;
   MATRIX * m = 0, * small = 0, * res = 0;
   uint i=0,j=0;

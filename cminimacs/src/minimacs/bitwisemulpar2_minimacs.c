@@ -240,9 +240,7 @@ COO_DEF_RET_ARGS(MiniMacs,MR, mul, uint dst; uint l; uint r;,dst,l,r) {
 
   // 3] Do the computation
 
-  // 4] Send all the sigmas
-  
-  // 5] Receive all the sigmas
+  // in this variant we got rid of sigma's :D
 
   // do {mulcount} multiplications in the following
   mulcount = gmm->mulpar_entries->size();
@@ -310,6 +308,7 @@ COO_DEF_RET_ARGS(MiniMacs,MR, mul, uint dst; uint l; uint r;,dst,l,r) {
     MUL_FAIL(oe, "No more memory.");
   }
 
+  // build one big codeword package
 
   for(mulcounter = 0; mulcounter < mulcount;++mulcounter) {
     uint off = (lcode*mulcounter);
@@ -317,28 +316,26 @@ COO_DEF_RET_ARGS(MiniMacs,MR, mul, uint dst; uint l; uint r;,dst,l,r) {
     mcpy(epsilons_send->data+off, epsilons[mulcounter]->codeword,lcode);
   }
   
-  
-    // build one big codeword package
 
-    // build one big mac package
+
+  for(id = 0;id < gmm->peer_map->size()+1;++id) { // for each player
+    if (id == gmm->myid) continue;  // but skip my self
     
-    // broadcast delta and epsilon
-    for(id = 0;id < gmm->peer_map->size()+1;++id) {
-      if (id == gmm->myid) continue; 
-      
-      peer = gmm->peer_map->get( (void*)(unsigned long long)id );
-      if (!peer) MUL_FAIL(oe,"Peer with id, %u, is undefined",id);
-      
-      for(mulcounter = 0; mulcounter < mulcount;++mulcounter) {
-        uint off = mulcount*lcode+lcode*mulcounter;
-        mcpy(deltas_send->data+off,deltas[mulcounter]->mac[id]->mac,lcode);
-        mcpy(epsilons_send->data+off,epsilons[mulcounter]->mac[id]->mac,lcode);
-      }
-
-      // One giant burst to each peer
-      peer->send(deltas_send);
-      peer->send(epsilons_send);
+    peer = gmm->peer_map->get( (void*)(unsigned long long)id );
+    if (!peer) MUL_FAIL(oe,"Peer with id, %u, is undefined",id);
+    
+    // build one big mac package
+    for(mulcounter = 0; mulcounter < mulcount;++mulcounter) {
+      uint off = mulcount*lcode+lcode*mulcounter;
+      mcpy(deltas_send->data+off,deltas[mulcounter]->mac[id]->mac,lcode);
+      mcpy(epsilons_send->data+off,epsilons[mulcounter]->mac[id]->mac,lcode);
     }
+  
+    // broadcast deltas and epsilons  
+    // in one giant burst to each peer
+    peer->send(deltas_send);
+    peer->send(epsilons_send);
+  }
 
     // From each party we will receive a giant package. This package
     // is mulpar*2*{lcode} long and contains {lcode}-codewords followed by
@@ -470,7 +467,8 @@ COO_DEF_RET_ARGS(MiniMacs,MR, mul, uint dst; uint l; uint r;,dst,l,r) {
           d_i[j] = (deltas_clear->data[lcode*mulcounter+j] & m_i) == 0 ? 0 : 1;
         }
         
-        
+
+        // includes an encoding in C
         tmp = minimacs_rep_mul_const_fast_lval(enc,
                                               this->get_ltext(),
                                               triples[mulcounter]->abits[i],
@@ -485,7 +483,8 @@ COO_DEF_RET_ARGS(MiniMacs,MR, mul, uint dst; uint l; uint r;,dst,l,r) {
           minimacs_rep_clean_up( &tmp2 );
         }
         
-
+        
+        // includes an encoding in C
         tmp = minimacs_rep_mul_const_fast_lval(enc,
                                                this->get_ltext(),
                                                triples[mulcounter]->bbits[i],
@@ -513,6 +512,12 @@ COO_DEF_RET_ARGS(MiniMacs,MR, mul, uint dst; uint l; uint r;,dst,l,r) {
                                                 this->get_ltext(),
                                                 ed_raw,
                                                 this->get_ltext());
+
+      /*
+       * We leave the resulting representation in the Schur transform, 
+       * as we are only going to multiply zero degree polynomial onto 
+       * representations in this variant of MiniMacs.
+       */
       minimacs_rep_clean_up(&tmp);
       result->lval = this->get_ltext()*2;
 

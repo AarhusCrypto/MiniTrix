@@ -49,6 +49,8 @@ int main(int c, char **a) {
     peer->receive(Data_shallow(b, 4));
   }
 
+  oe->p("Everything done");
+
   CArena_destroy(&arena);
   OperatingEnvironment_LinuxDestroy(&oe);
 

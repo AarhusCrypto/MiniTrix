@@ -282,7 +282,7 @@ COO_DEF_RET_ARGS(MiniMacsEnc, polynomial *, encode, byte *msg;uint lmsg;,msg,lms
   uint bit = 0, col = 0, k = 0;
   CHECK_POINT_S("[RSCODE] BitFFT Encode");
 
-  if (lmsg != impl->ltext && lmsg != impl->ltext*2) {
+  if (lmsg != impl->ltext && lmsg != impl->ltext*2 && lmsg != 120) {
     oe->p("[RSCODE] BitFFT: Invalid size to encode must be either 85 or 170.");
     return 0;
   }

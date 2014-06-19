@@ -38,5 +38,5 @@
 include $(top_srcdir)/osal.am
 
 lib_LIBRARIES = libosalposix.a
-libosalposix_a_SOURCES = fs.c osal.c mutex2.c coo.c
+libosalposix_a_SOURCES = fs.c osal.c mutex3.c coo.c
 
