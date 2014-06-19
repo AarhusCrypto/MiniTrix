@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <minimacs/minimacs_rep.h>
-#include <minimacs/bitwiseand_minimacs.h>
+//#include <minimacs/bitwiseand_minimacs.h>
 #include <osal.h>
 #include <carena.h>
 #include <caes.h>
@@ -35,7 +35,7 @@ int main(int c, char **a) {
 
     oe = OperatingEnvironment_LinuxNew();
     
-    comp = BitWiseANDMiniMacs_DefaultLoadNew(oe,a[1],a[2]);
+    //    comp = BitWiseANDMiniMacs_DefaultLoadNew(oe,a[1],a[2]);
     
     if (!comp) {
       oe->syslog(OSAL_LOGLEVEL_FATAL,"Failed to create comp instance.");

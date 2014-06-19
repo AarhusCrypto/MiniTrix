@@ -62,7 +62,6 @@ int run(char * ip, uint myid, uint count, OE oe, MiniMacs mm) {
   {
     byte key[128] = {0};
     byte ptxt[128] = {0};
-    usleep(200000*myid);
     mpc_aes(mm,ptxt, key,myid,count,mission_control);
     CArena_destroy(&mc);
   }
