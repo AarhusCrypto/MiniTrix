@@ -1137,9 +1137,8 @@ COO_DEF_RET_ARGS(MiniMacsEnc, polynomial *, encode, byte * msg; uint lmsg;, msg,
   // add the appropriate redundancy
   for(row = cenc->ltext;row < cenc->lcode;++row) {
     for(col = 0; col < cenc->ltext;++col) {
-      uint k = 0;
-      for(k = 0;k < cenc->lcode;++k) {
-        result[k] ^= R[row-cenc->ltext][col];
+      if (msg[col] == 1) {
+        result[col] ^= R[row-cenc->ltext][col];
       }
     }
   }

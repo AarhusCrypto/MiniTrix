@@ -36,12 +36,11 @@ void * __get_rip__();
 #define COO_ATTACH(CLZ,OBJ,NAME) {					\
     OBJ->NAME = coo_patch((byte*)stub_##CLZ##_##NAME, (byte*)CLZ##_##NAME, OBJ ); \
     if ( !( (OBJ->NAME) ) ) {                                           \
-									\
     }}
 
 
 #define COO_ATTACH_FN(CLZ,OBJ,NAME,FN) {                                \
-    OBJ->NAME = coo_patch((byte*)stub_##CLZ##_##FN, STUB_SIZE , OBJ );  \
+    OBJ->NAME = coo_patch((byte*)stub_##CLZ##_##FN, (byte*)CLZ##_##FN, OBJ ); \
     if ( !( (OBJ->NAME) ) ) {                                           \
                                                                         \
     }}                                                                  

@@ -76,6 +76,11 @@ int main(int c, char **a) {
     yyparse();
     if (error) {   printf("\n");return -1; }
 
+    if (!root) {
+      printf("Error unable to parse the circuit.\n");
+      return -2;
+    }
+
     // connect peers now that we read a circuit
     if (mm->get_id() == 0) {
       oe->p("One party invited, waiting ... ");

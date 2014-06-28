@@ -18,7 +18,7 @@ COO_DCL(AstNode, void, visit_name, Visitor v);
 COO_DEF_NORET_ARGS(AstNode, visit_name, Visitor v;,v) {
   v->Name( this );
   return;
-}}
+}
 
 COO_DCL(AstNodeFactory, AstNode, NewName, 
         uint pos, uint line, uint offset, char * str);
@@ -38,13 +38,13 @@ COO_DEF_RET_ARGS(AstNodeFactory, AstNode, NewName,
   mcpy(impl->data,str,lstr);
   impl->ldata = lstr;
   return result;
-}}
+}
 
 
 COO_DCL(AstNode, void, visit_token, Visitor v);
 COO_DEF_NORET_ARGS(AstNode, visit_token, Visitor v;,v) {
   return;
-}}
+}
 
 COO_DCL(AstNodeFactory, AstNode, NewToken, 
         uint pos, uint line, uint offset, char * str);
@@ -63,14 +63,14 @@ COO_DEF_RET_ARGS(AstNodeFactory, AstNode, NewToken,
   impl->cstr =(byte*)this->oe->getmem(lstr+1);
   mcpy(impl->cstr,str,lstr);
   return result;
-}}
+}
 
 
 COO_DCL(AstNode, void, visit_sload, Visitor v);
 COO_DEF_NORET_ARGS( AstNode, visit_sload, Visitor v;,v) {
   v->Sload(this);
   return;
-}}
+}
 
 COO_DCL(AstNodeFactory, AstNode, NewSload,
         uint pos, uint line, uint offset, AstNode addr, AstNode name);
@@ -86,14 +86,14 @@ COO_DEF_RET_ARGS(AstNodeFactory, AstNode, NewSload,
 
   COO_ATTACH_FN(AstNode, result, visit, visit_sload);
   return result;
-}}
+}
 
 
 COO_DCL(AstNode, void, visit_load, Visitor v);
 COO_DEF_NORET_ARGS( AstNode, visit_load, Visitor v;,v) {
   v->Load(this);
   return;
-}}
+}
 
 
 COO_DCL(AstNodeFactory, AstNode, NewLoad, 
@@ -111,13 +111,13 @@ COO_DEF_RET_ARGS(AstNodeFactory, AstNode, NewLoad,
   COO_ATTACH_FN(AstNode,result, visit, visit_load);
   
   return result;
-}}
+}
 
 COO_DCL(AstNode, void, visit_mov, Visitor v);
 COO_DEF_NORET_ARGS( AstNode, visit_mov, Visitor v;,v) {
   v->Mov(this);
   return;
-}}
+}
 
 
 COO_DCL(AstNodeFactory, AstNode, NewMov,
@@ -134,14 +134,14 @@ COO_DEF_RET_ARGS(AstNodeFactory, AstNode, NewMov,
   COO_ATTACH_FN(AstNode, result, visit, visit_mov);
 
   return result;
-}}
+}
 
 
 COO_DCL(AstNode, void, visit_smul, Visitor v);
 COO_DEF_NORET_ARGS( AstNode, visit_smul, Visitor v;,v) {
   v->Smul(this);
   return;
-}}
+}
 
 
 COO_DCL(AstNodeFactory, AstNode, NewSmul, 
@@ -160,13 +160,13 @@ COO_DEF_RET_ARGS(AstNodeFactory, AstNode, NewSmul,
 
   COO_ATTACH_FN(AstNode, result, visit, visit_smul);
   return result;
-}}
+}
  
 COO_DCL(AstNode, void, visit_mul, Visitor v);
 COO_DEF_NORET_ARGS( AstNode, visit_mul, Visitor v;,v) {
   v->Mul(this);
   return;
-}}
+}
 
 
 
@@ -186,7 +186,7 @@ COO_DEF_RET_ARGS(AstNodeFactory, AstNode, NewMul,
 
   COO_ATTACH_FN(AstNode, result, visit, visit_mul);
   return result;
-}}
+}
 
 
 
@@ -194,7 +194,7 @@ COO_DCL(AstNode, void, visit_mulpar, Visitor v);
 COO_DEF_NORET_ARGS( AstNode, visit_mulpar, Visitor v;,v) {
   v->MulPar(this);
   return;
-}}
+}
 
 
 COO_DCL(AstNodeFactory, AstNode, NewMulPar, 
@@ -210,14 +210,14 @@ COO_DEF_RET_ARGS(AstNodeFactory, AstNode, NewMulPar,
   COO_ATTACH_FN(AstNode, result, visit, visit_mulpar);
   
   return result;
-}}
+}
 
 
 COO_DCL(AstNode, void, visit_sadd, Visitor v);
 COO_DEF_NORET_ARGS( AstNode, visit_sadd, Visitor v;,v) {
   v->Sadd(this);
   return;
-}}
+}
 
 
 COO_DCL(AstNodeFactory, AstNode, NewSadd, 
@@ -237,13 +237,13 @@ COO_DEF_RET_ARGS(AstNodeFactory, AstNode, NewSadd,
   COO_ATTACH_FN(AstNode, result, visit, visit_sadd);
   
   return result;
-}}
+}
 
 COO_DCL(AstNode, void, visit_add, Visitor v);
 COO_DEF_NORET_ARGS( AstNode, visit_add, Visitor v;,v) {
   v->Add(this);
   return;
-}}
+}
 
 
 COO_DCL(AstNodeFactory, AstNode, NewAdd,
@@ -265,14 +265,14 @@ COO_DEF_RET_ARGS(AstNodeFactory, AstNode, NewAdd,
   
   return result;
   
-}}
+}
 
 
 COO_DCL(AstNode, void, visit_const, Visitor v);
 COO_DEF_NORET_ARGS( AstNode, visit_const, Visitor v;,v) {
   v->Const(this);
   return;
-}}
+}
 
 
 COO_DCL(AstNodeFactory, AstNode, NewConst,
@@ -296,14 +296,14 @@ COO_DEF_RET_ARGS(AstNodeFactory, AstNode, NewConst,
   COO_ATTACH_FN(AstNode, result, visit, visit_const);
 
   return result;
-}}
+}
 
 
 COO_DCL(AstNode, void, visit_initheap, Visitor v);
 COO_DEF_NORET_ARGS( AstNode, visit_initheap, Visitor v;,v) {
   v->init_heap(this);
   return;
-}}
+}
 
 COO_DCL(AstNodeFactory, AstNode, NewInitHeap, 
         uint  pos, uint line, uint offset,
@@ -317,14 +317,14 @@ COO_DEF_RET_ARGS(AstNodeFactory, AstNode, NewInitHeap,
   impl->val = ((Number)size->impl)->val;
   COO_ATTACH_FN(AstNode, result, visit, visit_initheap);
   return result;
-}}
+}
 
 
 COO_DCL(AstNode, void, visit_number, Visitor v);
 COO_DEF_NORET_ARGS( AstNode, visit_number, Visitor v;,v) {
   v->Number(this);
   return;
-}}
+}
 
 
 COO_DCL(AstNodeFactory, AstNode, NewNumber, 
@@ -336,18 +336,23 @@ COO_DEF_RET_ARGS(AstNodeFactory, AstNode, NewNumber,
   Number impl = (Number)this->oe->getmem(sizeof(*impl));
   AstNode result = AstNode_New(this->oe, pos, line, offset, impl);
 
+  if (!result || !impl) {
+    this->oe->syslog(OSAL_LOGLEVEL_FATAL, "Out of memory in NewNumber :(");
+    return result;
+  }
+
   impl->val = number;
   COO_ATTACH_FN(AstNode, result, visit, visit_number);
-
+  
   return result;
-}}
+}
 
 
 COO_DCL(AstNode, void, visit_list, Visitor v);
 COO_DEF_NORET_ARGS( AstNode, visit_list, Visitor v;,v) {
   v->List(this);
   return;
-}}
+}
 
 
 COO_DCL(AstNodeFactory, AstNode, NewList, AstNode first);
@@ -364,20 +369,20 @@ COO_DEF_RET_ARGS(AstNodeFactory, AstNode, NewList, AstNode first;,
   }
   
   return 0;
-}}
+}
 
 COO_DCL(AstNodeFactory, AstNode, AppList, AstNode list, AstNode next);
 COO_DEF_RET_ARGS(AstNodeFactory, AstNode, AppList, AstNode list; AstNode next;,list, next) {
   List l = (List)list->impl;
   l->add_element(next);
   return list;
-}}
+}
 
 COO_DCL(AstNode, void, visit_open, Visitor v);
 COO_DEF_NORET_ARGS(AstNode, visit_open, Visitor v;,v) {
   v->Open( this );
 
-}}
+}
 
 COO_DCL(AstNodeFactory, AstNode, NewOpen, uint pos, uint line, uint offset, AstNode addr);
 COO_DEF_RET_ARGS(AstNodeFactory, AstNode, NewOpen, uint pos; uint line; uint offset; AstNode addr;,pos,line,offset,addr) {
@@ -388,13 +393,13 @@ COO_DEF_RET_ARGS(AstNodeFactory, AstNode, NewOpen, uint pos; uint line; uint off
     COO_ATTACH_FN(AstNode, result, visit, visit_open);
     return result;
   }
-}}
+}
 
 
 COO_DCL(AstNode, void, visit_print, Visitor v);
 COO_DEF_NORET_ARGS(AstNode, visit_print, Visitor v;,v) {
   v->Print( this );
-}}
+}
 
 COO_DCL(AstNodeFactory, AstNode, NewPrint, uint pos, uint line, uint offset, AstNode addr);
 COO_DEF_RET_ARGS(AstNodeFactory, AstNode, NewPrint, uint pos; uint line; uint offset; AstNode addr;,
@@ -406,7 +411,7 @@ COO_DEF_RET_ARGS(AstNodeFactory, AstNode, NewPrint, uint pos; uint line; uint of
     COO_ATTACH_FN(AstNode, result, visit, visit_print);
     return result;
   }
-}}
+}
 
 AstNodeFactory AstNodeFactory_New(OE oe) {
   AstNodeFactory anf = (AstNodeFactory)oe->getmem(sizeof(*anf));

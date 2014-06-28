@@ -71,6 +71,12 @@ void * coo_patch2( byte * stub, uint lstub, void * ths) {
 
 void * coo_patch(byte * stub_fun, byte * fun, void * ths) {
   byte * result = mem->alloc(STUB_SIZE);
+
+  if (!result) {
+    printf("[COO FATAL] Out of special memory !\n");
+    exit(-1);
+  }
+
   mcpy(result+2*sizeof(void*),stub_fun,STUB_SIZE-2*sizeof(void*));
 
   l2b((ull)fun,(byte*)result);
@@ -160,7 +166,7 @@ static void special_free_all_impl(void)
 }
 
 
-#define SPECIAL_MEM_SIZ 4*1024*1024*32
+#define SPECIAL_MEM_SIZ 4*1024*1024*256
 
 Memory LinuxSpecialMemoryNew(Memory m) 
 {

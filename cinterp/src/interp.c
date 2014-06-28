@@ -59,13 +59,13 @@ typedef struct _interp_impl_ {
 COO_DCL(Visitor, void, v_name, AstNode n);
 COO_DEF_NORET_ARGS(Visitor, v_name, AstNode n;,n) {
   
-}}
+}
 
 COO_DCL(Visitor, void, v_Sload, AstNode n);
 COO_DEF_NORET_ARGS(Visitor, v_Sload, AstNode n;,n) {
   InterpImpl ii = (InterpImpl)this->impl;
   ii->oe->p("Sload\n");
-}}
+}
 
 COO_DCL(Visitor, void, v_Load, AstNode node);
 COO_DEF_NORET_ARGS(Visitor, v_Load, AstNode node;,node) {
@@ -82,7 +82,7 @@ COO_DEF_NORET_ARGS(Visitor, v_Load, AstNode node;,node) {
     ii->oe->p(m);
   }
   ii->oe->p("Load\n");
-}}
+}
 
 
 COO_DCL(Visitor, void, v_Mov, AstNode node);
@@ -98,7 +98,7 @@ COO_DEF_NORET_ARGS(Visitor, v_Mov, AstNode node;,node) {
     return;
   }
   ii->mm->heap_set(n->dst+ii->cp, rep);
-}}
+}
 
 
 COO_DCL(Visitor, void, v_Mul, AstNode node);
@@ -116,7 +116,7 @@ COO_DEF_NORET_ARGS(Visitor, v_Mul, AstNode node;,node) {
     ii->oe->p(ms);
     ii->error = True;
   }
-}}
+}
 
 
 COO_DCL(Visitor, void, v_Smul, AstNode node);
@@ -144,13 +144,13 @@ COO_DEF_NORET_ARGS(Visitor, v_Smul, AstNode node;,node) {
     ii->oe->p(m);
     ii->error = True;
   }
-}}
+}
 
 
 COO_DCL(Visitor, void, v_MulPar, AstNode node);
 COO_DEF_NORET_ARGS(Visitor, v_MulPar, AstNode node;,node) {
   MulPar mp = (MulPar)node->impl;
-}}
+}
 
 
 COO_DCL(Visitor, void, v_Sadd, AstNode node);
@@ -176,7 +176,7 @@ COO_DEF_NORET_ARGS(Visitor, v_Sadd, AstNode node;,node) {
     ii->error = True;
   }
   printf("Sadd\n");
-}}
+}
 
 COO_DCL(Visitor, void, v_Add, AstNode node);
 COO_DEF_NORET_ARGS(Visitor, v_Add, AstNode node;,node) {
@@ -194,7 +194,7 @@ COO_DEF_NORET_ARGS(Visitor, v_Add, AstNode node;,node) {
       ii->error = True;
   }
   printf("Add\n");
-}}
+}
 
 static 
 int required_bits(uint n) {
@@ -231,7 +231,7 @@ COO_DEF_NORET_ARGS(Visitor, v_Const, AstNode node;,node) {
   }
   ii->env->put(id->data, (void*)(ull)id->addr);
   i = ii->env->contains(id->data);
-}}
+}
 
 
 COO_DCL(Visitor, void, v_open, AstNode node);
@@ -243,7 +243,7 @@ COO_DEF_NORET_ARGS(Visitor, v_open, AstNode node;,node) {
   osal_sprintf(mmm,"%u: open(%u)\n",node->line,o->addr);
   ii->oe->p(mmm);
   mm->open(o->addr+ii->cp);
-}}
+}
 
 
 COO_DCL(Visitor, void, v_print, AstNode node);
@@ -258,20 +258,20 @@ COO_DEF_NORET_ARGS(Visitor, v_print, AstNode node;,node) {
     printf("[%4x] %2x\n",p->addr,rep->codeword[0]);
   }
   printf("print\n");
-}}
+}
 
 COO_DCL(Visitor, void, v_init_heap, AstNode node);
 COO_DEF_NORET_ARGS(Visitor, v_init_heap, AstNode node;,node) {
   InitHeap n = (InitHeap)node->impl;
   InterpImpl ii = (InterpImpl)this->impl;
   ii->mm->init_heap(n->val);
-}}
+}
 
 
 COO_DCL(Visitor, void, v_Number, AstNode n);
 COO_DEF_NORET_ARGS(Visitor, v_Number, AstNode n;,n) {
   printf("Number\n");
-}}
+}
 
 COO_DCL(Visitor, void, v_List, AstNode node);
 COO_DEF_NORET_ARGS(Visitor, v_List, AstNode node;,node) {
@@ -287,7 +287,7 @@ COO_DEF_NORET_ARGS(Visitor, v_List, AstNode node;,node) {
       return;
     }
   }
-}}
+}
 
 Visitor mpc_circuit_interpreter(OE oe, AstNode root,MiniMacs mm) {
   Visitor res = (Visitor)oe->getmem(sizeof(*res));
