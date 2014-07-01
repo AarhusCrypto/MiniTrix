@@ -110,8 +110,76 @@ typedef struct _simple_oe_ {
    */
   MUTEX lock;
 
+  /*!
+   * The current log level.
+   */
+  LogLevel loglevel;
+
 } * SimpleOE;
 
+
+typedef struct _file_descriptor_entry_ {
+  int osfd;
+  uint fd;
+} * FDEntry;
+
+uint fd_pool;
+static uint FDEntry_new(OE oe, List entries, int osfd) {
+  FDEntry r = (FDEntry)oe->getmem(sizeof(*r));
+  if (!r) return 0;
+
+  r->osfd = osfd;
+  r->fd = ++fd_pool;
+
+  entries->add_element(r);
+
+  return r->fd;
+}
+
+static void FDEntry_destroy(OE oe, FDEntry * ent) {
+  FDEntry e = 0;
+  if (!ent) return;
+  if (!*ent) return;
+  e = *ent;
+
+  oe->putmem(e);
+  *ent = 0;
+}
+
+static int FDEntry_remove(OE oe, List entries, uint fd) {
+  uint siz = 0;
+  int i  = 0;
+
+  if (!entries) return 0;
+  
+  siz = entries->size();
+  for(i = 0;i < siz;++i) {
+    FDEntry c = (FDEntry)entries->get_element(i);
+    if (c && c->fd == fd) {
+      int r = c->osfd;
+      entries->rem_element(i);
+      FDEntry_destroy(oe, &c);
+      return r;
+    }
+  }
+  return -1;
+}
+
+static int FDEntry_lookup(List entries, uint fd) {
+  uint siz = 0;
+  int i  = 0;
+
+  if (!entries) return 0;
+  
+  siz = entries->size();
+  for(i = 0;i < siz;++i) {
+    FDEntry c = (FDEntry)entries->get_element(i);
+    if (c && c->fd == fd) return c->osfd;
+
+  }
+
+  return -1;
+}
 
 
 COO_DCL( OE, void *, getmem, uint size)
@@ -142,15 +210,10 @@ COO_DEF_RET_ARGS(OE, RC, read, uint fd;byte *buf;uint * lbuf;, fd, buf, lbuf ) {
   if (fd < 1) return RC_FAIL;
 
   this->lock(soe->lock);
-  if (soe->filedescriptors->size()+1 <= fd) {
-    this->unlock(soe->lock);
-    return RC_FAIL;
-  }
-
-  // get exclusive access to file descriptors
-
-  os_fd = (int)(unsigned long long)soe->filedescriptors->get_element(fd-1);
+  os_fd = FDEntry_lookup(soe->filedescriptors,fd);
   this->unlock(soe->lock);
+
+  if (os_fd < 0) return RC_FAIL; 
 
   {
     fd_set read_set = {0};
@@ -209,13 +272,10 @@ COO_DEF_RET_ARGS(OE, RC, write, uint fd; byte*buf;uint lbuf;,fd,buf,lbuf) {
   ull start = _nano_time();
 
   this->lock(soe->lock);
-  if (fd >= soe->filedescriptors->size()+1) {
-    this->unlock(soe->lock);
-    return RC_FAIL;
-  }
-  os_fd = (int)(long long)soe->filedescriptors->get_element(fd-1);
+  os_fd = FDEntry_lookup(soe->filedescriptors,fd);
   this->unlock(soe->lock);
 
+  if (os_fd < 0) return RC_FAIL;
 
 
   while(writesofar < lbuf && lastwrite >= 0) {
@@ -243,9 +303,9 @@ COO_DEF_RET_ARGS(OE, RC, write, uint fd; byte*buf;uint lbuf;,fd,buf,lbuf) {
   
   if (lastwrite < 0) {
     this->p("ERROR Failed to write");
-    return RC_OK;
+    return RC_FAIL;
   }
-  return writesofar;
+  return RC_OK;
 
 }
 
@@ -274,8 +334,7 @@ COO_DEF_RET_ARGS(OE, int, open , const char * name;, name) {
     if (fd < 0) goto failure;
     
     this->lock(soe->lock);
-    soe->filedescriptors->add_element( (void*)(long long)fd);
-    res = soe->filedescriptors->size();
+    res = FDEntry_new(this,soe->filedescriptors,fd);
     this->unlock(soe->lock);
     return res;
   }
@@ -318,8 +377,7 @@ COO_DEF_RET_ARGS(OE, int, open , const char * name;, name) {
       return 0;
     }
     this->lock(soe->lock); 
-    soe->filedescriptors->add_element((void *)(long long)server_fd);
-    res = soe->filedescriptors->size();
+    res = FDEntry_new(this, soe->filedescriptors, server_fd);
     this->unlock(soe->lock);
     return res;
   }
@@ -346,8 +404,7 @@ COO_DEF_RET_ARGS(OE, int, open , const char * name;, name) {
     set_non_blocking(socket_fd);
 
     this->lock(soe->lock);
-    soe->filedescriptors->add_element( (void*)(long long)socket_fd);
-    res = soe->filedescriptors->size();
+    res = FDEntry_new(this, soe->filedescriptors, socket_fd);
     this->unlock(soe->lock);
     return res;
   }
@@ -399,8 +456,12 @@ COO_DEF_RET_ARGS(OE, int, accept, uint fd;,fd) {
   uint res = 0;
   fd_set rd = {0};
   struct timeval timeout = {0};
-  os_fd = (int)(long long) soe->filedescriptors->get_element( fd-1 );
-  if (fd > soe->filedescriptors->size()+1) return 0;
+
+  this->lock(soe->lock);
+  os_fd = FDEntry_lookup(soe->filedescriptors, fd);
+  this->unlock(soe->lock);
+
+  if (os_fd < 0) return RC_FAIL;
 
   FD_ZERO(&rd);
   FD_SET(os_fd, &rd);
@@ -426,10 +487,8 @@ COO_DEF_RET_ARGS(OE, int, accept, uint fd;,fd) {
 
 
   this->lock(soe->lock);
-  soe->filedescriptors->add_element( (void*)(long long)os_client_fd);
-  res = soe->filedescriptors->size();
+  res = FDEntry_new(this, soe->filedescriptors, os_client_fd);
   this->unlock(soe->lock);
-
   return res;
 }
 
@@ -437,15 +496,23 @@ COO_DCL(OE, int, close, uint _fd)
 COO_DEF_RET_ARGS(OE, int, close, uint _fd;, _fd) {
   int fd = 0;
   SimpleOE soe = (SimpleOE)this->impl;
+  FDEntry ent = 0;
   
   if (!soe) { 
     return -1;
   }
 
-  fd = (int)(long long)soe->filedescriptors->get_element(_fd);
-  //  soe->filedescriptors->rem_element(fd);
+  this->lock(soe->lock);
 
-  return close(fd);
+  fd = FDEntry_remove(this, soe->filedescriptors, _fd);
+  if (fd >= 0) {
+    close(fd);
+  }
+
+  this->unlock(soe->lock);
+
+
+  return RC_OK;
 }
 
 COO_DCL(OE, ThreadID, newthread, ThreadFunction tf, void * args)
@@ -551,8 +618,20 @@ COO_DEF_NORET_ARGS(OE, down, Cmaphore c;, c) {
   Cmaphore_down(c);
 }
 
+COO_DCL(OE, void, setloglevel, LogLevel level);
+COO_DEF_NORET_ARGS(OE, setloglevel, LogLevel level;, level) {
+  
+  SimpleOE soe = (SimpleOE)this->impl;
+
+  soe->loglevel = level;
+
+}
+
 COO_DCL(OE, void, syslog, LogLevel level, const char * msg) 
 COO_DEF_NORET_ARGS(OE, syslog, LogLevel level; const char * msg;, level, msg) {
+  SimpleOE soe = (SimpleOE)this->impl;
+  if (level < soe->loglevel) return;
+
   switch(level) {
   case OSAL_LOGLEVEL_TRACE: {
     printf("\033[0;34m - log - \033[00m");
@@ -656,6 +735,7 @@ OE OperatingEnvironment_LinuxNew() {
   COO_ATTACH(OE, oe, p);
   COO_ATTACH(OE, oe, number_of_threads);
   COO_ATTACH(OE, oe, get_thread_id);
+  COO_ATTACH(OE, oe, setloglevel);
 
   oe->impl = simpleOE;
   simpleOE->lock = oe->newmutex();
@@ -663,6 +743,7 @@ OE OperatingEnvironment_LinuxNew() {
   simpleOE->sm = special_mem;
   simpleOE->threads = SingleLinkedList_new(oe);
   simpleOE->filedescriptors = SingleLinkedList_new(oe);
+  simpleOE->loglevel = OSAL_LOGLEVEL_TRACE;
 
   oe->p("************************************************************");
   oe->p("   "PACKAGE_STRING" - "CODENAME );

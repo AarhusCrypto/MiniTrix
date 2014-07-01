@@ -43,17 +43,20 @@ extern "C" {
     /* All that crap implementors wants to see that makes no sense to
      * any one else.
      */
-    OSAL_LOGLEVEL_TRACE,
+    OSAL_LOGLEVEL_TRACE=0x00,
+
     /* Messages that might make sense for technical personal.
      */
-    OSAL_LOGLEVEL_DEBUG,
+    OSAL_LOGLEVEL_DEBUG=0x01,
+
     /* Warnings that end users should see. These indicates reduced
      * functionality or eminent occouring of that.
      */
-    OSAL_LOGLEVEL_WARN,
+    OSAL_LOGLEVEL_WARN=0x02,
+
     /* OK we died, tell the world why !
      */
-    OSAL_LOGLEVEL_FATAL
+    OSAL_LOGLEVEL_FATAL=0x04
   } LogLevel;
 
   typedef void* (*ThreadFunction)(void *);
@@ -230,6 +233,12 @@ typedef struct _operating_environment_ {
   // ------------------------------------------------------------
   // helpers
   // ------------------------------------------------------------
+  /*!
+   * set log level. All levels below the set log level will be
+   * ignored and never reach the user.
+   */
+  void (*setloglevel)(LogLevel level);
+
   /*!
    * write a trace message to the system log.
    *
