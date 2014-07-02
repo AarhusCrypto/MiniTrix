@@ -1888,6 +1888,7 @@ DerRC minimacs_rep_ld(DerCtx * c, MiniMacsRep * out) {
   _DG(der_take_uint, c, 0, &r->lmac);
   r->mac = malloc(sizeof(*r->mac)*(r->lmac+1));
   if (!r->mac) { rc = DER_MEM; goto failure;}
+  zeromem(r->mac, sizeof(*r->mac)*(r->lmac+1));
   for(i = 0;i < r->lmac-1;++i) {
     bedoza_mac tmp = 0;
     _DG(der_enter_seq, &c, i+1);

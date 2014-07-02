@@ -1,3 +1,7 @@
+/*
+ * This is our flag-ship implementation.
+ *
+ */
 #include "minimacs/bitwisemulpar2_minimacs.h"
 #include "reedsolomon/minimacs_bitfft_encoder.h"
 #include "reedsolomon/minimacs_bit_encoder.h"
@@ -13,15 +17,7 @@
 COO_DCL(MiniMacs, uint, get_id);
 COO_DEF_RET_NOARGS(MiniMacs, uint, get_id) {
   BitWiseMulPar2MiniMacs gmm = (BitWiseMulPar2MiniMacs)this->impl;
-  OE oe = gmm->oe;
-  
-  if (gmm->singles) {
-    return minimacs_rep_whoami( gmm->singles[0] );
-  } else {
-    oe->p("I have no singles and thus no id :(");
-  }
-
-  return 0;
+  return gmm->myid;
 }
 
 COO_DCL(BitWiseMulPar2MiniMacs, BitDecomposedTriple, next_triple)
@@ -191,7 +187,7 @@ COO_DEF_RET_ARGS(MiniMacs,MR, mul, uint dst; uint l; uint r;,dst,l,r) {
     uint j = 0;
     Data tmpd = Data_new(gmm->oe,left->lval);
     for(j = 0;j < left->lval;++j) {
-      tmpd->data[j] = multiply(left->codeword[j],right->codeword[j]);
+      tmpd->data[j] = left->codeword[j] & right->codeword[j];
     }
    
     result = minimacs_create_rep_public_plaintext_fast(gmm->encoder,tmpd->data, tmpd->ldata, left->lcodeword);
@@ -203,7 +199,7 @@ COO_DEF_RET_ARGS(MiniMacs,MR, mul, uint dst; uint l; uint r;,dst,l,r) {
     
     
     //
-    // NOTICE(rwl): Constant multiplication are dealt with immediately
+    // NOTICE(rwl): Constant multiplication is dealt with immediately
     // however if this is the last multiplication in a mulpar sequence
     // we need to complete all the cached up multiplications. Thus, we
     // cannot return.
@@ -428,6 +424,8 @@ COO_DEF_RET_ARGS(MiniMacs,MR, mul, uint dst; uint l; uint r;,dst,l,r) {
       minimacs_rep_clean_up( &epsilons[mulcounter] );
     }
 
+    
+
     // ------------------------------------------------------------
     // We have epsilon(s) and delta(s) in clear
     // ------------------------------------------------------------
@@ -442,6 +440,7 @@ COO_DEF_RET_ARGS(MiniMacs,MR, mul, uint dst; uint l; uint r;,dst,l,r) {
 
     // we'll have lval*{lcodeword} long vectors here
     for(mulcounter = 0; mulcounter < mulcount;++mulcounter) {
+
       mpe = (MPE) gmm->mulpar_entries->get_element(mulcounter);
       MiniMacsRep mul_left  = this->heap_get(mpe->l);
       MiniMacsRep mul_right = this->heap_get(mpe->r);
@@ -453,6 +452,8 @@ COO_DEF_RET_ARGS(MiniMacs,MR, mul, uint dst; uint l; uint r;,dst,l,r) {
         ed_raw[i] = epsilons_clear->data[mulcounter*lcode+i] & 
           deltas_clear->data[mulcounter*lcode+i];
       }
+
+
 
       // we'll work on mulpar*{lcodeword} vectors instead 
       // having mulpar triples lined up
@@ -483,6 +484,10 @@ COO_DEF_RET_ARGS(MiniMacs,MR, mul, uint dst; uint l; uint r;,dst,l,r) {
           minimacs_rep_clean_up( &tmp2 );
         }
         
+        if (gmm->myid == 0) {
+          dump_data_as_hex(triples[mulcounter]->abits[i]->codeword,32,16);
+        }
+
         
         // includes an encoding in C
         tmp = minimacs_rep_mul_const_fast_lval(enc,
@@ -504,6 +509,8 @@ COO_DEF_RET_ARGS(MiniMacs,MR, mul, uint dst; uint l; uint r;,dst,l,r) {
       }
 
       result = minimacs_rep_xor(db,ae);
+      minimacs_rep_clean_up(&ae);
+      minimacs_rep_clean_up(&db);
       tmp = result;
       result = minimacs_rep_xor(triples[mulcounter]->c ,result);
       minimacs_rep_clean_up(&tmp);tmp = result;
@@ -820,6 +827,7 @@ COO_DEF_RET_ARGS(MiniMacs, MR, init_heap, uint size;,size) {
   MR mr = 0;
   
   gmm->heap = oe->getmem(size*sizeof(MiniMacsRep));
+  zeromem(gmm->heap, size*sizeof(MiniMacsRep));
   gmm->lheap = size;
 
   return mr;
@@ -1051,39 +1059,6 @@ static int uint_cfn(void *a, void *b) {
   return an == bn ? 0 : (an > bn) ? 1 : -1;
 }
 
-
-
-static 
-MiniMacsRep * build_constants(OE oe,
-                              MiniMacsEnc enc, 
-                              uint nplayers,
-                              uint ltext,
-                              uint lcode) {
-
-  uint i=0,j=0;
-  byte * val = 0;
-  MiniMacsRep * result = 
-    (MiniMacsRep*)oe->getmem(sizeof(*result)*8);
-  val=oe->getmem(ltext);
-
-  for(i = 0;i < 8;++i) {
-    
-    for(j = 0;j < ltext;++j) {
-      val[j] = (0x1 << i);
-    }
-    result[i] = minimacs_create_rep_public_plaintext_fast(enc,
-                                                          val,
-                                                          ltext,
-                                                          lcode);
-    if (!result[i]) {
-      oe->syslog(OSAL_LOGLEVEL_FATAL, "Could not initalize constants");
-      return 0;
-    }
-  }
-  
-  return result;
-}
-
 typedef struct _mul_par_buffer_entry_ {
   Data delta;
   Data epsilon;
@@ -1142,8 +1117,6 @@ MiniMacs BitWiseMulPar2MiniMacs_New(OE oe, CArena arena, MiniMacsEnc encoder,
       }
     }
 
-    gres->constants = build_constants(oe,encoder,nplayers,
-                                      gres->ltext,gres->lcode);
   } else {
     oe->syslog(OSAL_LOGLEVEL_WARN, "No singles; this instance of BitWiseMulPar2MiniMacs" 
 	       " will not have encoders nor a determined id.");
@@ -1209,8 +1182,8 @@ MiniMacs BitWiseMulPar2MiniMacs_DefaultNew(OE oe, CArena arena,
 
 
 MiniMacs BitWiseMulPar2MiniMacs_DefaultFFTNew(OE oe, CArena arena, 
-                                    MiniMacsRep * singles, uint lsingles,
-                                    MiniMacsRep ** pairs, uint lpairs,
+                                              MiniMacsRep * singles, uint lsingles,
+                                              MiniMacsRep ** pairs, uint lpairs,
                                               BitDecomposedTriple * triples, uint ltriples, bool do_bit_enc) {
   uint ltext = 0, lcode = 0;
   

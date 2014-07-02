@@ -1,6 +1,12 @@
 include $(top_srcdir)/cminimacs.am
 
-bin_PROGRAMS = test testminimacs client testencoder testfft clientfft perf testsymminimacs symclient perfsrv perfcli loadreps bdttest bdtmptest mulpar2test bitenctest bitfftenctest manybdtmptest combienctest
+bin_PROGRAMS = test testminimacs client testencoder testfft clientfft	\
+perf testsymminimacs symclient perfsrv perfcli loadreps bdttest				\
+bdtmptest mulpar2test bitenctest bitfftenctest manybdtmptest					\
+combienctest testbwmp2
+
+testbwmp2_SOURCES = testbwmp2.c
+testbwmp2_LDADD = $(CMINIMACS_LIB) -lrt
 
 combienctest_SOURCES = combienctest.c
 combienctest_LDADD = $(CMINIMACS_LIB) -lrt
