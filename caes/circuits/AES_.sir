@@ -1,6 +1,5 @@
-  mm->init_heap(33872);
     mm->init_heap(33873);
-    replica_public_input(0x11,33872,mm);	
+    replica_public_input(0xFF,33872,mm);	
 #define ONE 33872
     // load zeros for each player in each position from 0 to 127.
     {
@@ -14,16 +13,6 @@
        }
     }
 
-  
-
-  
-  
-  
-  
-  
-  
-
-  
     replica_private_input(key[0],0,mm);
     replica_private_input(key[1],1,mm);
     replica_private_input(key[2],2,mm);
@@ -284,7 +273,6 @@
     replica_public_input(plaintext[126],254,mm);
     replica_public_input(plaintext[127],255,mm);
   
-
     mission_control_start(mission_control,myid,count);
     mission_control_bang(mission_control);
     usleep(200000*myid);
@@ -953,9 +941,8 @@
     mm->add(1190,1052,900);
     mm->add(1197,1059,913);
     mm->add(1204,1066,926);
-  
 
-  mm->mulpar(180);
+ mm->mulpar(180);
     mm->mul(688,568,259);
     mm->mul(691,569,396);
     mm->mul(692,571,570);
@@ -1136,7 +1123,6 @@
     mm->mul(1199,1058,915);
     mm->mul(1205,1066,926);
     mm->mul(1206,1065,927);
-  
 
   
     mm->add(932,691,696);
@@ -1516,7 +1502,7 @@
     mm->add(1562,1443,ONE);
   
 
-  mm->mulpar(60);
+   mm->mulpar(60);
     mm->mul(1349,1288,1210);
     mm->mul(1350,1290,1210);
     mm->mul(1353,1291,1214);

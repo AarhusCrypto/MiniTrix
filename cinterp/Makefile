@@ -26,6 +26,7 @@ REPO="svn://sun.bitlab.dk/Rasmus/phd/mpccode/tags"
 LOCAL_REPO="../../tags/"$(DEPS_VERSION)
 
 DEV_OSAL="../osal/build/osal"
+DEV_UTILS="../utils/build/utils/"
 DEV_ENCODING="../encoding/build/encoding"
 DEV_MINIMACS="../cminimacs/build/cminimacs"
 DEV_MATH="../math/build/math"
@@ -78,6 +79,7 @@ $(DEPS)libosal.a:
 	-@ ([ -d $(DEV_MATH) ] && cp -r $(DEV_MATH)/* ./deps) || echo "MATH NO LOC"
 	-@ ([ -d $(DEV_CARENA) ] && cp -r $(DEV_CARENA)/* ./deps) || echo "CARENA NO LOC"
 	-@ ([ -d $(DEV_DS) ] && cp -r $(DEV_DS)/* ./deps) || echo "DS NO LOC"
+	-@[ -d $(DEV_UTILS) ] && ( cp -r $(DEV_UTILS)/* ./deps && echo "Utils Updated to DEV Version")
 
 # Go Nuke it all. The wipe.sh script deletes Makefile.in and m4 stuff
 # created by aclocal, autoconf and automake. 

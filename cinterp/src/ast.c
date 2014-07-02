@@ -5,7 +5,10 @@
 static
 AstNode AstNode_New(OE oe, uint pos, uint line, uint offset, void * impl) {
   AstNode node = (AstNode)oe->getmem(sizeof(*node));
-  if (!node) return 0;
+  if (!node) { 
+    oe->syslog(OSAL_LOGLEVEL_FATAL, "AstNode_New unable to allocate node");
+    return 0;
+  }
 
   node->oe = oe;
   node->pos = pos;
@@ -336,7 +339,7 @@ COO_DEF_RET_ARGS(AstNodeFactory, AstNode, NewNumber,
   Number impl = (Number)this->oe->getmem(sizeof(*impl));
   AstNode result = AstNode_New(this->oe, pos, line, offset, impl);
 
-  if (!result || !impl) {
+  if (!result) {
     this->oe->syslog(OSAL_LOGLEVEL_FATAL, "Out of memory in NewNumber :(");
     return result;
   }

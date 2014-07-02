@@ -484,9 +484,6 @@ COO_DEF_RET_ARGS(MiniMacs,MR, mul, uint dst; uint l; uint r;,dst,l,r) {
           minimacs_rep_clean_up( &tmp2 );
         }
         
-        if (gmm->myid == 0) {
-          dump_data_as_hex(triples[mulcounter]->abits[i]->codeword,32,16);
-        }
 
         
         // includes an encoding in C

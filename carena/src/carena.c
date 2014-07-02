@@ -149,8 +149,7 @@ COO_DEF_RET_ARGS(MpcPeer, CAR, send, Data data;, data) {
   RC rc = 0;
 
   if (peer_i->die) return c;
-  //  rc = peer_i->oe->write(peer_i->fd, data->data, &data->ldata);
-  //  printf("SEND %llu ns",_nano_time());
+
   CHECK_POINT_S(__FUNCTION__);
   peer_i->outgoing->put(Data_copy(peer_i->oe,data));
   CHECK_POINT_E(__FUNCTION__);
@@ -273,7 +272,7 @@ static void * peer_rec_function(void * a) {
   mei = (MpcPeerImpl)me->impl;
   oe = mei->oe;
 
-  oe->lock(mei->receive_lock);
+  //  oe->lock(mei->receive_lock);
   
   while(mei->running) {
     uint sofar = 0;
@@ -386,7 +385,8 @@ static void * peer_snd_function(void * a) {
   byte len[4] = {0};
 
   //  printf("Waiting for SEND LOCK\n");
-  mei->oe->lock(mei->send_lock);
+  //mei->oe->lock(mei->send_lock);
+
   //  printf("Sender thread ready fd_out=%u\n",mei->fd_out);
   while(1) {
     //    printf("Hanging on queue outgoing\n");
@@ -453,7 +453,11 @@ static void MpcPeerImpl_destroy( MpcPeer * peer ) {
   peer_i->outgoing->put(peer_i->die_package);
 
   oe->lock(peer_i->send_lock);
+  oe->lock(peer_i->receive_lock);
   //  printf("Acquired send lock, tearing down\n");
+
+  BlkQueue_destroy( & peer_i->outgoing);
+  BlkQueue_destroy( & peer_i->incoming);
 
   if (peer_i->fd_in) {
     oe->close(peer_i->fd_in);
@@ -538,6 +542,7 @@ static MpcPeer MpcPeerImpl_new(OE oe, uint fd_in, char * ip, uint port) {
   peer_i->receiver = oe->newthread( peer_rec_function, peer );
   peer_i->sender = oe->newthread( peer_snd_function, peer );
 
+
   
 
   COO_ATTACH(MpcPeer, peer, send);
@@ -618,8 +623,8 @@ COO_DEF_RET_ARGS(CArena, CAR, connect,  char * hostname; uint port;, hostname, p
   oe->lock(arena_i->lock);
   arena_i->peers->add_element(peer);
   oe->unlock(arena_i->lock);
-  oe->unlock(peer_i->send_lock);
-  oe->unlock(peer_i->receive_lock);
+  //  oe->unlock(peer_i->send_lock);
+  //  oe->unlock(peer_i->receive_lock);
   for(i = 0;i < arena_i->conn_obs->size();++i) {
     ConnectionListener cl = (ConnectionListener)arena_i->conn_obs->get_element(i);
     if (cl) {
@@ -680,8 +685,8 @@ static void * carena_listener_thread(void * a) {
       peer_i->fd_out = client_fd;
       
 
-      oe->unlock(peer_i->send_lock);
-      oe->unlock(peer_i->receive_lock);
+      //      oe->unlock(peer_i->send_lock);
+      //      oe->unlock(peer_i->receive_lock);
       //oe->p("Done unlocking send and receive locks, peer operational.");
       for(i = 0;i < arena_i->conn_obs->size();++i) {
         ConnectionListener cur = (ConnectionListener)

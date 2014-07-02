@@ -3,6 +3,22 @@
 #include <stats.h>
 #include <time.h>
 #include <carena.h>
+#include <stdlib.h>
+
+static void dump_heap(MiniMacs mm) {
+  int i = 0;
+  
+  for(i = 0;i < 33873;++i) {
+    mm->open(i);
+    MiniMacsRep r = mm->heap_get(i);
+    if (!r) break;
+    if (i > 0  && i % 32 == 0) printf("\n");
+    printf("%02x ",r->codeword[0]);
+  }
+  
+  printf("\n******************** HEAP DUMPED ********************\n");
+  exit(0) ;
+}
 
 static inline replica_private_input(byte val, uint dst, MiniMacs mm) {
   uint rep = mm->get_ltext();

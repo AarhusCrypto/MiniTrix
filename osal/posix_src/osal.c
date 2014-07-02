@@ -305,7 +305,7 @@ COO_DEF_RET_ARGS(OE, RC, write, uint fd; byte*buf;uint lbuf;,fd,buf,lbuf) {
     this->p("ERROR Failed to write");
     return RC_FAIL;
   }
-  return RC_OK;
+  return writesofar;
 
 }
 

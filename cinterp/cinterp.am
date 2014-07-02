@@ -53,7 +53,7 @@ DEPS_INCLUDE=-I$(top_srcdir)/deps/headers\
 	-I$(top_srcdir)/src
 
 DEPS_LIB=\
-	-L$(top_srcdir)/deps -lcminimacs -lmath -lencoding -lcarena -lds -losal -lpthread
+	-L$(top_srcdir)/deps -lcminimacs -lmath -lencoding -lcarena -lds -lutils -losal -lpthread
 
 AM_CFLAGS=$(DEPS_INCLUDE)
 

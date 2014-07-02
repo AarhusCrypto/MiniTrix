@@ -38,6 +38,7 @@
 #include <minimacs/minimacs.h>
 #include <minimacs/generic_minimacs.h>
 #include <math/polynomial.h>
+#include <utils/options.h>
 #include "ast.h"
 #define YYSTYPE AstNode
 #include "y.tab.h"
@@ -49,17 +50,23 @@ extern int error;
 
 int main(int c, char **a) {
   OE oe = OperatingEnvironment_LinuxNew();
+  Map args = Options_New(oe,c,a);
   extern MiniMacs mm;  
   extern AstNode root;
 
   if (oe == 0) {
     return -1;
   }
+
   init_polynomial();
   anf = AstNodeFactory_New(oe);
 
+  if (!args->contains("m")) {
+    printf("Requires -m <raw material> to run\n");
+    return -1;
+  }
   
-  mm = GenericMiniMacs_DefaultLoadNew(oe,a[2]);
+  mm = GenericMiniMacs_DefaultLoadNew(oe,args->get("m"));
   if (!mm) return -2;
 
   oe->p("------------------------------------------------------------");
@@ -67,7 +74,13 @@ int main(int c, char **a) {
   oe->p(" build: " TIMEDATE);
   oe->p("------------------------------------------------------------");
   
-  yyin = fopen(a[1],"rb");
+
+  if (!args->contains("c")) {
+    printf("Please specify a circuit to run with -c <path to circuit>\n");
+    return -3;
+  }
+
+  yyin = fopen(args->get("c"),"rb");
   if (yyin) {
     Visitor interp = 0;
 
@@ -86,7 +99,13 @@ int main(int c, char **a) {
       oe->p("One party invited, waiting ... ");
       mm->invite(1,2020);
     } else {
-      mm->connect(a[3],2020);
+      char *adr = "127.0.0.1";
+      if (!args->contains("p")) {
+        printf("No peer address specified assuming localhost\n");
+      } else {
+        adr = args->get("p");
+      }
+      mm->connect(adr,2020);
     }
 
     oe->p("Interpreting circuit...");
