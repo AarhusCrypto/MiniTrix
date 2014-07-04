@@ -34,5 +34,5 @@
 
 # Changes: 
 # 2013-07-25 11:57: Initial version created
-
+AM_LDFLAGS=$(prefix)/lib
 SUBDIRS = src test headers
