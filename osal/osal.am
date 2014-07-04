@@ -47,5 +47,5 @@
 # hope is only a few variables needs to be redefined.
 #
 #
-AM_CFLAGS=-g -I$(top_srcdir)/build -I$(top_srcdir)/code/headers -DLINUX=1 -Werror -fno-omit-frame-pointer
+AM_CFLAGS=-g -I$(top_srcdir)/build -I$(top_srcdir)/headers -DLINUX=1 -Werror -fno-omit-frame-pointer
 

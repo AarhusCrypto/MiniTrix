@@ -4,6 +4,7 @@ LIB_OSAL=../posix_src/libosalposix.a ../src/libosal.a
 
 bin_PROGRAMS =  utf8test opentest threadtest mutextest testoe singlelinkedlisttest stack 
 
+
 stack_SOURCES = stack.c
 stack_LDADD = $(LIB_OSAL) -lrt
 
