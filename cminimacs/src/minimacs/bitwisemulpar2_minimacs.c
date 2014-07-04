@@ -629,6 +629,9 @@ COO_DEF_RET_ARGS(MiniMacs,MR,secret_input, uint pid; hptr dst; Data plain_val;, 
       peer->receive(shares[id]);
       peer->receive(sharemac);
 
+      printf("r Share %u:\n",id);
+      dump_data_as_hex(shares[id]->data, r->lval, 16);
+
       if (!minimacs_check_othershare_fast(gmm->encoder,
 					  r, 
 					  id, 
@@ -660,9 +663,19 @@ COO_DEF_RET_ARGS(MiniMacs,MR,secret_input, uint pid; hptr dst; Data plain_val;, 
     encoded_r->data = gmm->encoder->encode(clear_r->data, clear_r->ldata);
     encoded_r->ldata = r->lcodeword;
     if (!encoded_r->data) MRGF(oe,"Failed to encode single.");
+
     Data_destroy(oe,&clear_r);
     epsilon = Data_new(oe,r->lcodeword);
     if (!epsilon) MRGF(oe,"Ran out of memory during open operation.");
+
+    /*--------------------*/
+
+    printf("Hi, I am the inputter\n");
+    printf("Input:\n");
+    dump_data_as_hex(encoded_val->data, r->lval, 16);
+    printf("Clear r:\n");
+    dump_data_as_hex(encoded_r->data, r->lval, 16);
+
 
     for(i=0;i<encoded_val->ldata;++i) {
       epsilon->data[i] = add(encoded_r->data[i], encoded_val->data[i]);
@@ -681,6 +694,13 @@ COO_DEF_RET_ARGS(MiniMacs,MR,secret_input, uint pid; hptr dst; Data plain_val;, 
     result = minimacs_rep_add_const_fast(gmm->encoder,r,epsilon->data, r->lval);
     minimacs_rep_clean_up(&r);    
     if (!result) MRGF(oe,"Unable to add constant to the random a.");
+
+    printf("result dx:\n");
+    dump_data_as_hex(result->dx_codeword, result->lval, 16);
+    printf("result c:\n");
+    dump_data_as_hex(result->codeword, result->lval, 16);
+
+    /*--------------------*/
 
 
     mr = this->heap_set(dst, result);
@@ -701,6 +721,11 @@ COO_DEF_RET_ARGS(MiniMacs,MR,secret_input, uint pid; hptr dst; Data plain_val;, 
     if (!gmm->encoder->validate((polynomial*)epsilon->data, r->lval)) {
       MRGF(oe,"Data received during input for peer %u was not a codeword.",pid);
     }
+
+    printf("r codeword:\n");
+    dump_data_as_hex(r->codeword, r->lval, 16);
+    printf("epsilon:\n");
+    dump_data_as_hex(epsilon->data, r->lval, 16);
 
     result = minimacs_rep_add_const_fast(gmm->encoder,r,epsilon->data, r->lval);
     if (!result) MRGF(oe,"Failed to perform input, add constant to form result failed.");
@@ -753,7 +778,7 @@ COO_DEF_RET_ARGS(MiniMacs,MR,open,hptr dst;,dst) {
   Data sharemac = 0;
   MiniMacsRep result = 0;
 
-  if (gmm->peer_map->size() > 1) MRRF(oe,"No peers connected.");
+  if (gmm->peer_map->size() < 1) MRRF(oe,"No peers connected.");
 
   if(!v) MRGF(oe,"Value at %u is not set",dst);
 
@@ -1146,8 +1171,8 @@ MiniMacs BitWiseMulPar2MiniMacs_New(OE oe, CArena arena, MiniMacsEnc encoder,
   COO_ATTACH(MiniMacs, res, mulpar);
 
   oe->p("------------------------------------------------------------");
-  oe->p("      MiniTrix: Assuming Bit Wise AND pre-processing");
-  oe->p("   " PACKAGE_STRING " - " CODENAME " - " BUILD_TIME);
+  oe->p("  MiniTrix: MulPar2 Bit Wise AND pre-processing");
+  oe->p("  " PACKAGE_STRING " - " CODENAME " - " BUILD_TIME);
 	oe->p("------------------------------------------------------------");
 
   return res;

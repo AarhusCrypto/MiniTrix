@@ -5,6 +5,7 @@
 #include <minimacs/generic_minimacs.h>
 #include <unistd.h>
 #include <time.h>
+
 static
 unsigned long long _nano_time() {
   struct timespec tspec = {0};

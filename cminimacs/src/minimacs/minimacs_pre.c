@@ -86,10 +86,12 @@ void minimacs_fake_bdt(OE oe, MiniMacsEnc encoder,
                                              nplayers,lcode, proto);
 
 
+      /* Test that the two player case works
       if ( (ais[i][0]->codeword[0] ^ ais[i][1]->codeword[0] ^ 
             ais[i][0]->dx_codeword[0]) != masked[0]) {
         printf("########### ERROR (%u) ###########\n",i);
       }
+      */
       /*
       _p("a value",a,8,8);
       _p("masked value",masked,8,8);
