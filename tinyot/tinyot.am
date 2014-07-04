@@ -47,8 +47,9 @@
 #
 #
 BUILDDIR=$(top_srcdir)/build
-DEPS_INCLUDE=-I$(top_srcdir)/headers -I$(top_srcdir)/deps/headers -I$(top_srcdir)/circuit
-LIB_TINYOT=$(top_srcdir)/build/src/libtinyot.a -L$(top_srcdir)/deps -lcarena -lds -lencoding -losal -lpthread -lrt
+DEPS_INCLUDE=-I$(top_srcdir)/headers -I$(prefix)/include\
+ -I$(top_srcdir)/circuit
+LIB_TINYOT=-L$(prefix)/lib -lcarena -lds -lencoding -losalposix -losal -lpthread -lrt
 AM_CFLAGS=$(DEPS_INCLUDE) -I$(top_srcdir)/headers 
-#-Werror -Wall
+
 

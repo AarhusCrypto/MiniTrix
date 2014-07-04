@@ -45,11 +45,12 @@ libtinyot_a_SOURCES = tinyot.c
 
 bin_PROGRAMS = alice bob multitinyotrun
 
-multitinyotrun_SOURCES = multirun.c aes.c
+multitinyotrun_SOURCES = multirun.c aes.c tinyot.c
 multitinyotrun_LDADD = $(LIB_TINYOT) -lrt
 
-alice_SOURCES = alice.c aes.c
+alice_SOURCES = alice.c aes.c tinyot.c
 alice_LDADD = $(LIB_TINYOT) -lrt 
 
-bob_SOURCES = bob.c aes.c
+
+bob_SOURCES = bob.c aes.c tinyot.c
 bob_LDADD = $(LIB_TINYOT) -lrt 
