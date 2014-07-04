@@ -47,7 +47,7 @@
 #
 #
 BUILDDIR=$(top_srcdir)/build
-DEPS_INCLUDE=-I$(top_srcdir)/headers -I$(top_srcdir)/deps/headers
+DEPS_INCLUDE=-I$(top_srcdir)/headers -I$(prefix)/include
 AM_CFLAGS=$(DEPS_INCLUDE)
-DEPS_OSAL_A=$(top_srcdir)/deps/libosal.a
+DEPS_OSAL_A=-L$(prefix)/lib -lencoding -losalposix -losal
 
