@@ -2,10 +2,10 @@ DBGDIR=${PWD}/../../debug
 RELDIR=${PWD}/../../release
 FILES=configure.ac  ds.am  headers  linux  Makefile.am  src  test
 debug: autotools
-	../configure --prefix=${DBGDIR} CFLAGS="-O0 -g3"
+	../configure --prefix=${DBGDIR} LDFLAGS="-L${DBGDIR}/lib" CFLAGS="-O0 -g3"
 
 release: autotools
-	../configure --prefix=${RELDIR} CFLAGS="-O3 -mtune=corei7 -march=corei7"
+	../configure --prefix=${RELDIR}  LDFLAGS="-L${RELDIR}/lib" CFLAGS="-O3 -mtune=corei7 -march=corei7"
 
 autotools:
 	cd .. && aclocal && autoconf && autoheader && automake --add-missing

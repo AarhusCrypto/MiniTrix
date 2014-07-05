@@ -1,6 +1,7 @@
 DBGDIR=${PWD}/../../debug
 RELDIR=${PWD}/../../release
 FILES=configure.ac  ds.am  headers  linux  Makefile.am  src  test
+all: release  
 debug: autotools
 	../configure --prefix=${DBGDIR} CFLAGS="-O0 -g3"
 
@@ -15,4 +16,4 @@ clean:
 	cd .. && rm -rf aclocal.m4 config.in configure depcomp install-sh missing autom4te.cache/ 
 	cd .. && find . -iname Makefile.in | xargs rm -f
 
-.PHONY: debug release autotools clean
+.PHONY: all debug release autotools clean
