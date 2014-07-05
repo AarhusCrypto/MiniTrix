@@ -62,7 +62,7 @@ client_SOURCES = client.c
 client_LDADD = $(CMINIMACS_LIB)
 
 testminimacs_SOURCES = testminimacs.c
-testminimacs_LDADD = $(CMINIMACS_LIB)
+testminimacs_LDADD = $(CMINIMACS_LIB) 
 
 test_SOURCES = test.c
 test_LDADD = $(CMINIMACS_LIB)

@@ -42,7 +42,6 @@ include $(top_srcdir)/cinterp.am
 bin_PROGRAMS = cinterp
 
 cinterp_SOURCES = main.c grammar.tab.c ast.c interp.c lex.yy.c
-cinterp_LDADD = $(DEPS_LIB) -lfl -lrt
 BUILT_SOURCES = $(top_srcdir)/src/y.tab.h $(top_srcdir)/src/lex.yy.c
 
 $(top_srcdir)/src/lex.yy.c:

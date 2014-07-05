@@ -59,12 +59,12 @@ libcminimacs_a_SOURCES = minimacs/generic_minimacs.c\
 
 bin_PROGRAMS = lsrep genpre
 
-lsrep_SOURCES = minimacs/lsrep.c 
-lsrep_LDADD=$(CMINIMACS_LIB) -losal
+lsrep_SOURCES = minimacs/lsrep.c
+lsrep_LDADD=$(CMINIMACS_LIB) libcminimacs.a -lds -lencoding -lmath -losal -lpthread
 
 
 genpre_SOURCES = minimacs/genpre.c 
-genpre_LDADD = $(CMINIMACS_LIB) 
+genpre_LDADD = libcminimacs.a
 genpre_LDFLAGS = -static
 
 #libcminimacs_a_LIBADD = $(DEPS_OSAL_A)

@@ -47,17 +47,19 @@
        #
 #
 BUILDDIR=$(top_srcdir)/build
-DEPS_INCLUDE=-I$(top_srcdir)/deps/headers\
+DEPS_INCLUDE=-I$(prefix)/include\
 	-I$(top_srcdir)/headers\
 	-I$(top_srcdir)/circuits
 
 DEPS_LIB=\
-	-L$(top_srcdir)/deps -lcminimacs\
+	-L$(prefix)/lib 
+	-lcminimacs\
 	-lmath\
 	-lcarena\
 	-lencoding\
 	-lutils\
 	-lds\
+	-losalposix\
 	-losal -lpthread
 
 AM_CFLAGS=$(DEPS_INCLUDE)
