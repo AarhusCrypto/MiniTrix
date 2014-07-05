@@ -48,7 +48,6 @@ the program is a peer).
 ---------- HOW TO USE IT ----------
 
 
-
 Build: 
 
 Every project is build on the Linux platform by typing
