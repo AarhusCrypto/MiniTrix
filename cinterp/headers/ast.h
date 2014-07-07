@@ -106,6 +106,13 @@ typedef struct _mov_ {
   uint dst, src;
 } * Mov;
 
+struct _ast_node_;
+
+typedef struct _operator_ {
+  struct _ast_node_ * left;
+  struct _ast_node_ * right;
+  uint op;
+} * Oper;
 
 typedef struct _load_ {
   Name n;
@@ -196,6 +203,10 @@ typedef struct _ast_node_fac_ {
   AstNode (*NewToken)(uint pos, uint line, uint offset, char * str);
   AstNode (*NewOpen)(uint pos, uint line, uint offset, AstNode addr);
   AstNode (*NewPrint)(uint pos, uint line, uint offset, AstNode addr);
+  AstNode (*NewAssignment)(uint pos, uint line, uint offset, AstNode lval, AstNode op);
+  AstNode (*NewPlusOp)(uint pos, uint line, uint offset, AstNode left);
+  AstNode (*NewStarOp)(uint pos, uint line, uint offset, AstNode left);
+  AstNode (*NewHashOp)(uint pos, uint line, uint offset, AstNode left);
 } * AstNodeFactory;
 
 /*

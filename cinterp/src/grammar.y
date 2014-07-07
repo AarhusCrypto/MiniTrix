@@ -27,6 +27,10 @@
 %token OPEN
 %token PRINT
 %token SECRET
+%token HASH
+%token PLUS
+%token STAR
+%token EQ
 %%
 
 ROOT:
@@ -196,3 +200,35 @@ PRINT NUMBER {
   AstNode addr = $2;
   $$ = anf->NewPrint(t->pos, t->line, t->offset, addr);
 }
+|
+NAME EQ NAME op {
+  AstNode lval = $1;
+  AstNode t = $2;
+  AstNode left = $3;
+  Oper operator = (Oper)$4;
+  if (!operator) {
+    $$ = 0;return;
+  }
+  operator->left = left;
+  $$ = anf->NewAssignment(t->pos, t->line, t->offset, lval, operator);
+}
+
+op:
+PLUS NAME {
+  AstNode t = $1;
+  AstNode n = $2;
+  $$ = anf->NewPlusOp(t->pos,t->line,t->offset,n);
+}
+|
+STAR NAME {
+  AstNode t = $1;
+  AstNode n = $2;
+  $$ = anf->NewStarOp(t->pos,t->line,t->offset,n);
+}
+|
+HASH NAME {
+  AstNode t = $1;
+  AstNode n = $2;
+  $$ = anf->NewHashOp(t->pos,t->line,t->offset,n);
+}
+

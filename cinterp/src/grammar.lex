@@ -65,7 +65,12 @@
 "print"     { ch();token();return PRINT; }
 "["         { ch();token();return LSQBRACK; }
 "]"         { ch();token();return RSQBRACK; }
-[a-zA-Z_0-9]+ { ch();
+"="         { ch();token();return EQ;}
+"+"         { ch();token();return PLUS;}
+"%"         { ch();token();return HASH;}
+"*"         { ch();token();return STAR;}
+
+[a-zA-Z_][a-zA-Z_0-9]* { ch();
   yylval = anf->NewName(pos, line, offset, yytext);
   return NAME; 
 }
