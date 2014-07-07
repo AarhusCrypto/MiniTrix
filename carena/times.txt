@@ -1,0 +1,39 @@
+testsend: (6. marts 2014)
+
+SCENARIO    SIZE    COUNT   CLI TIME   SRV TIME   CLI OPS
+--------+---------+--------+---------+---------+------------------+  
+1       |  1024   |  64    | 81.1 ms | 81.7 ms | receive send     |
+--------+---------+--------+---------+---------+------------------+  
+2       |  1024   |  64    |  1.5 ms |  0.6 ms | receive receive  |
+--------+---------+--------+---------+---------+------------------+  
+3       |  1024   |  64    |  0.9 ms |  0.2 ms | send send        |
+--------+---------+--------+---------+---------+------------------+  
+4       |  1024   |  64    | 81.9 ms | 80.8 ms | send receive     |
+--------+---------+--------+---------+---------+------------------+  
+5       |  1024   |  64    |  0.3 ms |  0.1 ms | send             |
+--------+---------+--------+---------+---------+------------------+  
+6       |  1024   |  64    |  0.1 ms |  0.4 ms | receive          |
+--------+---------+--------+---------+---------+------------------+  
+
+// 
+Done Sending took 79836 at time 1394170707121306107 
+Started to receive at time 1394170707121479773
+ Done Receiving 0.390430 ms
+
+// @
+Done Sending took 51624 at time 1394170707124310719 
+Started to receive at time 1394170707124555325
+ Done Receiving 0.523477 ms 
+
+// 
+Done Sending took 58134 at time 1394170707127709021 
+Started to receive at time 1394170707127769498
+ Done Receiving 42.021355 ms
+
+Done Sending took 123560 at time 1394170707173140139 
+Started to receive at time 1394170707173358658
+ Done Receiving 39.009171 ms
+
+Done Sending took 34284 at time 1394170707214932680 
+Started to receive at time 1394170707215070704
+ Done Receiving 41919769 

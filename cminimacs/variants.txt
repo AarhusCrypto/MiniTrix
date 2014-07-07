@@ -1,0 +1,34 @@
+bitwiseand_minimacs.c
+---------------------
+Uses { [a_i] | i=0,..,7} and { [b_i] | i=0,..,7 }
+
+
+bitwiseandmulpar_minimacs.c
+---------------------------
+Uses bitwise and does simultaneous multiplications. Does not omit the
+opening of sigma star. There is not special bit-encoding in play here
+either.
+
+
+bitwisemulpar2_minimacs.c
+-------------------------
+All bells and whistles 
+- bitwise-AND trick
+- mulpar trick
+- omitting sigma step at all
+- symmetric
+- fast fourier transform on/off
+- bit encoding trick
+
+generic_minimacs.c
+------------------
+MiniMacs with no optimizations at all. No even symmetric.
+
+genericmulpar_minimacs.c
+------------------------------
+MiniMacs only using simultaneous multiplications
+
+symmetric_minimacs.c
+--------------------
+Symmetric MiniMacs where all parties compute sigma from an opening of
+sigma star.
