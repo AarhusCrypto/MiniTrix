@@ -9,16 +9,16 @@ release:
 	cd caes/linux && make -f linux.mak release  && make install
 	cd cinterp/linux && make -f linux.mak release  && make install
 
-debug	:
-	cd osal/linux && make -f linux.mak && make install
-	cd ds/linux && make -f linux.mak && make install
-	cd math/linux && make -f linux.mak && make install
-	cd encoding/linux && make -f linux.mak && make install
-	cd utils/linux && make -f linux.mak && make install
-	cd carena/linux && make -f linux.mak && make install
-	cd cminimacs/linux && make -f linux.mak && make install
-	cd caes/linux && make -f linux.mak && make install
-	cd cinterp/linux && make -f linux.mak && make install
+debug:
+	cd osal/linux && make -f linux.mak debug && make install
+	cd ds/linux && make -f linux.mak debug && make install
+	cd math/linux && make -f linux.mak debug && make install
+	cd encoding/linux && make -f linux.mak debug && make install
+	cd utils/linux && make -f linux.mak debug && make install
+	cd carena/linux && make -f linux.mak debug && make install
+	cd cminimacs/linux && make -f linux.mak debug && make install
+	cd caes/linux && make -f linux.mak debug && make install
+	cd cinterp/linux && make -f linux.mak debug && make install
 
 clean:
 	rm -rf debug release
