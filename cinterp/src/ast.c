@@ -2,6 +2,7 @@
 #include <coo.h>
 #include <singlelinkedlist.h>
 #include "y.tab.h"
+
 static
 AstNode AstNode_New(OE oe, uint pos, uint line, uint offset, void * impl) {
   AstNode node = (AstNode)oe->getmem(sizeof(*node));
@@ -415,6 +416,7 @@ COO_DEF_RET_ARGS(AstNodeFactory, AstNode, NewPrint, uint pos; uint line; uint of
     return result;
   }
 }
+
 
 COO_DCL(AstNode, void, visit_assignment, Visitor v);
 COO_DEF_NORET_ARGS(AstNode, visit_assignment, Visitor v;,v) {
