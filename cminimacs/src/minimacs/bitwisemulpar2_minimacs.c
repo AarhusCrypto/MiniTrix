@@ -933,6 +933,7 @@ typedef struct _waiting_connecting_listener_ {
   BlkQueue q;
   void (*wait_for)(uint n);
 } *WaitingConnectionListener;
+
 #define AS(SUB,PARENT) ((SUB)PARENT->impl) 
 
 COO_DCL(ConnectionListener, void, client_connected, MpcPeer peer)
@@ -987,7 +988,7 @@ COO_DEF_NORET_ARGS(WaitingConnectionListener, wait_for, uint count;,count) {
 }
 
 
-
+static
 ConnectionListener WaitingConnectionListener_new(OE oe, BitWiseMulPar2MiniMacs gmm) {
   WaitingConnectionListener wcl = (WaitingConnectionListener)oe->getmem(sizeof(*wcl));
   if (!wcl) return 0;

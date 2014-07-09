@@ -452,6 +452,11 @@ static void MpcPeerImpl_destroy( MpcPeer * peer ) {
   //  printf("Destroying peer, waiting for send lock\n");
   peer_i->outgoing->put(peer_i->die_package);
 
+  // okay the above has signaled both receiver and sender to stop, lets
+  // wait for them !
+  oe->jointhread(peer_i->sender);
+  oe->jointhread(peer_i->receiver);
+
   oe->lock(peer_i->send_lock);
   oe->lock(peer_i->receive_lock);
   //  printf("Acquired send lock, tearing down\n");
@@ -469,10 +474,6 @@ static void MpcPeerImpl_destroy( MpcPeer * peer ) {
   }
   oe->destroymutex(&peer_i->send_lock);
   oe->destroymutex(&peer_i->receive_lock);
-
-  oe->jointhread(peer_i->receiver);
-
-  oe->jointhread(peer_i->sender);
 
   oe->putmem(peer_i);
   oe->putmem(*peer);

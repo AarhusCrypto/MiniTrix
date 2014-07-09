@@ -873,7 +873,7 @@ COO_DEF_NORET_ARGS(WaitingConnectionListener, wait_for, uint count;,count) {
 }
 
 
-
+static
 ConnectionListener WaitingConnectionListener_new(OE oe, GenericMiniMacs gmm) {
   WaitingConnectionListener wcl = (WaitingConnectionListener)oe->getmem(sizeof(*wcl));
   if (!wcl) return 0;

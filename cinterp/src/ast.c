@@ -290,7 +290,11 @@ COO_DEF_RET_ARGS(AstNodeFactory, AstNode, NewConst,
   Const impl = (Const)this->oe->getmem(sizeof(*impl));
   AstNode result = AstNode_New(this->oe, pos, line, offset, impl);
 
-  impl->vals = (List)numlist->impl;
+  if (numlist) {
+    impl->vals = (List)numlist->impl;
+  } else {
+    impl->vals = SingleLinkedList_new(this->oe);
+  }
   impl->name = (Name)name->impl;
   impl->secret = secret;
   if (secret == True) {
@@ -298,7 +302,6 @@ COO_DEF_RET_ARGS(AstNodeFactory, AstNode, NewConst,
   }
   
   COO_ATTACH_FN(AstNode, result, visit, visit_const);
-
   return result;
 }
 

@@ -2,7 +2,7 @@
 #define COO_H
 #include <memory.h>
 #include <common.h>
-#define STUB_SIZE 512
+#define STUB_SIZE 538
 
 void * __get_rip__();
 

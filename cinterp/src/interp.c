@@ -6,6 +6,39 @@
 #include <unistd.h>
 #include <stats.h>
 
+static inline replica_private_input(byte val, uint dst, MiniMacs mm) {
+  uint rep = mm->get_ltext();
+  uint i = 0;
+  byte * r = malloc(rep);
+  uint player = 0;
+  uint nplayers = mm->get_no_peers()+1;
+
+  printf("ltext = %u\n", mm->get_ltext());
+  for(i = 0;i < rep;++i) {
+    r[i] = val;
+  }
+
+  for(player = 0; player < nplayers;++player) {
+    mm->secret_input(player,128,Data_shallow(r,rep));
+    mm->add(dst,128,dst);
+  }
+  free(r);
+}
+
+static inline
+void replica_public_input(byte val, uint dst, MiniMacs mm) {
+  uint rep = mm->get_ltext();
+  uint i = 0;
+  byte * r = malloc(rep);
+  for(i = 0;i < rep;++i) {
+    r[i] = val;
+  }
+  mm->public_input( dst, Data_shallow(r,rep));
+  free(r);
+}
+
+
+
 static uint str_hash(void * s) {
   char *ss = (char*)s;
   uint lss = 1;
@@ -54,6 +87,7 @@ typedef struct _interp_impl_ {
   Map env;
   uint cp;
   bool error;
+  bool replicate;
 } * InterpImpl;
 
 COO_DCL(Visitor, void, v_name, AstNode n);
@@ -225,9 +259,27 @@ COO_DEF_NORET_ARGS(Visitor, v_Const, AstNode node;,node) {
     id->addr = ii->cp++;
 
   if (n->secret == True) {
-    ii->mm->secret_input(n->id,id->addr, Data_shallow((byte*)&val,1));
+    if (ii->replicate) {
+      replica_private_input((byte)val, id->addr,ii->mm);
+    } else {
+      if (ii->mm->secret_input(n->id,id->addr, Data_shallow((byte*)&val,1)) != 0) {
+	char ms[128] = {0};
+	osal_sprintf(ms,"Failure at line: %u Const", node->line);
+	ii->oe->p(ms);
+	ii->error = True;
+      }
+    }
   } else {
-    ii->mm->public_input(id->addr,Data_shallow((byte*)&val,1));
+    if (ii->replicate) {
+      replica_public_input( (byte)val, id->addr, ii->mm );
+    } else {
+      if (ii->mm->public_input(id->addr,Data_shallow((byte*)&val,1)) != 0) {
+	char ms[128] = {0};
+	osal_sprintf(ms,"Failure at line: %u Const ", node->line);
+	ii->oe->p(ms);
+	ii->error = True;
+      }
+    }
   }
   ii->env->put(id->data, (void*)(ull)id->addr);
   i = ii->env->contains(id->data);
@@ -315,7 +367,7 @@ COO_DEF_NORET_ARGS(Visitor, v_HashOp, AstNode node;, node) {
   return;  
 }
 
-Visitor mpc_circuit_interpreter(OE oe, AstNode root,MiniMacs mm) {
+Visitor mpc_circuit_interpreter(OE oe, AstNode root,MiniMacs mm,bool replicate) {
   Visitor res = (Visitor)oe->getmem(sizeof(*res));
   InterpImpl ii = (InterpImpl)oe->getmem(sizeof(*ii));
   if (!res) goto failure;
@@ -325,6 +377,7 @@ Visitor mpc_circuit_interpreter(OE oe, AstNode root,MiniMacs mm) {
   ii->mm = mm;
   ii->cp = 1;
   ii->oe = oe;
+  ii->replicate =replicate;
   ii->env = HashMap_new(oe, str_hash, str_compare, 32);
 
   COO_ATTACH_FN(Visitor, res, Name, v_name);

@@ -186,7 +186,10 @@ COO_DCL( OE, void *, getmem, uint size)
 COO_DEF_RET_ARGS(OE, void *, getmem, uint i;,i) {
   uint j = 0;
   byte * res = (byte*) malloc(i);
-  if (!res) return 0;
+  if (!res) { 
+    this->syslog(OSAL_LOGLEVEL_FATAL, "Out of memory");
+    return 0;
+  }
   for(j=0;j<i;++j) res[j] = 0;
   return res;
 }

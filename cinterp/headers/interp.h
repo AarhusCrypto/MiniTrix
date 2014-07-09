@@ -47,6 +47,14 @@ Changes:
 #include "ast.h"
 #include <minimacs/minimacs.h>
 
-Visitor mpc_circuit_interpreter(OE oe, AstNode root, MiniMacs mm);
+/*!
+ *
+ *
+ * \param oe - OperatingEnvironment
+ * \param root - ast root
+ * \param mm - minimacs instance
+ * \param replicate - copy input bits to all bits in the representation
+ */
+Visitor mpc_circuit_interpreter(OE oe, AstNode root, MiniMacs mm, bool replicate);
 
 #endif
