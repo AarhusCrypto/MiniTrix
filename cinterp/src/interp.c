@@ -270,7 +270,7 @@ COO_DEF_NORET_ARGS(Visitor, v_init_heap, AstNode node;,node) {
 
 COO_DCL(Visitor, void, v_Number, AstNode n);
 COO_DEF_NORET_ARGS(Visitor, v_Number, AstNode n;,n) {
-  printf("Number\n");
+
 }
 
 COO_DCL(Visitor, void, v_List, AstNode node);
@@ -278,7 +278,6 @@ COO_DEF_NORET_ARGS(Visitor, v_List, AstNode node;,node) {
   InterpImpl ii = (InterpImpl)this->impl;
   List n = (List)node->impl;
   uint siz = 0, i = 0;
-  printf("List\n");
   siz = n->size();
   for(i = 0; i < siz;++i) {
     AstNode cur = n->get_element(i);
@@ -287,6 +286,34 @@ COO_DEF_NORET_ARGS(Visitor, v_List, AstNode node;,node) {
       return;
     }
   }
+}
+
+COO_DCL(Visitor, void, v_Assignment, AstNode node);
+COO_DEF_NORET_ARGS(Visitor, v_Assignment, AstNode node;,node) {
+  InterpImpl ii = (InterpImpl)this->impl;
+  // TODO(rwl): Implement me
+  return;
+}
+
+COO_DCL(Visitor, void, v_PlusOp, AstNode node);
+COO_DEF_NORET_ARGS(Visitor, v_PlusOp, AstNode node;, node) {
+  InterpImpl ii =  (InterpImpl)this->impl;
+  // TODO(rwl): Implement me
+  return;  
+}
+
+COO_DCL(Visitor, void, v_StarOp, AstNode node);
+COO_DEF_NORET_ARGS(Visitor, v_StarOp, AstNode node;, node) {
+  InterpImpl ii =  (InterpImpl)this->impl;
+  // TODO(rwl): Implement me
+  return;  
+}
+
+COO_DCL(Visitor, void, v_HashOp, AstNode node);
+COO_DEF_NORET_ARGS(Visitor, v_HashOp, AstNode node;, node) {
+  InterpImpl ii =  (InterpImpl)this->impl;
+  // TODO(rwl): Implement me
+  return;  
 }
 
 Visitor mpc_circuit_interpreter(OE oe, AstNode root,MiniMacs mm) {

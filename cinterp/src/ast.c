@@ -1,7 +1,7 @@
 #include "ast.h"
 #include <coo.h>
 #include <singlelinkedlist.h>
-
+#include "y.tab.h"
 static
 AstNode AstNode_New(OE oe, uint pos, uint line, uint offset, void * impl) {
   AstNode node = (AstNode)oe->getmem(sizeof(*node));
@@ -416,6 +416,86 @@ COO_DEF_RET_ARGS(AstNodeFactory, AstNode, NewPrint, uint pos; uint line; uint of
   }
 }
 
+COO_DCL(AstNode, void, visit_assignment, Visitor v);
+COO_DEF_NORET_ARGS(AstNode, visit_assignment, Visitor v;,v) {
+  v->Assignment( this );
+}
+
+COO_DCL(AstNodeFactory, AstNode, NewAssignment, uint pos, uint line, uint offset, AstNode dst, AstNode exp);
+COO_DEF_RET_ARGS(AstNodeFactory, AstNode, NewAssignment, 
+		 uint pos; uint line; uint offset; AstNode dst; AstNode exp;,
+		 pos, line, offset, dst, exp){
+
+  Assignment impl = this->oe->getmem(sizeof(*impl));
+  impl->dst = dst;
+  impl->exp = exp;
+  AstNode result = AstNode_New(this->oe, pos, line, offset, impl);
+  COO_ATTACH_FN(AstNode, result, visit, visit_assignment);
+  return result;
+}
+
+COO_DCL(AstNode, void, visit_plusop, Visitor v);
+COO_DEF_NORET_ARGS(AstNode, visit_plusop, Visitor v;,v) {
+  v->PlusOp( this );
+}
+
+
+COO_DCL(AstNodeFactory, AstNode, NewPlusOp, uint pos, uint line, uint offset, AstNode left, AstNode right);
+COO_DEF_RET_ARGS(AstNodeFactory, AstNode, NewPlusOp, 
+		 uint pos; uint line; uint offset; AstNode left; AstNode right;,
+		 pos, line, offset, left, right) {
+
+  Oper impl = (Oper)this->oe->getmem(sizeof(*impl));
+  impl->left=left;
+  impl->right=right;
+  impl->op = PLUS;
+  AstNode result = AstNode_New(this->oe, pos, line, offset, impl);
+  COO_ATTACH_FN(AstNode, result, visit, visit_plusop);
+  return result;
+
+}
+
+COO_DCL(AstNode, void, visit_starop, Visitor v);
+COO_DEF_NORET_ARGS(AstNode, visit_starop, Visitor v;,v) {
+  v->StarOp( this );
+}
+
+COO_DCL(AstNodeFactory, AstNode, NewStarOp, uint pos, uint line, uint offset, AstNode left, AstNode right);
+COO_DEF_RET_ARGS(AstNodeFactory, AstNode, NewStarOp, 
+		 uint pos; uint line; uint offset; AstNode left; AstNode right;,
+		 pos, line, offset, left, right) {
+
+  Oper impl = (Oper)this->oe->getmem(sizeof(*impl));
+  impl->left = left;
+  impl->right = right;
+  impl->op = STAR;
+  AstNode result = AstNode_New(this->oe, pos, line, offset, impl);
+  COO_ATTACH_FN(AstNode, result, visit, visit_starop);
+  return result;
+
+}
+
+COO_DCL(AstNode, void, visit_hashop, Visitor v);
+COO_DEF_NORET_ARGS(AstNode, visit_hashop, Visitor v;,v) {
+  v->HashOp( this );
+}
+
+COO_DCL(AstNodeFactory, AstNode, NewHashOp, uint pos, uint line, uint offset, AstNode left, AstNode right);
+COO_DEF_RET_ARGS(AstNodeFactory, AstNode, NewHashOp, 
+		 uint pos; uint line; uint offset; AstNode left; AstNode right;,
+		 pos, line, offset, left, right) {
+
+  Oper impl = (Oper)this->oe->getmem(sizeof(*impl));
+  impl->left = left;
+  impl->right = right;
+  impl->op = HASH;
+  AstNode result = AstNode_New(this->oe, pos, line, offset, impl);
+  COO_ATTACH_FN(AstNode, result, visit, visit_hashop);
+  return result;
+}
+
+
+
 AstNodeFactory AstNodeFactory_New(OE oe) {
   AstNodeFactory anf = (AstNodeFactory)oe->getmem(sizeof(*anf));
   if (!anf) return 0;
@@ -436,6 +516,10 @@ AstNodeFactory AstNodeFactory_New(OE oe) {
   COO_ATTACH(AstNodeFactory, anf, NewToken);
   COO_ATTACH(AstNodeFactory, anf, NewOpen);
   COO_ATTACH(AstNodeFactory, anf, NewPrint);
+  COO_ATTACH(AstNodeFactory, anf, NewAssignment);
+  COO_ATTACH(AstNodeFactory, anf, NewPlusOp);
+  COO_ATTACH(AstNodeFactory, anf, NewStarOp);
+  COO_ATTACH(AstNodeFactory, anf, NewHashOp);
 
   anf->oe = oe;
 

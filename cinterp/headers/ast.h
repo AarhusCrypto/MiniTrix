@@ -123,6 +123,12 @@ typedef struct _sload_ {
   Name n;
   uint dst;
 } * Sload;
+
+typedef struct _assignment_ {
+  Name dst;
+  struct _ast_node_ * exp;
+} * Assignment;
+
 /************************************************************/
 
 struct _visitor_;
@@ -166,6 +172,11 @@ typedef struct _visitor_ {
   void(*List)(AstNode l);
   void(*Open)(AstNode o);
   void(*Print)(AstNode p);
+  void(*Assignment)(AstNode p);
+  void(*PlusOp)(AstNode p);
+  void(*StarOp)(AstNode p);
+  void(*HashOp)(AstNode p);
+ 
   void * impl;
 } * Visitor;
 
