@@ -200,6 +200,7 @@ PRINT NUMBER {
   AstNode addr = $2;
   $$ = anf->NewPrint(t->pos, t->line, t->offset, addr);
 }
+
 |
 NAME EQ NAME op {
   AstNode lval = $1;

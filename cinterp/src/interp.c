@@ -270,7 +270,11 @@ COO_DEF_NORET_ARGS(Visitor, v_init_heap, AstNode node;,node) {
 
 COO_DCL(Visitor, void, v_Number, AstNode n);
 COO_DEF_NORET_ARGS(Visitor, v_Number, AstNode n;,n) {
+<<<<<<< HEAD
 
+=======
+  printf("Number\n");
+>>>>>>> d0e077b051ddc418440addc41a302712458e3921
 }
 
 COO_DCL(Visitor, void, v_List, AstNode node);
@@ -278,6 +282,10 @@ COO_DEF_NORET_ARGS(Visitor, v_List, AstNode node;,node) {
   InterpImpl ii = (InterpImpl)this->impl;
   List n = (List)node->impl;
   uint siz = 0, i = 0;
+<<<<<<< HEAD
+=======
+  printf("List\n");
+>>>>>>> d0e077b051ddc418440addc41a302712458e3921
   siz = n->size();
   for(i = 0; i < siz;++i) {
     AstNode cur = n->get_element(i);
