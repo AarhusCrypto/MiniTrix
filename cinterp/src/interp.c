@@ -367,6 +367,7 @@ COO_DEF_NORET_ARGS(Visitor, v_HashOp, AstNode node;, node) {
   return;  
 }
 
+
 Visitor mpc_circuit_interpreter(OE oe, AstNode root,MiniMacs mm,bool replicate) {
   Visitor res = (Visitor)oe->getmem(sizeof(*res));
   InterpImpl ii = (InterpImpl)oe->getmem(sizeof(*ii));
