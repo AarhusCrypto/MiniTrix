@@ -1,4 +1,0 @@
-2014-05-13:
-	Create utils to contains various utilities for programs. At the
-	time of writting motivated by having a command line option
-	handler.
