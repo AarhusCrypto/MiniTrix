@@ -1,0 +1,79 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Dep Files">
+      <UniqueIdentifier>{6aa7bb75-59fb-4c51-9b1b-8d2f53b8bede}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\src\carena.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\platform\osal\src\common.c">
+      <Filter>Dep Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\platform\osal\src\rnd.c">
+      <Filter>Dep Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\platform\osal\src\singlelinkedlist.c">
+      <Filter>Dep Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\platform\osal\winx64_src\coov4.c">
+      <Filter>Dep Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\platform\osal\winx64_src\mutex2.c">
+      <Filter>Dep Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\platform\osal\winx64_src\osal.c">
+      <Filter>Dep Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\platform\datetime\src\datetime.c">
+      <Filter>Dep Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ds\src\blockingqueue.c">
+      <Filter>Dep Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ds\src\hashmap.c">
+      <Filter>Dep Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ds\src\map.c">
+      <Filter>Dep Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ds\src\stats.c">
+      <Filter>Dep Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\encoding\src\encoding\der.c">
+      <Filter>Dep Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\encoding\src\encoding\hex.c">
+      <Filter>Dep Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\encoding\src\encoding\int.c">
+      <Filter>Dep Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\utils\src\utils\options.c">
+      <Filter>Dep Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\include\carena.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="..\..\..\..\platform\osal\winx64_src\coov4.asm">
+      <Filter>Source Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\..\platform\osal\winx64_src\mutex.asm">
+      <Filter>Source Files</Filter>
+    </CustomBuild>
+  </ItemGroup>
+</Project>

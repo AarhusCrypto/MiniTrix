@@ -1,0 +1,13 @@
+************************************************************
+
+
+		Operating System Abstraction Layer
+
+
+
+************************************************************
+
+
+osal.h defines the abstraction layer. This project is currently
+specific for Linix and BSDs. However it should be forked into one for
+MAC and one for Windows at some point.

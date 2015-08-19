@@ -1,0 +1,230 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{1ADCB7A2-5292-4885-B7EA-DA92FB21865B}</ProjectGuid>
+    <RootNamespace>cminimacs</RootNamespace>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup />
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+            <AdditionalIncludeDirectories>
+	  ..\;
+	  ..\..\include;
+	  ..\..\..\..\platform\osal\include;
+	  ..\..\..\..\platform\datetime\include;
+	  ..\..\..\..\common\carena\include;
+	  ..\..\..\..\common\ds\include;
+	  ..\..\..\..\common\encoding\include;
+	  ..\..\..\..\common\utils\include;
+	  ..\..\..\math\include;
+	  </AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WINDOWS;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalUsingDirectories>
+      </AdditionalUsingDirectories>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Console</SubSystem>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\..\..\platform\datetime\include\datetime.h" />
+    <ClInclude Include="..\..\..\..\platform\osal\include\common.h" />
+    <ClInclude Include="..\..\..\..\platform\osal\include\coov4.h" />
+    <ClInclude Include="..\..\..\..\platform\osal\include\list.h" />
+    <ClInclude Include="..\..\..\..\platform\osal\include\memory.h" />
+    <ClInclude Include="..\..\..\..\platform\osal\include\mutex.h" />
+    <ClInclude Include="..\..\..\..\platform\osal\include\osal.h" />
+    <ClInclude Include="..\..\..\..\platform\osal\include\rnd.h" />
+    <ClInclude Include="..\..\..\..\platform\osal\include\singlelinkedlist.h" />
+    <ClInclude Include="..\..\..\..\platform\osal\include\testcase.h" />
+    <ClInclude Include="..\..\..\..\common\ds\include\blockingqueue.h" />
+    <ClInclude Include="..\..\..\..\common\ds\include\hashmap.h" />
+    <ClInclude Include="..\..\..\..\common\ds\include\map.h" />
+    <ClInclude Include="..\..\..\..\common\ds\include\stats.h" />
+    <ClInclude Include="..\..\..\..\common\encoding\include\encoding\der.h" />
+    <ClInclude Include="..\..\..\..\common\encoding\include\encoding\hex.h" />
+    <ClInclude Include="..\..\..\..\common\encoding\include\encoding\int.h" />
+    <ClInclude Include="..\..\..\..\common\utils\include\utils\options.h" />
+    <ClInclude Include="..\..\..\..\common\carena\include\carena.h" />
+    <ClInclude Include="..\..\..\math\include\math\fft.h" />
+    <ClInclude Include="..\..\..\math\include\math\field.h" />
+    <ClInclude Include="..\..\..\math\include\math\gf8.h" />
+    <ClInclude Include="..\..\..\math\include\math\matrix.h" />
+    <ClInclude Include="..\..\..\math\include\math\polynomial.h" />
+    <ClInclude Include="..\..\include\ass\ass.h" />
+    <ClInclude Include="..\..\include\bedoza\bedoza_mac.h" />
+    <ClInclude Include="..\..\include\minimacs\bitwiseandmulpar_minimacs.h" />
+    <ClInclude Include="..\..\include\minimacs\bitwiseand_minimacs.h" />
+    <ClInclude Include="..\..\include\minimacs\bitwisemulpar2_minimacs.h" />
+    <ClInclude Include="..\..\include\minimacs\genericmulpar_minimacs.h" />
+    <ClInclude Include="..\..\include\minimacs\generic_minimacs.h" />
+    <ClInclude Include="..\..\include\minimacs\minimacs.h" />
+    <ClInclude Include="..\..\include\minimacs\minimacs_pre.h" />
+    <ClInclude Include="..\..\include\minimacs\minimacs_rep.h" />
+    <ClInclude Include="..\..\include\minimacs\symmetric_minimacs.h" />
+    <ClInclude Include="..\..\include\reedsolomon\minimacs_bitfft_encoder.h" />
+    <ClInclude Include="..\..\include\reedsolomon\minimacs_bit_encoder.h" />
+    <ClInclude Include="..\..\include\reedsolomon\minimacs_combi_encoder.h" />
+    <ClInclude Include="..\..\include\reedsolomon\minimacs_enc_fft.h" />
+    <ClInclude Include="..\..\include\reedsolomon\reedsolomon.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\..\..\platform\datetime\src\datetime.c" />
+    <ClCompile Include="..\..\..\..\platform\osal\src\common.c" />
+    <ClCompile Include="..\..\..\..\platform\osal\src\rnd.c" />
+    <ClCompile Include="..\..\..\..\platform\osal\src\singlelinkedlist.c" />
+    <ClCompile Include="..\..\..\..\platform\osal\winx64_src\coov4.c" />
+    <ClCompile Include="..\..\..\..\platform\osal\winx64_src\mutex2.c" />
+    <ClCompile Include="..\..\..\..\platform\osal\winx64_src\osal.c" />
+    <ClCompile Include="..\..\..\..\common\ds\src\blockingqueue.c" />
+    <ClCompile Include="..\..\..\..\common\ds\src\hashmap.c" />
+    <ClCompile Include="..\..\..\..\common\ds\src\map.c" />
+    <ClCompile Include="..\..\..\..\common\ds\src\stats.c" />
+    <ClCompile Include="..\..\..\..\common\encoding\src\encoding\der.c" />
+    <ClCompile Include="..\..\..\..\common\encoding\src\encoding\hex.c" />
+    <ClCompile Include="..\..\..\..\common\encoding\src\encoding\int.c" />
+    <ClCompile Include="..\..\..\..\common\utils\src\utils\options.c" />
+    <ClCompile Include="..\..\..\..\common\carena\src\carena.c" />
+    <ClCompile Include="..\..\..\math\src\math\fft.c" />
+    <ClCompile Include="..\..\..\math\src\math\matrix.c" />
+    <ClCompile Include="..\..\..\math\src\math\polynomial.c" />
+    <ClCompile Include="..\..\src\ass\ass.c" />
+    <ClCompile Include="..\..\src\bedoza\bedoza_mac.c" />
+    <ClCompile Include="..\..\src\minimacs\bitwiseandmulpar_minimacs.c" />
+    <ClCompile Include="..\..\src\minimacs\bitwiseand_minimacs.c" />
+    <ClCompile Include="..\..\src\minimacs\bitwisemulpar2_minimacs.c" />
+    <ClCompile Include="..\..\src\minimacs\genericmulpar_minimacs.c" />
+    <ClCompile Include="..\..\src\minimacs\generic_minimacs.c" />
+    <ClCompile Include="..\..\src\minimacs\genpre.c" />
+    <ClCompile Include="..\..\src\minimacs\lsrep.c" />
+    <ClCompile Include="..\..\src\minimacs\minimacs.c" />
+    <ClCompile Include="..\..\src\minimacs\minimacs_pre.c" />
+    <ClCompile Include="..\..\src\minimacs\minimacs_rep.c" />
+    <ClCompile Include="..\..\src\minimacs\symmetric_minimacs.c" />
+    <ClCompile Include="..\..\src\reedsolomon\minimacs_bitfft_encoder.c" />
+    <ClCompile Include="..\..\src\reedsolomon\minimacs_bit_encoder.c" />
+    <ClCompile Include="..\..\src\reedsolomon\minimacs_combi_encoder.c" />
+    <ClCompile Include="..\..\src\reedsolomon\minimacs_enc_fft.c" />
+    <ClCompile Include="..\..\src\reedsolomon\reedsolomon.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="..\..\..\..\platform\osal\winx64_src\coov4.asm">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">"C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\amd64\ml64.exe" /Zi /c /Fo$(outdir)\coov4asm.obj %(FullPath)</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(outdir)\coov4asm.obj</Outputs>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="..\..\..\..\platform\osal\winx64_src\mutex.asm">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">"C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\amd64\ml64.exe" /Zi /c /Fo$(outdir)\mutexasm.obj %(FullPath)</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(outdir)\mutexasm.obj</Outputs>
+    </CustomBuild>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

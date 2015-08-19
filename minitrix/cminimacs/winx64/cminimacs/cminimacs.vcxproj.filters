@@ -1,0 +1,328 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="carena">
+      <UniqueIdentifier>{2a80d64f-0ff3-4307-b3b0-8c7bcd65bbc2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="osal">
+      <UniqueIdentifier>{cb6a800e-5e1f-48f3-96da-ff7dfd7170ad}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="carena\Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="carena\Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="osal\Header Files">
+      <UniqueIdentifier>{9d653304-2cb1-4dc2-8b61-8189712d3f46}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="osal\Source Files">
+      <UniqueIdentifier>{72b3dfd3-5127-4b9b-94ee-dbfca640677a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="osal\Winx64 Source Files">
+      <UniqueIdentifier>{892c1a26-fb84-468d-a31a-e837f7dd99fc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ds">
+      <UniqueIdentifier>{d8b046f5-0f85-4854-a970-353baac65cce}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="encoding">
+      <UniqueIdentifier>{8e55fec8-89d7-4172-9105-6e696227e370}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="utils">
+      <UniqueIdentifier>{93df0baf-76c8-49ef-955a-de87e9a100f7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ds\Source Files">
+      <UniqueIdentifier>{cde375e2-8f91-49ad-9d35-bc09d3b466d6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ds\Header Files">
+      <UniqueIdentifier>{fdab720a-08a6-4091-b9ae-041940b5da85}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="encoding\Source Files">
+      <UniqueIdentifier>{c6835786-aee6-4fe9-a3aa-3689fb89bd03}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="encoding\Header Files">
+      <UniqueIdentifier>{7550ef20-6e24-409e-a16d-9813e4518cd7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="utils\Source Files">
+      <UniqueIdentifier>{02ef9809-fada-467d-a3ef-abb6087cc493}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="utils\Header Files">
+      <UniqueIdentifier>{532b7f39-26ef-4992-b589-2b0210cf46f9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="datetime">
+      <UniqueIdentifier>{30b1c97a-e06b-42fb-abd6-8c9d74c811eb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="datetime\Header Files">
+      <UniqueIdentifier>{fcb54051-0b49-47ad-b3dc-ee00c24d8eac}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="datetime\Source Files">
+      <UniqueIdentifier>{47eff60f-4deb-4e01-bd5a-2040489822d7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="cminimacs">
+      <UniqueIdentifier>{d853dedd-aeef-4965-b52b-f7601d99b025}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="cminimacs\Source Files">
+      <UniqueIdentifier>{37aa3ef9-5540-4afe-8383-832a5a8e3218}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="cminimacs\Header Files">
+      <UniqueIdentifier>{cfb3388f-b1d5-4bfa-9bee-d80e6c0014fc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="cminimacs\Resource Files">
+      <UniqueIdentifier>{a84ab2ea-9e14-4274-989d-d965116b2a4c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="math">
+      <UniqueIdentifier>{fbc8c727-ecd0-4ae6-beed-021d897876be}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="math\Source Files">
+      <UniqueIdentifier>{15069199-a417-431f-bb1a-a6d13eba926f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="math\Header Files">
+      <UniqueIdentifier>{aff21775-928c-4bac-a85e-13b81071fcb3}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\..\..\platform\osal\include\common.h">
+      <Filter>osal\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\platform\osal\include\coov4.h">
+      <Filter>osal\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\platform\osal\include\list.h">
+      <Filter>osal\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\platform\osal\include\memory.h">
+      <Filter>osal\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\platform\osal\include\mutex.h">
+      <Filter>osal\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\platform\osal\include\osal.h">
+      <Filter>osal\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\platform\osal\include\rnd.h">
+      <Filter>osal\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\platform\osal\include\singlelinkedlist.h">
+      <Filter>osal\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\platform\osal\include\testcase.h">
+      <Filter>osal\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\platform\datetime\include\datetime.h">
+      <Filter>datetime\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\common\carena\include\carena.h">
+      <Filter>carena\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\common\utils\include\utils\options.h">
+      <Filter>utils\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\common\ds\include\hashmap.h">
+      <Filter>ds\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\common\ds\include\blockingqueue.h">
+      <Filter>ds\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\common\ds\include\map.h">
+      <Filter>ds\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\common\ds\include\stats.h">
+      <Filter>ds\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\common\encoding\include\encoding\der.h">
+      <Filter>encoding\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\common\encoding\include\encoding\hex.h">
+      <Filter>encoding\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\common\encoding\include\encoding\int.h">
+      <Filter>encoding\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\math\include\math\fft.h">
+      <Filter>math\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\math\include\math\field.h">
+      <Filter>math\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\math\include\math\gf8.h">
+      <Filter>math\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\math\include\math\matrix.h">
+      <Filter>math\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\math\include\math\polynomial.h">
+      <Filter>math\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\ass\ass.h">
+      <Filter>cminimacs\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\bedoza\bedoza_mac.h">
+      <Filter>cminimacs\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\minimacs\bitwiseand_minimacs.h">
+      <Filter>cminimacs\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\minimacs\bitwiseandmulpar_minimacs.h">
+      <Filter>cminimacs\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\minimacs\bitwisemulpar2_minimacs.h">
+      <Filter>cminimacs\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\minimacs\generic_minimacs.h">
+      <Filter>cminimacs\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\minimacs\genericmulpar_minimacs.h">
+      <Filter>cminimacs\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\minimacs\minimacs.h">
+      <Filter>cminimacs\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\minimacs\minimacs_pre.h">
+      <Filter>cminimacs\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\minimacs\minimacs_rep.h">
+      <Filter>cminimacs\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\minimacs\symmetric_minimacs.h">
+      <Filter>cminimacs\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\reedsolomon\minimacs_bit_encoder.h">
+      <Filter>cminimacs\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\reedsolomon\minimacs_bitfft_encoder.h">
+      <Filter>cminimacs\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\reedsolomon\minimacs_combi_encoder.h">
+      <Filter>cminimacs\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\reedsolomon\minimacs_enc_fft.h">
+      <Filter>cminimacs\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\reedsolomon\reedsolomon.h">
+      <Filter>cminimacs\Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\..\..\platform\osal\src\common.c">
+      <Filter>osal\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\platform\osal\src\rnd.c">
+      <Filter>osal\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\platform\osal\src\singlelinkedlist.c">
+      <Filter>osal\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\platform\osal\winx64_src\coov4.c">
+      <Filter>osal\Winx64 Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\platform\osal\winx64_src\mutex2.c">
+      <Filter>osal\Winx64 Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\platform\osal\winx64_src\osal.c">
+      <Filter>osal\Winx64 Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\platform\datetime\src\datetime.c">
+      <Filter>datetime\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\common\carena\src\carena.c">
+      <Filter>carena\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\ass\ass.c">
+      <Filter>cminimacs\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\bedoza\bedoza_mac.c">
+      <Filter>cminimacs\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\minimacs\bitwiseand_minimacs.c">
+      <Filter>cminimacs\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\minimacs\bitwiseandmulpar_minimacs.c">
+      <Filter>cminimacs\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\minimacs\bitwisemulpar2_minimacs.c">
+      <Filter>cminimacs\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\minimacs\generic_minimacs.c">
+      <Filter>cminimacs\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\minimacs\genericmulpar_minimacs.c">
+      <Filter>cminimacs\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\minimacs\genpre.c">
+      <Filter>cminimacs\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\minimacs\lsrep.c">
+      <Filter>cminimacs\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\minimacs\minimacs.c">
+      <Filter>cminimacs\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\minimacs\minimacs_pre.c">
+      <Filter>cminimacs\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\minimacs\minimacs_rep.c">
+      <Filter>cminimacs\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\minimacs\symmetric_minimacs.c">
+      <Filter>cminimacs\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\reedsolomon\minimacs_bit_encoder.c">
+      <Filter>cminimacs\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\reedsolomon\minimacs_bitfft_encoder.c">
+      <Filter>cminimacs\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\reedsolomon\minimacs_combi_encoder.c">
+      <Filter>cminimacs\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\reedsolomon\minimacs_enc_fft.c">
+      <Filter>cminimacs\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\reedsolomon\reedsolomon.c">
+      <Filter>cminimacs\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\common\ds\src\hashmap.c">
+      <Filter>ds\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\common\ds\src\blockingqueue.c">
+      <Filter>ds\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\common\encoding\src\encoding\int.c">
+      <Filter>encoding\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\common\encoding\src\encoding\der.c">
+      <Filter>encoding\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\common\encoding\src\encoding\hex.c">
+      <Filter>encoding\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\common\ds\src\stats.c">
+      <Filter>ds\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\common\ds\src\map.c">
+      <Filter>ds\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\common\utils\src\utils\options.c">
+      <Filter>utils\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\math\src\math\fft.c">
+      <Filter>math\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\math\src\math\matrix.c">
+      <Filter>math\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\math\src\math\polynomial.c">
+      <Filter>math\Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="..\..\..\..\platform\osal\winx64_src\coov4.asm">
+      <Filter>osal\Winx64 Source Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\..\..\platform\osal\winx64_src\mutex.asm">
+      <Filter>osal\Winx64 Source Files</Filter>
+    </CustomBuild>
+  </ItemGroup>
+</Project>
