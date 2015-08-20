@@ -52,23 +52,19 @@ Build:
 
 Every project is build on the Linux platform by typing
 
-make -f linux.mak debug
+./build.sh debug 
 
-make -f linux.mak release 
+./build.sh release
 
-depending on the version wanted in the *linux* subfolder of each
-project.
-
-The projects must be built in the following *order*, osal, math,
-ds, encoding, carena, cminimacs. Then caes and cinterp can be built
-independently of each other.
+depending on the version wanted. To reproduce our performance results 
+build the release version and follow the instructions below.
 
 Run:
 
-If successful the process above will create a *debug* or *release*
-folder next to this file. In this folder is the well known tree
-structure from /usr with bin, lib and include subfolders. In bin all
-the executable are, here a summary of a few of them:
+If successful the process above will create a *sys* folder next to
+ this file. In this folder is the well known tree structure from /usr
+ with bin, lib and include subfolders. In bin all the executable are,
+ here a summary of a few of them:
 
 genpre - generate preprocessing material
 
