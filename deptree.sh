@@ -39,12 +39,3 @@ set_swl "empiricalZK/rtz14" "05"
 set_swl "caes" "06"
 set_swl "dedicatedaes" "06"
 set_swl "cinterp" "06"
-
-# ------------------------------
-# SWL 90-99 - undetermined yet
-# ------------------------------
-set_swl "hash" "99"
-set_swl "viking/otext" "99"
-set_swl "viking/ot/" "99"
-set_swl "prg" "99"
-set_swl "viking/zk" "99"

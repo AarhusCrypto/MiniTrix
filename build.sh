@@ -7,15 +7,17 @@
 # Date: 27. Nov 2014
 # 
 # Description: The Umbrella project is defined by this file: One
-# umbrella script to build everything :D.
+# umbrella script to build everything.
 #
-# Well in fact it depends on the deptree.sh file to describe the build
-# order to resolve inter-project dependencies.
+# We depend only on deptree.sh file to describe the build
+# order resolving inter-project dependencies.
 #
 # Usage:
 #
-# build.sh [<project name>] - where <project name> is the name of the
-# sub-autotool project to build. Giving no argument builds everything.
+# build.sh <config> [<project name>] - where <config> is the
+# configuration debug or release and <project name> is the name of the
+# sub-autotool project to build. Giving no project name builds all
+# projects.
 #
 ############################################################
 
@@ -27,6 +29,8 @@ COLOR_GREEN="\033[1;32m"
 COLOR_WHITE="\033[1;38m"
 COLOR_RED="\033[1;31m"
 COLOR_YELLOW="\033[1;33m"
+
+echo ${0}
 
 if [ ! -f /bin/bash ]; 
 then
