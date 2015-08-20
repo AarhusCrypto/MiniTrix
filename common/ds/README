@@ -1,0 +1,11 @@
+************************************************************
+
+		DS is for Data Structures
+
+
+************************************************************
+
+
+DS provide a HashMap and a Blocking Queue. The List implementation and
+interface as implemented in OSAL as it needed this data structure to
+maintain file-descriptors and the kind.

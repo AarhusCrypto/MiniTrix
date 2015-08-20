@@ -9,6 +9,30 @@
  * @date: Feb 2015
  * @copyright: Aarhus University
  *
+ *
+ * The C-Object Orientation Library is a simple yet powerful library
+ * that offers a {this} pointer in struct member functions. If a
+ * member function is defined with COO_DEF and bound to a struct
+ * function pointer by COO_attach the function body will have access 
+ * to the struct-instances through a {this}-pointer.
+ *
+ * Example:
+ *
+ * typedef struct _my_car {
+ *    float fuel;
+ *    void (*drive)(uint km);
+ * } * MyCar;
+ *
+ * COO_DEF(MyCar,void,drive,uint km) {
+ *  this->fuel -= 0.3*km; // <--- The this argument is automatically 
+ *  // computed in this context by COO_DEF.
+ * }}
+ *
+ * The motivation for using COO rather than C++ is that some HSM
+ * implementations do not have full C++ support if any. Also,
+ * experimental FPGA systems can use this software with only a
+ * C-compiler and a few lines of inline assembly.
+ *
  */
 #include <common.h>
 #include <osal.h>

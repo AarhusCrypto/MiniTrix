@@ -1,1 +1,11 @@
-Required by automake to exists and of course it should
+************************************************************
+
+
+			DateTime
+
+
+************************************************************
+
+Getting high precision time from the system requires
+platform-dependent components. DateTime offers an COO-style object
+that reports time in a uniform way across platforms.

@@ -1,1 +1,12 @@
-Required by automake to exists and of course it should
+************************************************************
+
+
+			Encodings
+
+
+
+************************************************************
+
+
+DER, INT and HEX encoding is supported. We provide functions to
+serialise and reconstructs C-types from and to bytes arrays.

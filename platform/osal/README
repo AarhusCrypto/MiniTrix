@@ -8,6 +8,9 @@
 ************************************************************
 
 
-osal.h defines the abstraction layer. This project is currently
-specific for Linix and BSDs. However it should be forked into one for
-MAC and one for Windows at some point.
+osal.h defines the abstraction layer. This project has platform
+specific sources and general sources. Support for Posix style systems
+are implemented in posix_src while windows ai64 based systems are 
+implemented in winx64_src.
+
+

@@ -1,1 +1,11 @@
-Required by automake to exists and of course it should
+************************************************************
+
+		BCH Codes - Kindly Borrowed Library
+
+
+************************************************************
+
+Not in use yet. However, one extension to this codebase is to
+implement a more efficient commitment-scheme (the underlying
+cryptographic primitive). This most efficient scheme in the standalone
+model we know of is based on BCH codes. 

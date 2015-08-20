@@ -1,1 +1,17 @@
-Required by automake to exists and of course it should
+************************************************************
+
+
+		CArena - The Network Squid
+
+
+************************************************************
+
+
+CArena is a network layer abstracting network communication. We
+provide an interface CArena which COO-style object that maintains
+connected peers and listens for new connections. 
+
+Notice: CArena is build for one-shot fast execution of a protocol and
+exhausts 3 cores of CPU being extremely eager to receive, send and
+accept connections. A Server version for long term service of CArena
+requires a redesign.

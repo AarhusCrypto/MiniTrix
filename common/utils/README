@@ -1,1 +1,13 @@
-Required by automake to exists and of course it should
+************************************************************
+
+
+			Utilities
+
+
+************************************************************
+
+Various utilities:
+
+Options.h : Converts argc and argv to a Map. -key value pairis can be
+looked up by key while args with no preceeding -key is filed under 0,1 ....
+
