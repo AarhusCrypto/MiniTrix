@@ -13,7 +13,7 @@
 
   Acknowledgements: Many thanks goes to Jesper Buus Nielsen for
   providing C++ implementation of TinyOT on which ours is based. Thanks
-  to Tomas for several hours of debugging and rubber dugging.
+  to Tomas for several hours of debugging and rubber ducking.
 
 ************************************************************
 
@@ -21,12 +21,12 @@
 This software package is written to document the empirical result
 reported in the paper above. The timings reported in the paper were
 created using fresh-horses (the student available servers) at the
-department of computer science Aarhus University in 2014 running this
+Department of Computer Science Aarhus University in 2014 running this
 software. The timings were measured when built in release mode.
 
 ---------- STRUCTURE ---------- 
 
-This software is structured into several standard alone Linux
+This software is structured into several stand-alone Linux
 AutoTools projects producing static libries and executables to enable
 reuse of code for other (later) projects. From the bottom up, OSAL is
 an Operating System Abstraction Layer. It is the only party needed to
@@ -63,8 +63,8 @@ Run:
 
 If successful the process above will create a *sys* folder next to
  this file. In this folder is the well known tree structure from /usr
- with bin, lib and include subfolders. In bin all the executable are,
- here a summary of a few of them:
+ with bin, lib and include subfolders. Bin contains all the executables,
+ here follows a summary of a few of them:
 
 genpre - generate preprocessing material
 
